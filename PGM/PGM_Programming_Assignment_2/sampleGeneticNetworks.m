@@ -40,7 +40,7 @@ pedigree.names = {'Ira','James','Robin'};
 alleleFreqs = [0.1; 0.9];
 alphaList = [0.8; 0.6; 0.1];
 sampleFactorList = load('sampleFactorList.mat'); % Comment out this line for testing
-% sampleFactorList = constructGeneticNetwork(pedigree, alleleFreqs, alphaList);
+sampleFactorList = constructGeneticNetwork(pedigree, alleleFreqs, alphaList);
 
 % Testing phenotypeGivenCopiesFactor:
 alphaListThree = [0.8; 0.6; 0.1; 0.5; 0.05; 0.01];
