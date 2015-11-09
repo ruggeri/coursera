@@ -54,40 +54,48 @@ genotypeFactor = struct('var', [], 'card', [], 'val', []);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %INSERT YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+numGenotypes = length(genotypesToAlleles);
 
 % Fill in genotypeFactor.var.  This should be a 1-D row vector.
 genotypeFactor.var = [genotypeVarChild, genotypeVarParentOne, genotypeVarParentTwo];
 % Fill in genotypeFactor.card.  This should be a 1-D row vector.
-genotypeFactor.card = [3, 3, 3];
+genotypeFactor.card = repmat(numGenotypes, 1, 3);
+disp(genotypeFactor.card);
 
 genotypeFactor.val = zeros(1, prod(genotypeFactor.card));
 % Replace the zeros in genotypeFactor.val with the correct values.
 
-i = 1;
-for p1=1:3
-  for p2=1:3
-    if p1 == 1 && p2 == 1
-      % Both are homozygous dominant. Child homozygous dominant.
-      genotypeFactor.val(i:(i+2)) = [1.0, 0.0, 0.0];
-    elseif (p1 == 2 && p2 == 2)
-      % Both parents heterozygous. Likely to be heterozygous.
-      genotypeFactor.val(i:(i+2)) = [0.25, 0.5, 0.25];
-    elseif p1 == 3 && p2 == 3
-      % Both are homozygous recessive. Child homozygous recessive.
-      genotypeFactor.val(i:(i+2)) = [0.0, 0.0, 1.0];
-    elseif (p1 == 1 && p2 == 2) || (p1 == 2 && p2 == 1)
-      % 1 parent homozygous dominant, other heterozygous.
-      genotypeFactor.val(i:(i+2)) = [0.5, 0.5, 0.0];
-    elseif (p1 == 1 && p2 == 3) || (p1 == 3 && p2 == 1)
-      % 1 parent homozygous dominant, other homozygous recessive. Has
-      % to be heterozygous.
-      genotypeFactor.val(i:(i+2)) = [0.0, 1.0, 0.0];
-    elseif (p1 == 2 && p2 == 3) || (p1 == 3 && p2 == 2)
-      % 1 parent homozygous recessive, other heterozygous.
-      genotypeFactor.val(i:(i+2)) = [0.0, 0.5, 0.5];
+for i=1:length(genotypeFactor.val)
+  childGenotype = mod(i-1, numGenotypes)+1;
+  parent1Genotype = mod(floor((i-1)/numGenotypes), numGenotypes)+1;
+  parent2Genotype = floor((i-1)/(numGenotypes*numGenotypes))+1;
+
+%  disp("GO");
+%  disp(i);
+%  disp(childGenotype);
+%  disp(parent1Genotype);
+%  disp(parent2Genotype);
+
+  childAlleles = genotypesToAlleles(childGenotype, :);
+  parent1Alleles = genotypesToAlleles(parent1Genotype, :);
+  parent2Alleles = genotypesToAlleles(parent2Genotype, :);
+
+  % Child genotype not possible unless one allele is present in both
+  % parents.
+  if isempty(intersect(childAlleles, parent1Alleles))
+    continue;
+  elseif isempty(intersect(childAlleles, parent2Alleles))
+    continue;
+  end
+
+  for j=1:2
+    for k=1:2
+      if sort(childAlleles) == sort([parent1Alleles(j), parent2Alleles(k)])
+        genotypeFactor.val(i) += 0.25;
+      end
     end
-    i += 3;
   end
 end
 
