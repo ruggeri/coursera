@@ -62,7 +62,6 @@ numGenotypes = length(genotypesToAlleles);
 genotypeFactor.var = [genotypeVarChild, genotypeVarParentOne, genotypeVarParentTwo];
 % Fill in genotypeFactor.card.  This should be a 1-D row vector.
 genotypeFactor.card = repmat(numGenotypes, 1, 3);
-disp(genotypeFactor.card);
 
 genotypeFactor.val = zeros(1, prod(genotypeFactor.card));
 % Replace the zeros in genotypeFactor.val with the correct values.
@@ -71,12 +70,6 @@ for i=1:length(genotypeFactor.val)
   childGenotype = mod(i-1, numGenotypes)+1;
   parent1Genotype = mod(floor((i-1)/numGenotypes), numGenotypes)+1;
   parent2Genotype = floor((i-1)/(numGenotypes*numGenotypes))+1;
-
-%  disp("GO");
-%  disp(i);
-%  disp(childGenotype);
-%  disp(parent1Genotype);
-%  disp(parent2Genotype);
 
   childAlleles = genotypesToAlleles(childGenotype, :);
   parent1Alleles = genotypesToAlleles(parent1Genotype, :);
