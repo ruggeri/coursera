@@ -53,13 +53,6 @@ function factorList = constructGeneticNetwork(pedigree, alleleFreqs, alphaList)
 %   (In each factor, .var, .card, and .val are all row 1-D vectors.)
 
 numPeople = length(pedigree.names);
-
-% Initialize factors The number of factors is twice the number of
-% people because there is a factor for each person's genotype and a
-% separate factor for each person's phenotype.  Note that the order
-% of the factors in the list does not matter.
-factorList(2*numPeople) = struct('var', [], 'card', [], 'val', []);
-
 numAlleles = length(alleleFreqs); % Number of alleles
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -69,29 +62,26 @@ numAlleles = length(alleleFreqs); % Number of alleles
 % numPeople+1 - 2*numPeople: phenotype variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-genotypeFactors = zeros(length(pedigree.names), 1);
+factorList(2*numPeople) = struct('var', [], 'card', [], 'val', []);
 for i=1:numPeople
   if (pedigree.parents(i) == [0, 0])
-    genotypeFactors(i) = genotypeGivenAlleleFreqsFactor(
-                             alleleFreqs,
-                             i);
+    factorList(i) = genotypeGivenAlleleFreqsFactor(
+                        alleleFreqs,
+                        i);
   else
-    genotypeFactors(i) = genotypeGivenParentsGenotypesFactor(
-                             numAlleles,
-                             i,
-                             pedigree.parents(i)(1),
-                             pedigree.parents(i)(2));
+    factorList(i) = genotypeGivenParentsGenotypesFactor(
+                        numAlleles,
+                        i,
+                        pedigree.parents(i, 1),
+                        pedigree.parents(i, 2));
   end
 end
 
-phenotypeFactors = zeros(length(pedigree.names, 1));
 for i=1:numPeople
-  phenotypeFactors(i) = phenotypeGivenGenotypeFactor(
-                            alphaList,
-                            i,
-                            numPeople + i);
+  factorList(numPeople + i) = phenotypeGivenGenotypeFactor(
+                      alphaList,
+                      i,
+                      numPeople + i);
 end
-
-factorList = [genotypeFactors, phenotypeFactors];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
