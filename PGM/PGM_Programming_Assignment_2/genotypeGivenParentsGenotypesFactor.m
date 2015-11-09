@@ -57,9 +57,38 @@ genotypeFactor = struct('var', [], 'card', [], 'val', []);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 
 % Fill in genotypeFactor.var.  This should be a 1-D row vector.
+genotypeFactor.var = [genotypeVarChild, genotypeVarParentOne, genotypeVarParentTwo];
 % Fill in genotypeFactor.card.  This should be a 1-D row vector.
+genotypeFactor.card = [3, 3, 3];
 
 genotypeFactor.val = zeros(1, prod(genotypeFactor.card));
 % Replace the zeros in genotypeFactor.val with the correct values.
+
+i = 1;
+for p1=1:3
+  for p2=1:3
+    if p1 == 1 && p2 == 1
+      % Both are homozygous dominant. Child homozygous dominant.
+      genotypeFactor.val(i:(i+2)) = [1.0, 0.0, 0.0];
+    elseif (p1 == 2 && p2 == 2)
+      % Both parents heterozygous. Likely to be heterozygous.
+      genotypeFactor.val(i:(i+2)) = [0.25, 0.5, 0.25];
+    elseif p1 == 3 && p2 == 3
+      % Both are homozygous recessive. Child homozygous recessive.
+      genotypeFactor.val(i:(i+2)) = [0.0, 0.0, 1.0];
+    elseif (p1 == 1 && p2 == 2) || (p1 == 2 && p2 == 1)
+      % 1 parent homozygous dominant, other heterozygous.
+      genotypeFactor.val(i:(i+2)) = [0.5, 0.5, 0.0];
+    elseif (p1 == 1 && p2 == 3) || (p1 == 3 && p2 == 1)
+      % 1 parent homozygous dominant, other homozygous recessive. Has
+      % to be heterozygous.
+      genotypeFactor.val(i:(i+2)) = [0.0, 1.0, 0.0];
+    elseif (p1 == 2 && p2 == 3) || (p1 == 3 && p2 == 2)
+      % 1 parent homozygous recessive, other heterozygous.
+      genotypeFactor.val(i:(i+2)) = [0.0, 0.5, 0.5];
+    end
+    i += 3;
+  end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

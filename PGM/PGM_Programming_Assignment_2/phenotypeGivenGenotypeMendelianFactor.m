@@ -36,12 +36,21 @@ phenotypeFactor = struct('var', [], 'card', [], 'val', []);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %INSERT YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Fill in phenotypeFactor.var.  This should be a 1-D row vector.
+phenotypeFactor.var = [phenotypeVar, genotypeVar];
 % Fill in phenotypeFactor.card.  This should be a 1-D row vector.
-
+phenotypeFactor.card = [2, 3];
 phenotypeFactor.val = zeros(1, prod(phenotypeFactor.card));
 % Replace the zeros in phentoypeFactor.val with the correct values.
+if isDominant == 1
+  % 1 is homozygous dominant, 2 is heterozygous, 3 is homozygous recessive.
+  % 1 is has, 2 is does not have phenotype.
+  % (1, 1), (2, 1), (1, 2), (2, 2), (1, 3), (2, 3)
+  phenotypeFactor.val = [1.0, 0.0, 1.0, 0.0, 0.0, 1.0];
+else
+  phenotypeFactor.val = [0.0, 1.0, 0.0, 1.0, 1.0, 0.0];
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
