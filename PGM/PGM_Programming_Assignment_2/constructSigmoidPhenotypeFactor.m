@@ -46,9 +46,51 @@ phenotypeFactor = struct('var', [], 'card', [], 'val', []);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 
 % Fill in phenotypeFactor.var.  This should be a 1-D row vector.
+phenotypeFactor.var = [phenotypeVar, geneCopyVarOneList', geneCopyVarTwoList'];
 % Fill in phenotypeFactor.card.  This should be a 1-D row vector.
 
+numGenes = length(geneCopyVarOneList);
+numAlleles = arrayfun(
+                 @(geneIdx) length(alleleWeights{geneIdx}),
+                 1:numGenes);
+phenotypeFactor.card = [2, numAlleles, numAlleles];
 phenotypeFactor.val = zeros(1, prod(phenotypeFactor.card));
-% Replace the zeros in phentoypeFactor.val with the correct values.
+
+% Use zero-based indexing.
+for valIdx=0:(length(phenotypeFactor.val)-1)
+  %disp("GO");
+  i = valIdx;
+  phenotypePresent = mod(i, 2);
+  i = floor(i/2);
+
+  %disp(phenotypePresent);
+
+  weight = 0;
+
+  % Parent1
+  for geneIdx=1:numGenes
+    numAllelesForGene = length(alleleWeights{geneIdx});
+    alleleIdx = mod(i, numAllelesForGene);
+    %disp(alleleIdx);
+    i = floor(i / numAllelesForGene);
+
+    weight += alleleWeights{geneIdx}(alleleIdx+1);
+  end
+
+  % Parent2
+  for geneIdx=1:numGenes
+    numAllelesForGene = length(alleleWeights{geneIdx});
+    alleleIdx = mod(i, numAllelesForGene);
+    %disp(alleleIdx);
+    i = floor(i / numAllelesForGene);
+
+    weight += alleleWeights{geneIdx}(alleleIdx+1);
+  end
+
+  phenotypeFactor.val(valIdx+1) = exp(weight)/(1+exp(weight));
+  if phenotypePresent == 1
+    phenotypeFactor.val(valIdx+1) = 1 - phenotypeFactor.val(valIdx+1);
+  end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
