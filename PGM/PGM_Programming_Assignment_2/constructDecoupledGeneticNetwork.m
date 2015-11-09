@@ -63,6 +63,7 @@ function factorList = constructDecoupledGeneticNetwork(pedigree, alleleFreqs, al
 %   factor, .var, .card, and .val are row 1-D vectors.)
 
 numPeople = length(pedigree.names);
+numAlleles = length(alleleFreqs);
 
 % Initialize factors
 % We Need 3*numPeople factors because, for each person, there is a
@@ -71,8 +72,6 @@ numPeople = length(pedigree.names);
 % factors in the list does not matter.
 factorList(3*numPeople) = struct('var', [], 'card', [], 'val', []);
 
-numAlleles = length(alleleFreqs); % Number of alleles
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % INSERT YOUR CODE HERE
 % Variable numbers:
@@ -80,5 +79,34 @@ numAlleles = length(alleleFreqs); % Number of alleles
 % numPeople+1 - 2*numPeople: second parent copy of gene variables
 % 2*numPeople+1 - 3*numPeople: phenotype variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+
+for i=1:numPeople
+  if (pedigree.parents(i, :) == [0 0])
+    factorList(i) = childCopyGivenFreqsFactor(alleleFreqs, i);
+    factorList(numPeople+i) = childCopyGivenFreqsFactor(
+                                  alleleFreqs,
+                                  numPeople+i);
+  else
+    parentIdx1 = pedigree.parents(i, 1);
+    parentIdx2 = pedigree.parents(i, 2);
+    factorList(i) = childCopyGivenParentalsFactor(
+                        numAlleles,
+                        i,
+                        parentIdx1,
+                        numPeople+parentIdx1);
+    factorList(numPeople+i) = childCopyGivenParentalsFactor(
+                                  numAlleles,
+                                  numPeople+i,
+                                  parentIdx2,
+                                  numPeople+parentIdx2);
+  end
+
+  factorList(2*numPeople+i) = phenotypeGivenCopiesFactor(
+                                  alphaList,
+                                  numAlleles,
+                                  i,
+                                  numPeople+i,
+                                  2*numPeople+i);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
