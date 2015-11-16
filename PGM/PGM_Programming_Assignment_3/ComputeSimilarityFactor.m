@@ -22,5 +22,10 @@ factor = struct('var', [], 'card', [], 'val', []);
 
 % Your code here:
 
-end
+factor.var = [i, j];
+factor.card = [K, K];
 
+similarity = ImageSimilarity(images(i).img, images(j).img);
+factor.val = diag(similarity * ones(K, 1)) + ...
+             ones(K, K) - diag(ones(1, K), K, K);
+end
