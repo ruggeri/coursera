@@ -22,8 +22,11 @@ if (length(allFactors) <= F)
     return;
 end
 
-% Your code here:
-factors = allFactors; %%% REMOVE THIS LINE
+% Sort by similarity factor.
+[_, idxs] = sort(arrayfun(@(factor) factor.val(1), allFactors), 'descend');
+allFactors = allFactors(idxs);
+% Take only the top F.
+factors = allFactors(1:F);
 
 end
 
