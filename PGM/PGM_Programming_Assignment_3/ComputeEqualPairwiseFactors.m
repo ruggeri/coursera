@@ -20,4 +20,10 @@ factors = repmat(struct('var', [], 'card', [], 'val', []), n - 1, 1);
 
 % Your code here:
 
+for i=1:(n-1)
+  factors(i).var = [i, i+1];
+  factors(i).card = [K, K];
+  factors(i).val = repmat(1, K*K, 1);
+end
+
 end
