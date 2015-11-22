@@ -41,16 +41,11 @@ P.edges = zeros(N);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Bullshit to find cardinality of variables.
-vars = [];
 varCardinality = [];
 for i=1:length(C.factorList)
   f = C.factorList(i);
   for j=1:length(f.var)
-    if ismember(f.var(j), vars)
-      continue
-    end
-    vars(end + 1) = f.var(j);
-    varCardinality(end + 1) = f.card(j);
+    varCardinality(f.var(j)) = f.card(j);
   end
 end
 
@@ -66,8 +61,6 @@ for factorIdx=1:length(C.factorList)
     c = P.cliqueList(cliqueIdx);
     if all(ismember(f.var, c.var))
          % is a subset of the clique; assign to first possible clique.
-      disp(factorIdx);
-      disp(cliqueIdx);
       P.cliqueList(cliqueIdx) = ComputeJointDistribution([c, f]);
       break
     end

@@ -37,14 +37,43 @@ MESSAGES = repmat(struct('var', [], 'card', [], 'val', []), N, N);
 %
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+while true
+  [i, j] = GetNextCliques(P, MESSAGES);
+  if [i j] == [0 0]
+    break;
+  end
+
+  msg = P.cliqueList(i);
+  neighbors = find(P.edges(i, :));
+  for neighbor=neighbors
+    if neighbor == j
+      continue;
+    end
+
+    msg = FactorProduct(msg, MESSAGES(neighbor, i));
+  end
+
+  % Marginalize out uninvolved vars, normalize, record message.
+  reducedVars = setdiff(msg.var, P.cliqueList(j).var);
+  msg = FactorMarginalization(msg, reducedVars);
+  msg.val = msg.val / sum(msg.val);
+  MESSAGES(i, j) = msg;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
 %
-% Now the clique tree has been calibrated. 
+% Now the clique tree has been calibrated.
 % Compute the final potentials for the cliques and place them in P.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+for i=1:N
+  neighbors = find(P.edges(i, :));
 
+  for neighbor=neighbors
+    msg = MESSAGES(neighbor, i);
+    P.cliqueList(i) = FactorProduct(P.cliqueList(i), msg);
+  end
+end
 
 return

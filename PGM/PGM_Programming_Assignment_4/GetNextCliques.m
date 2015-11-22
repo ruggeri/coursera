@@ -22,18 +22,42 @@
 %
 % Copyright (C) Daphne Koller, Stanford University, 2012
 
-
 function [i, j] = GetNextCliques(P, messages)
+  numCliques = length(P.cliqueList);
+  for i=1:numCliques
+    for j=1:numCliques
+      if !P.edges(i, j)
+        % No connection!
+        continue;
+      end
 
-% initialization
-% you should set them to the correct values in your code
-i = 0;
-j = 0;
+      if !isempty(messages(i, j).var)
+        % already sent this message!
+        continue;
+      end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      shouldSend = true;
+      neighbors = find(P.edges(i, :));
+      for neighbor=neighbors
+        if neighbor == j
+          continue;
+        end
 
+        if isempty(messages(neighbor, i).var)
+          % Not ready, not all messages received
+          shouldSend = false;
+          break;
+        end
+      end
 
+      if shouldSend
+        return;
+      end
+    end
+  end
 
-return;
+  % No valid messages to send!
+  i = 0;
+  j = 0;
+
+  return;
