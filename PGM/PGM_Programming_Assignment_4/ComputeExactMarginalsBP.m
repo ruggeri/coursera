@@ -29,7 +29,9 @@ for i=1:length(F)
   F(i) = ObserveEvidence(F(i), E);
 end
 
-P = CreateCliqueTree(F, E);
+% You fucks. CreateCliqueTree expects evidence *in a different format*
+% than the usual 2D format. WTF?!
+P = CreateCliqueTree(F, []);
 P = CliqueTreeCalibrate(P, isMax);
 
 M = repmat(struct('var', [], 'card', [], 'val', []), 1, numVars);
