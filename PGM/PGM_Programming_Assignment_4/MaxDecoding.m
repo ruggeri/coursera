@@ -26,5 +26,8 @@ A = [];
 % Compute the best assignment for variables in the network.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+for i=1:length(M)
+  m = M(i);
+  [_, maxIdx] = max(m.val);
+  A(m.var) = IndexToAssignment(maxIdx, m.card);
 end
-
