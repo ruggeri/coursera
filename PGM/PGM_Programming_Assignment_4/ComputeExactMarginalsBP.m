@@ -44,8 +44,12 @@ for cliqueIdx=1:length(P.cliqueList)
       continue
     end
 
-    M(var) = FactorMarginalization(c, setdiff(c.var, var));
-    M(var).val /= sum(M(var).val);
+    if !isMax
+      M(var) = FactorMarginalization(c, setdiff(c.var, var));
+      M(var).val /= sum(M(var).val);
+    else
+      M(var) = FactorMaxMarginalization(c, setdiff(c.var, var));
+    end
   end
 end
 
