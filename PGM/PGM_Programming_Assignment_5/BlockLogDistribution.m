@@ -38,10 +38,6 @@ if length(unique(G.card(V))) ~= 1
     return;
 end
 
-% d is the dimensionality of all the variables we are extracting
-d = G.card(V(1));
-
-LogBS = zeros(1, d);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
 % Compute LogBS by multiplying (adding in log-space) in the correct values from
@@ -54,10 +50,34 @@ LogBS = zeros(1, d);
 % Also you should have only ONE for-loop, as for-loops are VERY slow in matlab
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Find factors involving the variables under consideration.
+F = F([G.var2factors{V}]);
+
+% Reduce those factor by evidence.
+vars = 1:length(A);
+unsampledVars = setdiff(vars, V);
+E = [unsampledVars', A(unsampledVars)'];
+F = ObserveEvidence(F, E);
+
+factorProd = F(1);
+for factorIdx=2:length(F)
+  f = F(factorIdx);
+  factorProd = FactorProduct(factorProd, F(factorIdx));
+end
+factorProd = FactorMarginalization(factorProd, unsampledVars);
+
+LogBS = factorProd.val;
+
+% This bullshit calculates a diagonal. Fuck your 1-based indices.
+card = G.card(V(1));
+q = sum(card .^ (0:(length(V)-1)));
+idxs = ((0:(card-1))*q)+1;
+% Just take out the assignments to A that assign everyone the same val.
+LogBS = LogBS(idxs);
+% Now take the log.
+LogBS = log(LogBS);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Re-normalize to prevent underflow when you move back to probability space
 LogBS = LogBS - min(LogBS);
-
-
-

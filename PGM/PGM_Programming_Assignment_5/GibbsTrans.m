@@ -23,5 +23,8 @@ for i = 1:length(G.names)
     % be sure that the arguments you pass to it meet that criteria
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+  LogBS = BlockLogDistribution(i, G, F, A);
+  A(i) = randsample(1:length(LogBS), 1, false, exp(LogBS));
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
