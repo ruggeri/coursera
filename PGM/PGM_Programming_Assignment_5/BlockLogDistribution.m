@@ -53,31 +53,65 @@ end
 % Find factors involving the variables under consideration.
 F = F([G.var2factors{V}]);
 
-% Reduce those factor by evidence.
-vars = 1:length(A);
-unsampledVars = setdiff(vars, V);
-E = [unsampledVars', A(unsampledVars)'];
-F = ObserveEvidence(F, E);
+% Construct a factor we will return involving only the free vars.
+res = struct('var', V, 'card', G.card(V), 'val', []);
+res.val = ones(1, prod(res.card));
 
-factorProd = F(1);
-for factorIdx=2:length(F)
-  f = F(factorIdx);
-  factorProd = FactorProduct(factorProd, F(factorIdx));
-end
-factorProd = FactorMarginalization(factorProd, unsampledVars);
+[varIndexs, assignments] = buildMaps(res, F, A);
+LogBS = combineFactors(res, F, varIndexs, assignments);
+LogBS = finalizeLogBS(LogBS, G, V);
+endfunction
 
-LogBS = factorProd.val;
+function [varIndexs, assignments] = buildMaps(res, F, A)
+  % Record the index of each of the vars.
+  varIndexs = [];
+  varIndexs(res.var) = 1:length(res.var);
 
-% This bullshit calculates a diagonal. Fuck your 1-based indices.
-card = G.card(V(1));
-q = sum(card .^ (0:(length(V)-1)));
-idxs = ((0:(card-1))*q)+1;
-% Just take out the assignments to A that assign everyone the same val.
-LogBS = LogBS(idxs);
-% Now take the log.
-LogBS = log(LogBS);
+  % Calculate once a map of idx->assignment.
+  assignments = floor(((1:length(res.val))' - 1) ./ ...
+                      cumprod([1, res.card(1:end-1)])) + 1;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Extend varIndexs and assignments maps with unassigned vars.
+  unsampledVars = setdiff([F.var], res.var);
+  numSampledVars = length(res.var);
+  numUnsampledVars = length(unsampledVars);
+  varIndexs(unsampledVars) = numSampledVars + (1:numUnsampledVars);
+  unsampledVarsIndxs = ...
+    (numSampledVars+1):(numSampledVars+numUnsampledVars);
+  assignments(:, unsampledVarsIndxs) = ...
+    repmat(A(unsampledVars), size(assignments, 1), 1);
+endfunction
 
-% Re-normalize to prevent underflow when you move back to probability space
-LogBS = LogBS - min(LogBS);
+function LogBS = combineFactors(res, F, varIndexs, assignments)
+  % Iterate through factors. We'll need to add each in to res.
+  for factorIdx=1:length(F)
+    f = F(factorIdx);
+
+    % Get only the relevant portions of the assignments.
+    reducedAssignments = assignments(:, varIndexs(f.var));
+    % Find where these assignments live in f.
+    indexs = cumprod([1, f.card(1:end - 1)]) * (reducedAssignments' - 1) + 1;
+
+    res.val = res.val .* f.val(indexs);
+  end
+
+  LogBS = res.val;
+endfunction
+
+function LogBS = finalizeLogBS(LogBS, G, V)
+  % This bullshit calculates a diagonal. Fuck your 1-based indices.
+  card = G.card(V(1));
+  q = sum(card .^ (0:(length(V)-1)));
+  idxs = ((0:(card-1))*q)+1;
+  % Just take out the assignments to A that assign everyone the same val.
+  LogBS = LogBS(idxs);
+
+  % Finally, take the log.
+  LogBS = log(LogBS);
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  % Re-normalize to prevent underflow when you move back to probability
+  % space
+  LogBS = LogBS - min(LogBS);
+endfunction
