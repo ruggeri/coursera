@@ -3,8 +3,8 @@
 %
 %   C = CREATECLUSTERGRAPH(F) Takes a list of factors and creates a Bethe
 %   cluster graph with nodes representing single variable clusters and
-%   pairwise clusters. The value of the clusters should be initialized to 
-%   the initial potential. 
+%   pairwise clusters. The value of the clusters should be initialized to
+%   the initial potential.
 %   It returns a cluster graph that has the following fields:
 %   - .clusterList: a list of the cluster beliefs in this graph. These entries
 %                   have the following subfields:
@@ -31,10 +31,33 @@ end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
-% 
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% I think we are assuming that there is always a singleton factor for
+% every variable.
+singletonClusters = [];
+for i=1:length(F)
+  P.clusterList(i) = F(i);
 
+  if length(F(i).var) == 1
+    singletonClusters(F(i).var) = i;
+  end
+end
+
+for factorIdx=1:length(F)
+  f = F(factorIdx);
+
+  if length(f.var) == 1
+    continue;
+  end
+
+  for varIdx=1:length(f.var)
+    var = f.var(varIdx);
+    varCluster = singletonClusters(var);
+    P.edges(factorIdx, varCluster) = 1;
+    P.edges(varCluster, factorIdx) = 1;
+  end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-

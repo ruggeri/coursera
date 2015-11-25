@@ -18,15 +18,32 @@
 
 function [i, j] = NaiveGetNextClusters(P, m)
 
-    i = size(P.clusterList,1);
-    j = size(P.clusterList,1);
-    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % YOUR CODE HERE
     % Find the indices between which to pass a cluster
     % The 'find' function may be useful
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  totalEdges = sum(sum(P.edges));
+  m = mod(m, totalEdges);
+
+  numVertices = size(P.edges);
+  for j=1:numVertices
+    for i=1:numVertices
+      if P.edges(i, j) == 1
+        if m == 0
+          return
+        else
+          m -= 1;
+        end
+      end
+    end
+  end
+
+  i = 0;
+  j = 0;
+  return
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

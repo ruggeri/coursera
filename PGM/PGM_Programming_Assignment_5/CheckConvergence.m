@@ -15,16 +15,25 @@
 % Copyright (C) Daphne Koller, Stanford University, 2012
 
 function converged = CheckConvergence(mNew, mOld);
-converged = true;
 thresh = 1.0e-6;
-%converged should be 1 if converged, 0 otherwise.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
-% 
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+numClusters = size(mNew, 1);
+for i=numClusters
+  for j=numClusters
+    if any(abs(mNew(i, j).val - mOld(i, j).val) > thresh)
+      converged = false;
+      return;
+    end
+  end
+end
 
+converged = true;
+return;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

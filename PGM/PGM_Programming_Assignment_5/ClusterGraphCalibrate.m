@@ -1,7 +1,7 @@
 % CLUSTERGRAPHCALIBRATE Loopy belief propagation for cluster graph calibration.
 %   P = CLUSTERGRAPHCALIBRATE(P, useSmart) calibrates a given cluster graph, G,
 %   and set of of factors, F. The function returns the final potentials for
-%   each cluster. 
+%   each cluster.
 %   The cluster graph data structure has the following fields:
 %   - .clusterList: a list of the cluster beliefs in this graph. These entries
 %                   have the following subfields:
@@ -10,7 +10,7 @@
 %     - .val:  the cluster's beliefs about these variables
 %   - .edges: A cluster adjacency matrix where edges(i,j)=1 implies clusters i
 %             and j share an edge.
-%  
+%
 %   UseSmart is an indicator variable that tells us whether to use the Naive or Smart
 %   implementation of GetNextClusters for our message ordering
 %
@@ -45,8 +45,17 @@ for m = 1:length(edgeFromIndx),
     % The matlab/octave functions 'intersect' and 'find' may
     % be useful here (for making your code faster)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    
+
+    iCluster = P.clusterList(i);
+    jCluster = P.clusterList(j);
+    [_, keptIdxs] = intersect(iCluster.var, jCluster.var);
+    vars = iCluster.var(keptIdxs);
+    cards = iCluster.card(keptIdxs);
+    vals = repmat(1, 1, prod(cards));
+    MESSAGES(i, j) = struct('var', vars,
+                            'card', cards,
+                            'val', vals);
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end;
 
@@ -73,14 +82,30 @@ while (1),
     % The function 'setdiff' may be useful to help you
     % obtain some speedup in this function
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
+    msg = P.clusterList(i);
+    for k=1:N
+      if P.edges(k, i) != 1
+        continue;
+      elseif k == j
+        continue;
+      end
+
+      msg = FactorProduct(msg, MESSAGES(k, i));
+    end
+    jCluster = P.clusterList(j);
+    eliminatedVars = setdiff(msg.var, jCluster.var);
+    msg = FactorMarginalization(msg, eliminatedVars);
+    msg.val = msg.val / sum(msg.val);
+
+    MESSAGES(i, j) = msg;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     if(useSmartMP==1)
       lastMESSAGES(i,j)=prevMessage;
     end
-    
+
     % Check for convergence every m iterations
     if mod(iteration, length(edgeFromIndx)) == 0
         if (CheckConvergence(MESSAGES, lastMESSAGES))
@@ -91,11 +116,9 @@ while (1),
           lastMESSAGES=MESSAGES;
         end
     end
-    
 end;
 toc;
 disp(['Total number of messages passed: ', num2str(iteration)]);
-
 
 % Compute final potentials and place them in P
 for m = 1:length(edgeFromIndx),
@@ -104,10 +127,7 @@ for m = 1:length(edgeFromIndx),
     P.clusterList(i) = FactorProduct(P.clusterList(i), MESSAGES(j, i));
 end
 
-
 % Get the max difference between the marginal entries of 2 messages -------
 function delta = MessageDelta(Mes1, Mes2)
 delta = max(abs(Mes1.val - Mes2.val));
 return;
-
-
