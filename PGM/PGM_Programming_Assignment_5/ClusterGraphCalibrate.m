@@ -84,10 +84,8 @@ while (1),
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     msg = P.clusterList(i);
-    for k=1:N
-      if P.edges(k, i) != 1
-        continue;
-      elseif k == j
+    for k=find(P.edges(i, :))
+      if k == j
         continue;
       end
 
