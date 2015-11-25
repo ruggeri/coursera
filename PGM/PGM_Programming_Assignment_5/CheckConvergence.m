@@ -22,17 +22,7 @@ thresh = 1.0e-6;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-numClusters = size(mNew, 1);
-for i=1:numClusters
-  for j=1:numClusters
-    if any(abs(mNew(i, j).val - mOld(i, j).val) > thresh)
-      converged = false;
-      return;
-    end
-  end
-end
-
-converged = true;
+converged = !any(abs([mNew.val] - [mOld.val]) > thresh);
 return;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
