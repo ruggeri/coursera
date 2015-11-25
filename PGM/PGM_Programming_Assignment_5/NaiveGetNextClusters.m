@@ -25,27 +25,19 @@ function [i, j] = NaiveGetNextClusters(P, m)
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  totalEdges = sum(sum(P.edges));
-  m = mod(m, totalEdges);
+  edgeIdxs = find(P.edges);
 
-  numVertices = size(P.edges);
-  for j=1:numVertices
-    for i=1:numVertices
-      if P.edges(i, j) == 1
-        if m == 0
-          return
-        else
-          m -= 1;
-        end
-      end
-    end
-  end
+  m = mod(m, length(edgeIdxs));
+  ij = edgeIdxs(m + 1) - 1;
 
-  i = 0;
-  j = 0;
+  i = mod(ij, length(P.edges));
+  j = (ij - i) / length(P.edges);
+
+  i += 1;
+  j += 1;
+
   return
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 end
-
