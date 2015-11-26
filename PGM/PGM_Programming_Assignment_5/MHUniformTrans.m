@@ -15,10 +15,20 @@ function A = MHUniformTrans(A, G, F)
 A_prop = ceil(rand(1, length(A)) .* G.card);
 
 p_acceptance = 0.0;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
 % Compute acceptance probability
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+piA = 1;
+piA_prop = 1;
+for f=F
+  piA *= GetValueOfAssignment(f, A(f.var));
+  piA_prop *= GetValueOfAssignment(f, A_prop(f.var));
+end
+
+p_acceptance = min(1, piA_prop/piA);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
