@@ -41,12 +41,16 @@ assert(length(unique(A(selected_vars))) == 1);
 old_value = A(selected_vars(1));
 d = G.card(selected_vars(1));
 LogR = zeros(1, d);
+
+LogBS = BlockLogDistribution(selected_vars, G, F, A);
 if variant == 1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % YOUR CODE HERE
     % Specify the log of the distribution (LogR) from 
     % which a new label for Y is selected for variant 1 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  LogR = repmat(log(1/d), 1, d);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif variant == 2
@@ -59,6 +63,8 @@ elseif variant == 2
     % before implementing this, one of the generated
     % data structures may be useful in implementing this section
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  LogR = LogBS;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
@@ -95,6 +101,10 @@ p_acceptance = 0.0;
 % of variables, as well as some ratios used in computing
 % the acceptance probabilitiy.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+log_trans_ratio = log_QY_ratio + (LogR(old_value) - LogR(new_value));
+log_p_acceptance = log_trans_ratio + (LogBS(new_value) - LogBS(old_value));
+p_acceptance = exp(log_p_acceptance);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
