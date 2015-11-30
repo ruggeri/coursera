@@ -68,16 +68,18 @@ function [varIndexs, assignments] = buildMaps(res, F, A)
   varIndexs(res.var) = 1:length(res.var);
 
   % Calculate once a map of idx->assignment.
-  assignments = floor(((1:length(res.val))' - 1) ./ ...
-                      cumprod([1, res.card(1:end-1)])) + 1;
+  % TODO: This commented code breaks when V consists of multiple vars?
+  %assignments = floor(((1:length(res.val))' - 1) ./ ...
+  %                    cumprod([1, res.card(1:end-1)])) + 1;
+  assignments = IndexToAssignment(1:length(res.val), res.card);
 
   % Extend varIndexs and assignments maps with unassigned vars.
   unsampledVars = setdiff([F.var], res.var);
   numSampledVars = length(res.var);
   numUnsampledVars = length(unsampledVars);
-  varIndexs(unsampledVars) = numSampledVars + (1:numUnsampledVars);
   unsampledVarsIndxs = ...
     (numSampledVars+1):(numSampledVars+numUnsampledVars);
+  varIndexs(unsampledVars) = unsampledVarsIndxs;
   assignments(:, unsampledVarsIndxs) = ...
     repmat(A(unsampledVars), size(assignments, 1), 1);
 endfunction
@@ -90,7 +92,8 @@ function LogBS = combineFactors(res, F, varIndexs, assignments)
     % Get only the relevant portions of the assignments.
     reducedAssignments = assignments(:, varIndexs(f.var));
     % Find where these assignments live in f.
-    indexs = cumprod([1, f.card(1:end - 1)]) * (reducedAssignments' - 1) + 1;
+    indexs = cumprod([1, f.card(1:(end - 1))]) * (reducedAssignments' - 1);
+    indexs += 1;
 
     res.val = res.val .* f.val(indexs);
   end
