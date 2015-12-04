@@ -24,6 +24,33 @@ function [MEU OptimalDecisionRule] = OptimizeMEU( I )
   %     has no parents.
   % 2.  You may find the Matlab/Octave function setdiff useful.
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-    
 
+  MEU = 0;
+  EUF = CalculateExpectedUtilityFactor(I);
+  OptimalDecisionRule = D;
+
+  indexToAssignmentsD = IndexToAssignment(1:length(D.val), D.card);
+
+  i = 1;
+  while i <= length(D.val)
+    range = i:(i+D.card(1)-1);
+
+    bestAssignment = i;
+    bestUtils = EUF.val(i);
+
+    for i2=range
+      assignment = indexToAssignmentsD(i2, :);
+      val = GetValueOfAssignment(EUF, assignment, D.var);
+      if bestUtils < val
+        bestAssignment = i2;
+        bestUtils = val;
+      end
+    end
+
+    OptimalDecisionRule.val(range) = 0;
+    OptimalDecisionRule.val(bestAssignment) = 1;
+    MEU += bestUtils;
+
+    i += D.card(1);
+  end
 end
