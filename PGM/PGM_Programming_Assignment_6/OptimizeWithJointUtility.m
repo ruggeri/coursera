@@ -13,12 +13,13 @@ function [MEU OptimalDecisionRule] = OptimizeWithJointUtility( I )
   % This is similar to OptimizeMEU except that we must find a way to 
   % combine the multiple utility factors.  Note: This can be done with very
   % little code.
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %
-  % YOUR CODE HERE
-  %
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  
+  U = I.UtilityFactors(1);
+  for U2=I.UtilityFactors(2:end)
+    U = FactorSum(U, U2);
+  end
+
+  I.UtilityFactors = [U];
+
+  [MEU OptimalDecisionRule] = OptimizeMEU(I);
 end
