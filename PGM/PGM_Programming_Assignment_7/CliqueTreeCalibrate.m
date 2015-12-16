@@ -3,14 +3,14 @@
 
 %   [P] = CLIQUETREECALIBRATE(P, isMax) calibrates a given clique tree, P 
 %   according to the value of isMax flag. If isMax is 1, it uses max-product
-%   message passing, otherwise uses sum-product. This function 
+%   message passing, otherwise uses sum-product. This function
 %   returns the clique tree where the .val for each clique in .cliqueList
 %   is set to the final calibrated potentials.
-%  
+%
 %   [P, logZ] = CLIQUETREECALIBRATE(P, isMax) also returns the log partition function
 %   corresponding to P. Note that 'isMax' must be false if you want to
 %   compute logZ.
-%   YOU NEED TO IMPLEMENT THIS. 
+%   YOU NEED TO IMPLEMENT THIS.
 %   Hint: You may find the unnormalizedMessages array useful (it's new to this assignment).
 
 % Copyright (C) Daphne Koller, Stanford Univerity, 2012
@@ -104,9 +104,19 @@ function [P, logZ] = CliqueTreeCalibrate(P, isMax)
     % logZ, the log of the partition function.
     if (doLogZ)
         %%% YOUR CODE HERE:
-        logZ = 0; % remove this
+        [i, j] = find(P.edges);
+        i = i(1);
+        j = j(1);
+
+% Basically, a message up is communicating the prob from 1 half of the
+% tree, while a message down is communicating the prob on the other
+% side.
+        prod = FactorProduct(unnormalizedMessages(i, j),
+                             unnormalizedMessages(j, i));
+        Z = sum(prod.val);
+        logZ = log(Z);
     else
-        logZ = 0;
+      logZ = 0;
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
