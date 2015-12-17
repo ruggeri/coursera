@@ -44,6 +44,7 @@ function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
     % For the purposes of this assignment, though, you don't
     % have to understand how this code works. (It's complicated.)
     disp("Begin generating features");
+    fflush(stdout);
     featureSet = GenerateAllFeatures(X, modelParams);
 
     % Use the featureSet to calculate nll and grad.
@@ -59,10 +60,12 @@ function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
 
     % Calculate partition function by creating clique tree.
 
-    % Turn features into factors. I do this in a stupid-ass way.
+    % Turn features into factors.
     disp("Begin creating factors");
+    fflush(stdout);
     F = struct();
     for feature=featureSet.features
+      % TODO: Clearly suboptimal. Optimize.
       factor = struct(
                    'var', feature.var,
                    'card', repmat(modelParams.numHiddenStates, 1, length(feature.var)),
@@ -78,13 +81,16 @@ function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
     % Create the clique tree and calibrate so we can get the partition
     % function.
     disp("Begin creating clique tree");
+    fflush(stdout);
     P = CreateCliqueTree(F);
     disp("Begin calibrating clique tree");
+    fflush(stdout);
     [P, logZ] = CliqueTreeCalibrate(P, false);
     nll += logZ;
 
     % Calculate log-probability of the data.
     disp("Begin calculating log-probability of data");
+    fflush(stdout);
     for i=1:length(featureSet.features)
       feature = featureSet.features(i);
       if y(feature.var) == feature.assignment
@@ -94,8 +100,47 @@ function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
 
     % Factor in regularization of weights.
     disp("Begin performing regularization");
+    fflush(stdout);
     nll += (modelParams.lambda / 2) * theta * theta';
 
-    % TODO: gradient calculation!
+    % Calculate gradient.
+    disp("Beginning Gradient Calculation");
+    fflush(stdout);
     grad = zeros(size(theta));
+
+    disp("Begin counting empirical/model feature counts");
+    fflush(stdout);
+    for feature=featureSet.features
+      % Account for model feature counts.
+      % TODO: Clearly suboptimal. Optimize!
+      for cliqueIdx=1:length(P.cliqueList)
+        clique = P.cliqueList(cliqueIdx)
+        if any(!ismember(feature.var, clique.var))
+          continue;
+        end
+
+        clique = FactorMarginalization(
+                     clique,
+                     setdiff(clique.var, feature.var));
+        v = GetValueOfAssignment(
+                clique,
+                feature.assignment,
+                feature.var);
+        grad(feature.paramIdx) += theta(feature.paramIdx) * v;
+
+        break;
+      end
+
+      % Account for empirical feature counts.
+      if y(feature.var) == feature.assignment
+        grad(feature.paramIdx) -= theta(feature.paramIdx);
+      end
+    end
+
+    disp("Beginning regularization");
+    fflush(stdout);
+    % Derivative: Regularization
+    for i=1:length(theta)
+      grad(i) += lambda * theta(i);
+    end
 end
