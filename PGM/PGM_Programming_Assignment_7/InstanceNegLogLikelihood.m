@@ -19,7 +19,7 @@
 %
 % Copyright (C) Daphne Koller, Stanford Univerity, 2012
 
-function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
+function [nll, regularizedGradient] = InstanceNegLogLikelihood(X, y, theta, modelParams)
     % featureSet is a struct with two fields:
     %    .numParams - the number of parameters in the CRF (this is not numImageFeatures
     %                 nor numFeatures, because of parameter sharing)
@@ -106,7 +106,9 @@ function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
     % Calculate gradient.
     disp("Beginning Gradient Calculation");
     fflush(stdout);
-    grad = zeros(size(theta));
+
+    featureCounts = zeros(size(theta));
+    modelFeatureCounts = zeros(size(theta));
 
     disp("Begin counting empirical/model feature counts");
     fflush(stdout);
@@ -114,11 +116,14 @@ function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
       % Account for model feature counts.
       % TODO: Clearly suboptimal. Optimize!
       for cliqueIdx=1:length(P.cliqueList)
-        clique = P.cliqueList(cliqueIdx)
+        clique = P.cliqueList(cliqueIdx);
         if any(!ismember(feature.var, clique.var))
           continue;
         end
 
+        % Normalize; may not be done already?? WTF? Why would you do
+        % that, asshats?
+        clique.val /= sum(clique.val);
         clique = FactorMarginalization(
                      clique,
                      setdiff(clique.var, feature.var));
@@ -126,21 +131,24 @@ function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
                 clique,
                 feature.assignment,
                 feature.var);
-        grad(feature.paramIdx) += theta(feature.paramIdx) * v;
+        modelFeatureCounts(feature.paramIdx) += v;
 
         break;
       end
 
       % Account for empirical feature counts.
-      if y(feature.var) == feature.assignment
-        grad(feature.paramIdx) -= theta(feature.paramIdx);
+      if all(y(feature.var) == feature.assignment)
+        featureCounts(feature.paramIdx) += 1;
       end
     end
+
+    unregularizedGradient = modelFeatureCounts - featureCounts;
 
     disp("Beginning regularization");
     fflush(stdout);
     % Derivative: Regularization
+    regularizedGradient = unregularizedGradient;
     for i=1:length(theta)
-      grad(i) += lambda * theta(i);
+      regularizedGradient(i) += modelParams.lambda * theta(i);
     end
 end
