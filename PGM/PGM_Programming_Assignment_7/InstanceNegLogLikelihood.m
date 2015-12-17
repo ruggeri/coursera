@@ -20,7 +20,6 @@
 % Copyright (C) Daphne Koller, Stanford Univerity, 2012
 
 function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
-
     % featureSet is a struct with two fields:
     %    .numParams - the number of parameters in the CRF (this is not numImageFeatures
     %                 nor numFeatures, because of parameter sharing)
@@ -37,14 +36,14 @@ function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
     %   feature = struct('var', [2 3], 'assignment', [5 6], 'paramIdx', 8);
     %
     % then feature is an indicator function over X_2 and X_3, which takes on a value of 1
-    % if X_2 = 5 and X_3 = 6 (which would be 'e' and 'f'), and 0 otherwise. 
+    % if Y_2 = 5 and Y_3 = 6 (which would be 'e' and 'f'), and 0 otherwise. 
     % Its contribution to the log-likelihood would be theta(8) if it's 1, and 0 otherwise.
     %
     % If you're interested in the implementation details of CRFs, 
     % feel free to read through GenerateAllFeatures.m and the functions it calls!
     % For the purposes of this assignment, though, you don't
     % have to understand how this code works. (It's complicated.)
-    
+    disp("Begin generating features");
     featureSet = GenerateAllFeatures(X, modelParams);
 
     % Use the featureSet to calculate nll and grad.
@@ -55,11 +54,48 @@ function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
     % Hint: you can use CliqueTreeCalibrate to calculate logZ effectively. 
     %       We have halfway-modified CliqueTreeCalibrate; complete our implementation 
     %       if you want to use it to compute logZ.
-    
-    nll = 0;
-    grad = zeros(size(theta));
-    %%%
-    % Your code here:
-    
 
+    nll = 0;
+
+    % Calculate partition function by creating clique tree.
+
+    % Turn features into factors. I do this in a stupid-ass way.
+    disp("Begin creating factors");
+    F = struct();
+    for feature=featureSet.features
+      factor = struct(
+                   'var', feature.var,
+                   'card', repmat(modelParams.numHiddenStates, 1, length(feature.var)),
+                   'val', []);
+      factor.val = zeros(1, prod(factor.card));
+      factor = SetValueOfAssignment(factor,
+                                    feature.assignment,
+                                    theta(feature.paramIdx));
+      factor.val = exp(factor.val);
+      F(end+1) = factor;
+    end
+
+    % Create the clique tree and calibrate so we can get the partition
+    % function.
+    disp("Begin creating clique tree");
+    P = CreateCliqueTree(F);
+    disp("Begin calibrating clique tree");
+    [P, logZ] = CliqueTreeCalibrate(P, false);
+    nll += logZ;
+
+    % Calculate log-probability of the data.
+    disp("Begin calculating log-probability of data");
+    for i=1:length(featureSet.features)
+      feature = featureSet.features(i);
+      if y(feature.var) == feature.assignment
+        nll -= theta(feature.paramIdx);
+      end
+    end
+
+    % Factor in regularization of weights.
+    disp("Begin performing regularization");
+    nll += (modelParams.lambda / 2) * theta * theta';
+
+    % TODO: gradient calculation!
+    grad = zeros(size(theta));
 end
