@@ -14,34 +14,27 @@ function [Beta sigma] = FitLinearGaussianParameters(X, U)
 M = size(U,1);
 N = size(U,2);
 
-Beta = zeros(N+1,1);
-sigma = 1;
-
 % collect expectations and solve the linear system
 % A = [ E[U(1)],      E[U(2)],      ... , E[U(n)],      1     ; 
 %       E[U(1)*U(1)], E[U(2)*U(1)], ... , E[U(n)*U(1)], E[U(1)];
 %       ...         , ...         , ... , ...         , ...   ;
 %       E[U(1)*U(n)], E[U(2)*U(n)], ... , E[U(n)*U(n)], E[U(n)] ]
-
-% construct A
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+U = [ones(M, 1), U];
+A = [];
+for i=1:size(U, 2)
+  u = U(:, i);
+  A(:, end+1) = mean(u .* U)';
+end
 
 % B = [ E[X]; E[X*U(1)]; ... ; E[X*U(n)] ]
-
-% construct B
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+B = mean(X .* U)';
 
 % solve A*Beta = B
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Beta = A\B;
 
 % then compute sigma according to eq. (11) in PA description
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+sigma = 1;
+sigma = std(X - U*Beta, 1);
+
+% Shuffle Beta around to account for stupid-ass indexing.
+Beta = [Beta(2:end); Beta(1)];

@@ -4,9 +4,5 @@ function [mu sigma] = FitGaussianParameters(X)
 %
 % Copyright (C) Daphne Koller, Stanford Univerity, 2012
 
-mu = 0;
-sigma = 1;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-% YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%
+  mu = mean(X);
+  sigma = std(X, 1);
