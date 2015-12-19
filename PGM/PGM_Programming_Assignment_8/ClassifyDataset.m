@@ -13,11 +13,27 @@ function accuracy = ClassifyDataset(dataset, labels, P, G)
 %
 % Copyright (C) Daphne Koller, Stanford Univerity, 2012
 
-N = size(dataset, 1);
-accuracy = 0.0;
+  NUM_EXAMPLES = size(dataset, 1);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  numCorrectPredictions = 0;
+  for exampleIdx=1:NUM_EXAMPLES
+    example = squeeze(dataset(exampleIdx, :, :));
+    predictedClass = ClassifyExample(P, G, example);
 
-fprintf('Accuracy: %.2f\n', accuracy);
+    numCorrectPredictions += labels(exampleIdx, predictedClass);
+  end
+
+  accuracy = numCorrectPredictions / NUM_EXAMPLES;
+  fprintf('Accuracy: %.2f\n', accuracy);
+end
+
+function classIdx = ClassifyExample(P, G, example)
+  NUM_CLASSES = length(P.c);
+
+  logProbs = [];
+  for classIdx=1:NUM_CLASSES
+    logProbs(end+1) = ComputeExampleLogProb(P, G, classIdx, example);
+  end
+
+  [_, classIdx] = max(logProbs);
+end
