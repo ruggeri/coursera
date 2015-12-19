@@ -14,23 +14,23 @@ function [P loglikelihood] = LearnCPDsGivenGraph(dataset, G, labels)
 
   N = size(dataset, 1);
   NUM_POSES = size(dataset, 2);
-  K = size(labels, 2);
+  NUM_CLASSES = size(labels, 2);
 
-P.c = mean(labels);
-P.clg = [];
-for poseIdx=1:size(dataset, 2)
-  if G(poseIdx, 1) == 0
-    P.clg(poseIdx) = LearnRootCPD(dataset, G, labels, poseIdx);
-  else
-    P.clg(poseIdx) = LearnChildCPD(dataset, G, labels, poseIdx);
+  if ndims(G) == 2
+    G = repmat(G, 1, 1, NUM_CLASSES);
   end
+
+  P.c = mean(labels);
+  P.clg = [];
+  for poseIdx=1:size(dataset, 2)
+    P.clg(poseIdx) = LearnCPD(dataset, G, labels, poseIdx);
+  end
+
+  loglikelihood = ComputeLogLikelihood(P, G, dataset);
+  fprintf('log likelihood: %f\n', loglikelihood);
 end
 
-loglikelihood = ComputeLogLikelihood(P, G, dataset);
-fprintf('log likelihood: %f\n', loglikelihood);
-end
-
-function params = LearnRootCPD(dataset, G, labels, poseIdx)
+function params = EmptyParams()
   params = struct(
                "theta", [],
                "mu_y", [],
@@ -39,57 +39,72 @@ function params = LearnRootCPD(dataset, G, labels, poseIdx)
                "sigma_x", [],
                "mu_angle", [],
                "sigma_angle", []);
+end
 
-  for labelIdx=1:size(labels, 2)
-    examples = find(labels(:, labelIdx));
-    poses = squeeze(dataset(examples, poseIdx, :));
+function params = LearnCPD(dataset, G, labels, poseIdx)
+  params = EmptyParams();
 
-    [params.mu_y(end+1), params.sigma_y(end+1)] = ...
-      FitGaussianParameters(poses(:, 1));
-    [params.mu_x(end+1), params.sigma_x(end+1)] = ...
-      FitGaussianParameters(poses(:, 2));
-    [params.mu_angle(end+1), params.sigma_angle(end+1)] = ...
-      FitGaussianParameters(poses(:, 3));
+  NUM_LABELS = size(labels, 2);
+  for labelIdx=1:NUM_LABELS
+    if G(poseIdx, 1, labelIdx) == 0
+      params_ = LearnRootCPD(dataset, G, labels, poseIdx, labelIdx);
+    else
+      params_ = LearnChildCPD(dataset, G, labels, poseIdx, labelIdx);
+    end
+
+    params = MergeParams(params, params_);
   end
 end
 
-function params = LearnChildCPD(dataset, G, labels, poseIdx)
+function params = MergeParams(params1, params2)
   params = struct(
-               "theta", [],
-               "mu_y", [],
-               "sigma_y", [],
-               "mu_x", [],
-               "sigma_x", [],
-               "mu_angle", [],
-               "sigma_angle", []);
+               "theta", [params1.theta; params2.theta],
+               "mu_y", [params1.mu_y, params2.mu_y],
+               "sigma_y", [params1.sigma_y, params2.sigma_y],
+               "mu_x", [params1.mu_x, params2.mu_x],
+               "sigma_x", [params1.sigma_x, params2.sigma_x],
+               "mu_angle", [params1.mu_angle, params2.mu_angle],
+               "sigma_angle", [params1.sigma_angle, params2.sigma_angle]);
+end
 
-  for labelIdx=1:size(labels, 2)
-    allTheta = [];
+function params = LearnRootCPD(dataset, G, labels, poseIdx, labelIdx)
+  params = EmptyParams();
 
-    examples = find(labels(:, labelIdx));
-    poses = squeeze(dataset(examples, poseIdx, :));
+  examples = find(labels(:, labelIdx));
+  poses = squeeze(dataset(examples, poseIdx, :));
 
-    parentPoseIdx = G(poseIdx, 2);
-    parentPoses = squeeze(dataset(examples, parentPoseIdx, :));
+  [params.mu_y(end+1), params.sigma_y(end+1)] = ...
+    FitGaussianParameters(poses(:, 1));
+  [params.mu_x(end+1), params.sigma_x(end+1)] = ...
+    FitGaussianParameters(poses(:, 2));
+  [params.mu_angle(end+1), params.sigma_angle(end+1)] = ...
+    FitGaussianParameters(poses(:, 3));
+end
 
-    [Theta sigma] = ...
-      FitLinearGaussianParameters(poses(:, 1), parentPoses);
-    Theta = [Theta(end), Theta(1:end-1)'];
-    allTheta = [allTheta, Theta];
-    params.sigma_y(end+1) = sigma;
+function params = LearnChildCPD(dataset, G, labels, poseIdx, labelIdx)
+  params = EmptyParams();
 
-    [Theta sigma] = ...
-      FitLinearGaussianParameters(poses(:, 2), parentPoses);
-    Theta = [Theta(end), Theta(1:end-1)'];
-    allTheta = [allTheta, Theta];
-    params.sigma_x(end+1) = sigma;
+  examples = find(labels(:, labelIdx));
+  poses = squeeze(dataset(examples, poseIdx, :));
 
-    [Theta sigma] = ...
-      FitLinearGaussianParameters(poses(:, 3), parentPoses);
-    Theta = [Theta(end), Theta(1:end-1)'];
-    allTheta = [allTheta, Theta];
-    params.sigma_angle(end+1) = sigma;
+  parentPoseIdx = G(poseIdx, 2, labelIdx);
+  parentPoses = squeeze(dataset(examples, parentPoseIdx, :));
 
-    params.theta(end+1, :) = allTheta;
-  end
+  [Theta sigma] = ...
+    FitLinearGaussianParameters(poses(:, 1), parentPoses);
+  Theta = [Theta(end), Theta(1:end-1)'];
+  params.theta = [params.theta, Theta];
+  params.sigma_y(end+1) = sigma;
+
+  [Theta sigma] = ...
+    FitLinearGaussianParameters(poses(:, 2), parentPoses);
+  Theta = [Theta(end), Theta(1:end-1)'];
+  params.theta = [params.theta, Theta];
+  params.sigma_x(end+1) = sigma;
+
+  [Theta sigma] = ...
+    FitLinearGaussianParameters(poses(:, 3), parentPoses);
+  Theta = [Theta(end), Theta(1:end-1)'];
+  params.theta = [params.theta, Theta];
+  params.sigma_angle(end+1) = sigma;
 end

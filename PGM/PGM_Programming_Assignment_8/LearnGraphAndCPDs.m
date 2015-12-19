@@ -1,4 +1,4 @@
-function [P G loglikelihood] = LearnGraphAndCPDs(dataset, labels)
+function [P G logProb] = LearnGraphAndCPDs(dataset, labels)
 
 % dataset: N x 10 x 3, N poses represented by 10 parts in (y, x, alpha) 
 % labels: N x 2 true class labels for the examples. labels(i,j)=1 if the 
@@ -6,33 +6,28 @@ function [P G loglikelihood] = LearnGraphAndCPDs(dataset, labels)
 %
 % Copyright (C) Daphne Koller, Stanford Univerity, 2012
 
-N = size(dataset, 1);
-K = size(labels,2);
+  NUM_EXAMPLES = size(dataset, 1);
+  NUM_POSES = size(dataset, 2);
+  NUM_CLASSES = size(labels, 2);
 
-G = zeros(10,2,K); % graph structures to learn
-% initialization
-for k=1:K
-    G(2:end,:,k) = ones(9,2);
+  G = zeros(NUM_POSES, 2, NUM_CLASSES); % graph structures to learn
+  % initialization. Set everyone child of first vertex. Basically Naive
+  % Bayes.
+  for classIdx=1:NUM_CLASSES
+    G(2:end, :, classIdx) = ones(NUM_POSES - 1, 2);
+  end
+
+  % Estimate graph structure for each class
+  for classIdx=1:NUM_CLASSES
+    examples = find(labels(:, classIdx));
+    dataset_ = squeeze(dataset(examples, :, :));
+
+    [A, _] = LearnGraphStructure(dataset_);
+    G(:, :, classIdx) = ConvertAtoG(A);
+  end
+
+  % Estimate parameters
+  [P, logProb] = LearnCPDsGivenGraph(dataset, G, labels);
+
+  fprintf('log likelihood: %f\n', logProb);
 end
-
-% estimate graph structure for each class
-for k=1:K
-    % fill in G(:,:,k)
-    % use ConvertAtoG to convert a maximum spanning tree to a graph G
-    %%%%%%%%%%%%%%%%%%%%%%%%%
-    % YOUR CODE HERE
-    %%%%%%%%%%%%%%%%%%%%%%%%%
-end
-
-% estimate parameters
-
-P.c = zeros(1,K);
-% compute P.c
-
-% the following code can be copied from LearnCPDsGivenGraph.m
-% with little or no modification
-%%%%%%%%%%%%%%%%%%%%%%%%%
-% YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fprintf('log likelihood: %f\n', loglikelihood);

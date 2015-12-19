@@ -16,29 +16,29 @@ function logProb = ComputeLogLikelihood(P, G, dataset)
 %
 % Copyright (C) Daphne Koller, Stanford Univerity, 2012
 
-NUM_EXAMPLES = size(dataset,1); % number of examples
-NUM_CLASSES = length(P.c); % number of classes
+  NUM_EXAMPLES = size(dataset, 1); % number of examples
+  NUM_CLASSES = length(P.c); % number of classes
 
-logProb = 0.0;
+  if ndims(G) == 2
+    G = repmat(G, 1, 1, NUM_CLASSES);
+  end
 
 % You should compute the log likelihood of data as in eq. (12) and (13)
 % in the PA description
 % Hint: Use lognormpdf instead of log(normpdf) to prevent underflow.
 %       You may use log(sum(exp(logProb))) to do addition in the original
 %       space, sum(Prob).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% YOUR CODE HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for dataIdx=1:NUM_EXAMPLES
-  logProbs = [];
-  for classIdx=1:NUM_CLASSES
-    example = squeeze(dataset(dataIdx, :, :));
-    logProbs(end+1) = ...
-      ComputeExampleLogProb(P, G, classIdx, example);
+  logProb = 0.0;
+  for dataIdx=1:NUM_EXAMPLES
+    logProbs = [];
+    for classIdx=1:NUM_CLASSES
+      G_ = squeeze(G(:, :, classIdx));
+      example = squeeze(dataset(dataIdx, :, :));
+      logProbs(end+1) = ...
+        ComputeExampleLogProb(P, G_, classIdx, example);
+    end
+
+    logProb += log(sum(exp(logProbs)));
   end
-
-  logProb += log(sum(exp(logProbs)));
-end
-
 end

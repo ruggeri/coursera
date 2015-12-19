@@ -14,6 +14,11 @@ function accuracy = ClassifyDataset(dataset, labels, P, G)
 % Copyright (C) Daphne Koller, Stanford Univerity, 2012
 
   NUM_EXAMPLES = size(dataset, 1);
+  NUM_CLASSES = length(P.c);
+
+  if ndims(G) == 2
+    G = repmat(G, 1, 1, NUM_CLASSES);
+  end
 
   numCorrectPredictions = 0;
   for exampleIdx=1:NUM_EXAMPLES
@@ -32,7 +37,8 @@ function classIdx = ClassifyExample(P, G, example)
 
   logProbs = [];
   for classIdx=1:NUM_CLASSES
-    logProbs(end+1) = ComputeExampleLogProb(P, G, classIdx, example);
+    G_ = squeeze(G(:, :, classIdx));
+    logProbs(end+1) = ComputeExampleLogProb(P, G_, classIdx, example);
   end
 
   [_, classIdx] = max(logProbs);
