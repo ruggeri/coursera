@@ -10,9 +10,9 @@ function [P G logProb] = LearnGraphAndCPDs(dataset, labels)
   NUM_POSES = size(dataset, 2);
   NUM_CLASSES = size(labels, 2);
 
-  G = zeros(NUM_POSES, 2, NUM_CLASSES); % graph structures to learn
-  % initialization. Set everyone child of first vertex. Basically Naive
+  % Initialization. Set everyone child of first vertex. Basically Naive
   % Bayes.
+  G = zeros(NUM_POSES, 2, NUM_CLASSES); % graph structures to learn
   for classIdx=1:NUM_CLASSES
     G(2:end, :, classIdx) = ones(NUM_POSES - 1, 2);
   end

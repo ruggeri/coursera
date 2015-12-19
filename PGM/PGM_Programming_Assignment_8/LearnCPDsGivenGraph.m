@@ -22,7 +22,7 @@ function [P loglikelihood] = LearnCPDsGivenGraph(dataset, G, labels)
 
   P.c = mean(labels);
   P.clg = [];
-  for poseIdx=1:size(dataset, 2)
+  for poseIdx=1:NUM_POSES
     P.clg(poseIdx) = LearnCPD(dataset, G, labels, poseIdx);
   end
 
