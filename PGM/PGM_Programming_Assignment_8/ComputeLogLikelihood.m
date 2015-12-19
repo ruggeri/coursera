@@ -16,9 +16,8 @@ function logProb = ComputeLogLikelihood(P, G, dataset)
 %
 % Copyright (C) Daphne Koller, Stanford Univerity, 2012
 
-N = size(dataset,1); % number of examples
-NUM_POSES = 10;
-K = length(P.c); % number of classes
+NUM_EXAMPLES = size(dataset,1); % number of examples
+NUM_CLASSES = length(P.c); % number of classes
 
 logProb = 0.0;
 
@@ -31,64 +30,15 @@ logProb = 0.0;
 % YOUR CODE HERE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for dataIdx=1:N
+for dataIdx=1:NUM_EXAMPLES
   logProbs = [];
-  for classIdx=1:K
-    logProbK = log(P.c(classIdx));
-
-    example = dataset(dataIdx, :, :);
-    example = reshape(example, NUM_POSES, 3);
-
-    for poseIdx=1:NUM_POSES
-      if G(poseIdx, 1) == 0
-        logProbK += ComputeRootLogProb(P, G, classIdx, example, poseIdx);
-      else
-        logProbK += ComputeChildLogProb(P, G, classIdx, example, poseIdx);
-      end
-    end
-
-    logProbs(end+1) = logProbK;
+  for classIdx=1:NUM_CLASSES
+    example = squeeze(dataset(dataIdx, :, :));
+    logProbs(end+1) = ...
+      ComputeExampleLogProb(P, G, classIdx, example);
   end
 
   logProb += log(sum(exp(logProbs)));
 end
 
-end
-
-function logProb = ComputeRootLogProb(P, G, classIdx, example, poseIdx)
-  pose = example(poseIdx, :);
-
-  params = P.clg(poseIdx);
-
-  logProbs = [];
-  logProbs(end+1) = ...
-    lognormpdf(pose(1), params.mu_y(classIdx), params.sigma_y(classIdx));
-  logProbs(end+1) = ...
-    lognormpdf(pose(2), params.mu_x(classIdx), params.sigma_x(classIdx));
-  logProbs(end+1) = ...
-    lognormpdf(pose(3), params.mu_angle(classIdx), params.sigma_angle(classIdx));
-
-  logProb = sum(logProbs);
-end
-
-function logProb = ComputeChildLogProb(P, G, classIdx, example, poseIdx)
-  parentPoseIdx = G(poseIdx, 2);
-  parentPose = example(parentPoseIdx, :)(:);
-  pose = example(poseIdx, :);
-
-  % Calculate means.
-  theta = P.clg(poseIdx).theta(classIdx, :);
-  mu_y = theta(1:4)  * [1; parentPose];
-  mu_x = theta(5:8)  * [1; parentPose];
-  mu_angle = theta(9:12) * [1; parentPose];
-
-  % Extract variances.
-  params = P.clg(poseIdx);
-
-  logProbs = [];
-  logProbs(end+1) = lognormpdf(pose(1), mu_y, params.sigma_y(classIdx));
-  logProbs(end+1) = lognormpdf(pose(2), mu_x, params.sigma_x(classIdx));
-  logProbs(end+1) = lognormpdf(pose(3), mu_angle, params.sigma_angle(classIdx));
-
-  logProb = sum(logProbs);
 end
