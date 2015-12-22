@@ -80,12 +80,12 @@ for iter=1:maxIter
 
   P2 = P;
   P2.c = ones(K, 1);
-  logEmissionProb = zeros(N, K);
+  logEmissionProbs = zeros(N, K);
   for poseIdx=1:N
     example = squeeze(poseData(poseIdx, :, :));
-    logEmissionProb(poseIdx, :) = ComputeExampleLogProbs(P2, G, example);
+    logEmissionProbs(poseIdx, :) = ComputeExampleLogProbs(P2, G, example);
   end
-  logEmissionProb = logEmissionProb;
+  logEmissionProbs = logEmissionProbs;
 
   % Looks like correct up to this point!
 
@@ -100,14 +100,12 @@ for iter=1:maxIter
   % Hint: You should use the logsumexp() function here to do probability
   % normalization in log space to avoid numerical issues
 
-  ClassProb = zeros(N,K);
-  PairProb = zeros(V,K^2);
+  [ClassProb, PairProb] = BaumWelch(
+                              P,
+                              actionData,
+                              poseData,
+                              logEmissionProbs);
   loglikelihood(iter) = 0;
-
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % YOUR CODE HERE
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   % Print out loglikelihood
   disp(sprintf('EM iteration %d: log likelihood: %f', ...
