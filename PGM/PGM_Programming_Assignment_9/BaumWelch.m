@@ -17,6 +17,8 @@ function [ClassProb PairProb] = BaumWelch(P, actionData, poseData, logEmissionPr
 
     ForwardLogProbs = zeros(NUM_POSES, NUM_CLASSES);
     ForwardLogProbs(1, :) = log(P.c) + logEmissionProbs(poseIdxs(1), :);
+    % Normalize.
+    ForwardLogProbs(1, :) -= logsumexp(ForwardLogProbs(1, :));
 
     for poseIdxIdx=2:NUM_POSES
       % Probability of state given observations up to poseIdxIdx.

@@ -85,7 +85,6 @@ for iter=1:maxIter
     example = squeeze(poseData(poseIdx, :, :));
     logEmissionProbs(poseIdx, :) = ComputeExampleLogProbs(P2, G, example);
   end
-  logEmissionProbs = logEmissionProbs;
 
   % Looks like correct up to this point!
 
