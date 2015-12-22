@@ -53,11 +53,12 @@ function [ClassProb PairProb] = BaumWelch(P, actionData, poseData, logEmissionPr
       ClassProb(poseIdxs(poseIdxIdx), :) = exp(logProbs);
     end
 
+    % Forward & Backward are correct as all ClassProb correct.
     for poseIdxIdx=1:(NUM_POSES-1)
       logProbs = (
         ForwardLogProbs(poseIdxIdx, :)' .+
         logTransMatrix .+
-        logEmissionProbs(poseIdxIdx + 1, :) .+
+        logEmissionProbs(poseIdxs(poseIdxIdx) + 1, :) .+
         BackwardLogProbs(poseIdxIdx + 1, :));
 
       logProbs = reshape(logProbs, 1, NUM_CLASSES ^ 2);
