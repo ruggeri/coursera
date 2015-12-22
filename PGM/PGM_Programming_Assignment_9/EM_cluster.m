@@ -22,8 +22,8 @@ function [P loglikelihood ClassProb] = EM_cluster(poseData, G, InitialClassProb,
 %   example i belongs to class j
 
 % Initialize variables
-N = size(poseData, 1);
-K = size(InitialClassProb, 2);
+NUM_EXAMPLES = size(poseData, 1);
+NUM_CLASSES = size(InitialClassProb, 2);
 
 ClassProb = InitialClassProb;
 
@@ -36,7 +36,6 @@ P.clg.sigma_angle = [];
 
 % EM algorithm
 for iter=1:maxIter
-  
   % M-STEP to estimate parameters for Gaussians
   %
   % Fill in P.c with the estimates for prior class probabilities
@@ -44,20 +43,13 @@ for iter=1:maxIter
   % Make sure to choose the right parameterization based on G(i,1)
   %
   % Hint: This part should be similar to your work from PA8
-  
-  P.c = zeros(1,K);
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % YOUR CODE HERE
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+  P = LearnCPDsGivenGraph(poseData, G, ClassProb);
+
   % E-STEP to re-estimate ClassProb using the new parameters
   %
   % Update ClassProb with the new conditional class probabilities.
-  % Recall that ClassProb(i,j) is the probability that example i belongs to
-  % class j.
+  % Recall that ClassProb(i,j) is the probability that example i belongs
+  % to class j.
   %
   % You should compute everything in log space, and only convert to
   % probability space at the end.
@@ -68,38 +60,33 @@ for iter=1:maxIter
   %
   % Hint: You should use the logsumexp() function here to do
   % probability normalization in log space to avoid numerical issues
-  
-  ClassProb = zeros(N,K);
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % YOUR CODE HERE
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+  LogClassProb = zeros(NUM_EXAMPLES, NUM_CLASSES);
+  for i=1:NUM_EXAMPLES
+    example = squeeze(poseData(i, :, :));
+    LogClassProb(i, :) = ComputeExampleLogProbs(P, G, example);
+  end
+  % Convert out of log space, and normalize.
+  ClassProb = exp(LogClassProb - logsumexp(LogClassProb));
+
   % Compute log likelihood of dataset for this iteration
   % Hint: You should use the logsumexp() function here
-  loglikelihood(iter) = 0;
+  loglikelihood(iter) = sum(logsumexp(LogClassProb));
+
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % YOUR CODE HERE
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   % Print out loglikelihood
   disp(sprintf('EM iteration %d: log likelihood: %f', ...
     iter, loglikelihood(iter)));
   if exist('OCTAVE_VERSION')
     fflush(stdout);
   end
-  
+
   % Check for overfitting: when loglikelihood decreases
   if iter > 1
     if loglikelihood(iter) < loglikelihood(iter-1)
       break;
     end
   end
-  
 end
 
 % Remove iterations if we exited early
