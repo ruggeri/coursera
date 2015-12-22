@@ -44,82 +44,84 @@ P.clg.sigma_x = [];
 P.clg.sigma_y = [];
 P.clg.sigma_angle = [];
 
+firstPoseIdxs = zeros(length(actionData), 1);
+for actionIdx=1:length(actionData)
+  firstPoseIdxs(actionIdx) = actionData(actionIdx).marg_ind(1);
+end
+
 % EM algorithm
 for iter=1:maxIter
-  
   % M-STEP to estimate parameters for Gaussians
-  % Fill in P.c, the initial state prior probability (NOT the class probability as in PA8 and EM_cluster.m)
+  % Fill in P.c, the initial state prior probability (NOT the class
+  % probability as in PA8 and EM_cluster.m)
   % Fill in P.clg for each body part and each class
   % Make sure to choose the right parameterization based on G(i,1)
-  % Hint: This part should be similar to your work from PA8 and EM_cluster.m
-  
-  P.c = zeros(1,K);
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % YOUR CODE HERE
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-  % M-STEP to estimate parameters for transition matrix
-  % Fill in P.transMatrix, the transition matrix for states
-  % P.transMatrix(i,j) is the probability of transitioning from state i to state j
-  P.transMatrix = zeros(K,K);
-  
-  % Add Dirichlet prior based on size of poseData to avoid 0 probabilities
+  % Hint: This part should be similar to your work from PA8 and
+  % EM_cluster.m
+  P = LearnCPDsGivenGraph(poseData, G, ClassProb);
+  P.c = mean(ClassProb(firstPoseIdxs, :));
+
+  P.transMatrix = zeros(K, K);
+  for poseIdx=1:size(PairProb, 1)
+    P.transMatrix += reshape(PairProb(poseIdx, :), K, K);
+  end
+
+  % Add Dirichlet prior based on size of poseData to avoid 0
+  % probabilities
   P.transMatrix = P.transMatrix + size(PairProb,1) * .05;
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % YOUR CODE HERE
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-    
-  % E-STEP preparation: compute the emission model factors (emission probabilities) in log space for each 
+
+  P.transMatrix = P.transMatrix ./ sum(P.transMatrix, 2);
+
+  % E-STEP preparation: compute the emission model factors (emission
+  % probabilities) in log space for each
   % of the poses in all actions = log( P(Pose | State) )
-  % Hint: This part should be similar to (but NOT the same as) your code in EM_cluster.m
-  
-  logEmissionProb = zeros(N,K);
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % YOUR CODE HERE
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-    
+  % Hint: This part should be similar to (but NOT the same as) your code
+  % in EM_cluster.m
+
+  P2 = P;
+  P2.c = ones(K, 1);
+  logEmissionProb = zeros(N, K);
+  for poseIdx=1:N
+    example = squeeze(poseData(poseIdx, :, :));
+    logEmissionProb(poseIdx, :) = ComputeExampleLogProbs(P2, G, example);
+  end
+  logEmissionProb = logEmissionProb;
+
+  % Looks like correct up to this point!
+
   % E-STEP to compute expected sufficient statistics
-  % ClassProb contains the conditional class probabilities for each pose in all actions
-  % PairProb contains the expected sufficient statistics for the transition CPDs (pairwise transition probabilities)
+  % ClassProb contains the conditional class probabilities for each pose
+  % in all actions
+  % PairProb contains the expected sufficient statistics for the
+  % transition CPDs (pairwise transition probabilities)
   % Also compute log likelihood of dataset for this iteration
-  % You should do inference and compute everything in log space, only converting to probability space at the end
-  % Hint: You should use the logsumexp() function here to do probability normalization in log space to avoid numerical issues
-  
+  % You should do inference and compute everything in log space, only
+  % converting to probability space at the end
+  % Hint: You should use the logsumexp() function here to do probability
+  % normalization in log space to avoid numerical issues
+
   ClassProb = zeros(N,K);
   PairProb = zeros(V,K^2);
   loglikelihood(iter) = 0;
-  
+
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % YOUR CODE HERE
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   % Print out loglikelihood
   disp(sprintf('EM iteration %d: log likelihood: %f', ...
     iter, loglikelihood(iter)));
   if exist('OCTAVE_VERSION')
     fflush(stdout);
   end
-  
+
   % Check for overfitting by decreasing loglikelihood
   if iter > 1
     if loglikelihood(iter) < loglikelihood(iter-1)
       break;
     end
   end
-  
 end
 
 % Remove iterations if we exited early
