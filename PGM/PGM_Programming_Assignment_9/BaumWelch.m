@@ -1,4 +1,5 @@
-function [ClassProb PairProb] = BaumWelch(P, actionData, poseData, logEmissionProbs)
+function [ClassProb PairProb logLikelihood] = ...
+         BaumWelch(P, actionData, poseData, logEmissionProbs)
   NUM_ACTIONS = length(actionData);
   NUM_CLASSES = length(P.c);
   NUM_POSES = size(poseData, 1);
@@ -6,6 +7,7 @@ function [ClassProb PairProb] = BaumWelch(P, actionData, poseData, logEmissionPr
 
   ClassProb = zeros(NUM_POSES, NUM_CLASSES);
   PairProb = zeros(NUM_TRANSITIONS, NUM_CLASSES ^ 2);
+  logLikelihood = 0;
 
   logTransMatrix = log(P.transMatrix);
 
@@ -17,8 +19,6 @@ function [ClassProb PairProb] = BaumWelch(P, actionData, poseData, logEmissionPr
 
     ForwardLogProbs = zeros(NUM_POSES, NUM_CLASSES);
     ForwardLogProbs(1, :) = log(P.c) + logEmissionProbs(poseIdxs(1), :);
-    % Normalize.
-    ForwardLogProbs(1, :) -= logsumexp(ForwardLogProbs(1, :));
 
     for poseIdxIdx=2:NUM_POSES
       % Probability of state given observations up to poseIdxIdx.
@@ -26,10 +26,6 @@ function [ClassProb PairProb] = BaumWelch(P, actionData, poseData, logEmissionPr
         ForwardLogProbs(poseIdxIdx - 1, :)'
         .+ logTransMatrix
         .+ logEmissionProbs(poseIdxs(poseIdxIdx), :))')';
-
-      % Normalize.
-      ForwardLogProbs(poseIdxIdx, :) -= ...
-        logsumexp(ForwardLogProbs(poseIdxIdx, :));
     end
 
     BackwardLogProbs = zeros(NUM_POSES, NUM_CLASSES);
@@ -40,15 +36,18 @@ function [ClassProb PairProb] = BaumWelch(P, actionData, poseData, logEmissionPr
         logTransMatrix .+
         logEmissionProbs(poseIdxs(poseIdxIdx + 1), :) .+
         BackwardLogProbs(poseIdxIdx + 1, :))';
-
-      % Normalize.
-      BackwardLogProbs(poseIdxIdx, :) -= ...
-        logsumexp(BackwardLogProbs(poseIdxIdx, :));
     end
 
     for poseIdxIdx=1:NUM_POSES
       logProbs = ForwardLogProbs(poseIdxIdx, :) .+ ...
         BackwardLogProbs(poseIdxIdx, :);
+
+      % Accumulate logLikelihood of the data.
+      if poseIdxIdx == 1
+        logLikelihood += logsumexp(logProbs);
+      end
+
+      % Normalize.
       logProbs -= logsumexp(logProbs);
       ClassProb(poseIdxs(poseIdxIdx), :) = exp(logProbs);
     end
@@ -62,6 +61,8 @@ function [ClassProb PairProb] = BaumWelch(P, actionData, poseData, logEmissionPr
         BackwardLogProbs(poseIdxIdx + 1, :));
 
       logProbs = reshape(logProbs, 1, NUM_CLASSES ^ 2);
+
+      % Normalize.
       logProbs -= logsumexp(logProbs);
 
       PairProb(action.pair_ind(poseIdxIdx), :) = exp(logProbs);

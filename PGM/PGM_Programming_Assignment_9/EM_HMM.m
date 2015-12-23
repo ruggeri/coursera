@@ -99,12 +99,11 @@ for iter=1:maxIter
   % Hint: You should use the logsumexp() function here to do probability
   % normalization in log space to avoid numerical issues
 
-  [ClassProb, PairProb] = BaumWelch(
-                              P,
-                              actionData,
-                              poseData,
-                              logEmissionProbs);
-  loglikelihood(iter) = 0;
+  [ClassProb, PairProb, loglikelihood(iter)] = BaumWelch(
+                                                   P,
+                                                   actionData,
+                                                   poseData,
+                                                   logEmissionProbs);
 
   % Print out loglikelihood
   disp(sprintf('EM iteration %d: log likelihood: %f', ...
