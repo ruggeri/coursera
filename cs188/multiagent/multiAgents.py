@@ -153,8 +153,35 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if self.index != 0:
+            raise "Only works for Pacman"
+
+        return self._evaluateState(self, gameState, self.depth)
+
+    def _evaluateState(self, gameState, depth):
+        if depth == 0:
+            return self.evaluationFunction(gameState)
+
+        actions = gameState.getLegalActions(self.index)
+        for actionIdx, action in enumerate(actions):
+            self.evaluateAction(action, self.depth)
+
+    def _evaluateAction(self, gameState, action, depth):
+        nextGameStates = [gameState.generateSuccessor(self.index, action)]
+
+        for nextActorIdx in range(1, gameState.getNumAgents()):
+            nextGameStates2 = []
+            for nextGameState in nextGameStates:
+                for nextGameState2 in nextGameState.getLegalActions(nextActorIdx):
+                    nextGameStates2.push(nextGameState2)
+
+            nextGameStates = nextGameStates2
+
+        nextGameStateValues = []
+        for nextGameState in nextGameStates:
+            nextGameStateValues.push(self._evaluateState(nextGameState, depth - 1))
+
+        return max(nextGameStateValues)
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
