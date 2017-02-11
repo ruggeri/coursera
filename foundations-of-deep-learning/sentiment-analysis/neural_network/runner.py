@@ -2,11 +2,12 @@ from neural_network.batcher import Batcher
 from neural_network.evaluator import Evaluator
 from neural_network.ff_neural_network import FFNeuralNetwork
 from neural_network.trainer import Trainer
+import sys
 
 class Runner:
     DEFAULT_NUM_HIDDEN_UNITS = 10
     DEFAULT_LEARNING_RATE = 0.1
-    DEFAULT_BATCH_SIZE = 200
+    DEFAULT_BATCH_SIZE = 1
     VALIDATION_SET_RATIO = 0.10
 
     def __init__(self,
@@ -38,8 +39,9 @@ class Runner:
     def run_epoch(self):
         batches = self.batcher.run(*self.train_set)
         for idx, (batch_inputs, batch_targets) in enumerate(batches):
-            print(f"Training batch #{idx}")
+            sys.stdout.write(f"\rTraining batch #{idx}")
             self.trainer.train_batch(batch_inputs, batch_targets)
 
-            errors = self.evaluator.run(*self.validation_set)
-            print(errors)
+        errors = self.evaluator.run(*self.validation_set)
+        print("")
+        print(errors)

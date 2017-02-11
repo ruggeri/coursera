@@ -51,7 +51,8 @@ class Vocabulary:
             if not self.is_in_vocabulary(word):
                 continue
             index = self.words_to_index[word]
-            counts[index] += 1.0
+            # Note that we are just doing this binary style.
+            counts[index] = 1.0
 
     def is_in_vocabulary(self, word):
         return word in self.words_to_index
