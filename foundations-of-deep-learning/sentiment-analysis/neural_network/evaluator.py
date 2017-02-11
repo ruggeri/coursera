@@ -34,7 +34,6 @@ class Evaluator:
         self.false_neg = 0
         self.false_pos = 0
 
-    # TODO: This is laziness. I should have a real validation set.
     def run(self, inputs, targets):
         self.reset_accumulators()
 

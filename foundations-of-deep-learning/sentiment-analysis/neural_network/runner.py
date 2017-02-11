@@ -52,3 +52,6 @@ class Runner:
 # TODO: I think it makes sense to compute training error as we
 # proceed. Otherwise we have to wait for the entire batch before we
 # see any output.
+#
+# TODO: I would like to see the performance difference from using
+# sparse arrays.
