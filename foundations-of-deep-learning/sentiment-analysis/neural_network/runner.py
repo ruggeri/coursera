@@ -45,3 +45,10 @@ class Runner:
         errors = self.evaluator.run(*self.validation_set)
         print("")
         print(errors)
+
+# TODO: I think it makes sense to track rate at which examples are
+# being processed for training.
+#
+# TODO: I think it makes sense to compute training error as we
+# proceed. Otherwise we have to wait for the entire batch before we
+# see any output.
