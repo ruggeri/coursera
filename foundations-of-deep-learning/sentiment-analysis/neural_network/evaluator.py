@@ -1,14 +1,19 @@
+from collections import namedtuple
 from math import ceil, floor
 from neural_network.functions import cross_entropy
 import random
 
+Result = namedtuple("Result", "cross_entropy error_rate")
+
+# TODO: This now has a fair amount of cross-over with stats tracker. I
+# should maybe review this?
 class Evaluator:
     @staticmethod
     def split_dataset(validation_set_ratio, inputs, targets):
         num_examples = len(inputs)
 
         train_set_ratio = 1 - validation_set_ratio
-        num_train_examples = floor((1 - train_set_ratio) * num_examples)
+        num_train_examples = floor(train_set_ratio * num_examples)
 
         shuffled_idxs = random.sample(range(num_examples), num_examples)
 
@@ -40,15 +45,8 @@ class Evaluator:
         for (input_v, target) in zip(inputs, targets):
             self.run_example(input_v, target)
 
-        misclassification_rate = \
-          (self.false_neg + self.false_pos) / len(inputs)
-
-        return (
-            self.loss,
-            self.false_neg,
-            self.false_pos,
-            misclassification_rate
-        )
+        error_rate = (self.false_neg + self.false_pos) / len(inputs)
+        return Result(self.loss, error_rate)
 
     def run_example(self, input_v, target):
         output = self.nn.run(input_v)

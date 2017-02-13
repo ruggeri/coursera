@@ -7,8 +7,11 @@ def main():
     print("Reading Input")
     (reviews, targets) = InputReader.run()
 
+    # Uncomment this for faster testing.
+    #(reviews, targets) = (reviews[:100], targets[:100])
+
     print("Building Vocabulary")
-    vocabulary = Vocabulary(reviews)
+    vocabulary = Vocabulary(reviews, targets)
     print(f"Vocab size: {vocabulary.num_words}")
     print("Converting inputs")
     inputs = vocabulary.featurize(reviews)

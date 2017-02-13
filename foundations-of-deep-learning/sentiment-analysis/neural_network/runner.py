@@ -36,22 +36,29 @@ class Runner:
         (self.train_set, self.validation_set) = \
           Evaluator.split_dataset(validation_set_ratio, inputs, targets)
 
+        self.epoch_num = 0
+
     def run_epoch(self):
         batches = self.batcher.run(*self.train_set)
-        for idx, (batch_inputs, batch_targets) in enumerate(batches):
-            sys.stdout.write(f"\rTraining batch #{idx}")
-            self.trainer.train_batch(batch_inputs, batch_targets)
+        for b_num, (b_inputs, b_targets) in enumerate(batches):
+            self.trainer.train_batch(b_inputs, b_targets)
+            error_rate = self.trainer.stats.error_rate()
+            strings = [f"\rEpoch {self.epoch_num}",
+                       f"Batch #{b_num}.",
+                       f"Train Error rate: {error_rate:.3f}"]
+            sys.stdout.write("\t".join(strings))
 
-        errors = self.evaluator.run(*self.validation_set)
+        result = self.evaluator.run(*self.validation_set)
+        strings = [f"\r>>>Epoch {self.epoch_num}",
+                   f"CE: {result.cross_entropy:.3f}",
+                   f"Valid Error rate: {result.error_rate:.3f}<<<"]
+        print("\t".join(strings))
         print("")
-        print(errors)
 
-# TODO: I think it makes sense to track rate at which examples are
-# being processed for training.
-#
-# TODO: I think it makes sense to compute training error as we
-# proceed. Otherwise we have to wait for the entire batch before we
-# see any output.
-#
+        self.epoch_num += 1
+
 # TODO: I would like to see the performance difference from using
 # sparse arrays.
+#
+# TODO: We should use an index99-type metric to reduce the number of
+# features presented.

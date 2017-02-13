@@ -1,10 +1,14 @@
 from neural_network.back_propagator import BackPropagator
+from neural_network.stats_tracker import StatsTracker
 import numpy as np
+from time import time
 
 class Trainer:
     def __init__(self, neural_network, learning_rate):
         self.nn = neural_network
         self.bp = BackPropagator(self.nn)
+        self.learning_rate = learning_rate
+        self.stats = StatsTracker()
 
         # Arrays for collecting GD step
         self.output_bias_step = 0.0
@@ -13,8 +17,6 @@ class Trainer:
         self.hidden_bias_step = np.zeros(self.nn.hidden_layer.shape)
         self.hidden_weights_step = \
           np.zeros(self.nn.input_to_hidden_weights.shape)
-
-        self.learning_rate = learning_rate
 
     def perform_update(self, num_examples):
         scaled_learning_rate = self.learning_rate / num_examples
@@ -45,6 +47,8 @@ class Trainer:
         self.perform_update(len(batch_inputs))
 
     def train_on_example(self, input_v, target):
+        start_time = time()
+
         output = self.nn.run(input_v)
         self.bp.backward_propagate(output, target)
 
@@ -53,3 +57,6 @@ class Trainer:
         self.output_weights_step -= self.bp.output_weights_derivative
         self.hidden_bias_step -= self.bp.hidden_input_derivative
         self.hidden_weights_step -= self.bp.hidden_weights_derivative
+
+        end_time = time()
+        self.stats.log_example(output, target, end_time - start_time)

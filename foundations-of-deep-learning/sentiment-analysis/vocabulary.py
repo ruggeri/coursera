@@ -5,33 +5,46 @@ import numpy as np
 class Vocabulary:
     THRESHOLD = 800
 
-    def __init__(self, reviews):
-        self.word_counts = Vocabulary.count_words(reviews)
-        self.most_common_words = \
-          Vocabulary.most_common_words(self.word_counts)
-        self.words_to_index = \
-          Vocabulary.word_index(self.most_common_words)
+    def __init__(self, reviews, targets):
+        self.total_counts = Counter()
+        self.positive_counts = Counter()
+        self.negative_counts = Counter()
+        self.num_positive_examples = 0
+        self.num_negative_examples = 0
+
+        self.count_words(reviews, targets)
+
+        selected_words = self.select_words()
+        self.words_to_index = Vocabulary.word_index(selected_words)
         self.num_words = len(self.words_to_index)
 
+    def count_words(self, reviews, targets):
+        for (review, target) in zip(reviews, targets):
+            self.count_words_for_review(review, target)
+
+    def count_words_for_review(self, review, target):
+        for word in set(review.split()):
+            self.total_counts[word] += 1
+            if target == 1:
+                self.positive_counts[word] += 1
+                self.num_positive_examples += 1
+            else:
+                self.negative_counts[word] += 1
+                self.num_negative_examples += 1
+
+    def select_words(self):
+        # TODO: I'm supposed to be using Index99 here.
+        selected_words = []
+        for (word, count) in self.total_counts.items():
+            if count > self.THRESHOLD:
+                selected_words.append(word)
+
+        return selected_words
+
     @staticmethod
-    def count_words(reviews):
-        word_counts = Counter()
-
-        words = chain.from_iterable(rev.split() for rev in reviews)
-        for word in words:
-            word_counts[word] += 1
-
-        return word_counts
-
-    @staticmethod
-    def most_common_words(word_counts):
-        return list(w for (w, c) in word_counts.items() \
-                                 if c > Vocabulary.THRESHOLD)
-
-    @staticmethod
-    def word_index(most_common_words):
+    def word_index(words):
         words_to_index = {}
-        for idx, word in enumerate(most_common_words):
+        for idx, word in enumerate(words):
             words_to_index[word] = idx
 
         return words_to_index
