@@ -2,14 +2,17 @@ from collections import Counter
 import numpy as np
 
 class Vocabulary:
-    THRESHOLD = 800
+    THRESHOLD = 0.01
 
     def __init__(self, reviews, targets):
         self.total_counts = Counter()
         self.positive_counts = Counter()
         self.negative_counts = Counter()
-        self.num_positive_reviews = 0
-        self.num_negative_reviews = 0
+
+        self.num_reviews = len(targets)
+        self.num_positive_reviews = sum(targets)
+        self.num_negative_reviews = \
+          self.num_reviews - self.num_positive_reviews
 
         self.count_words(reviews, targets)
 
@@ -21,12 +24,6 @@ class Vocabulary:
         for (review, target) in zip(reviews, targets):
             self.count_words_for_review(review, target)
 
-        for target in targets:
-            if target == 1:
-                self.num_positive_reviews += 1
-            else:
-                self.num_negative_reviews += 1
-
     def count_words_for_review(self, review, target):
         for word in set(review.split()):
             self.total_counts[word] += 1
@@ -37,9 +34,11 @@ class Vocabulary:
 
     def select_words(self):
         # TODO: I'm supposed to be using Index99 here.
+        threshold = (self.THRESHOLD * self.num_reviews)
+
         selected_words = []
         for (word, count) in self.total_counts.items():
-            if count > self.THRESHOLD:
+            if count > threshold:
                 selected_words.append(word)
 
         return selected_words
