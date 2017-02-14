@@ -1,4 +1,4 @@
-from neural_network.functions import ce_derivative, sigmoid_derivative
+from .functions import ce_derivative, sigmoid_derivative
 import numpy as np
 
 class BackPropagator:

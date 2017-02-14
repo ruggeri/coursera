@@ -1,5 +1,4 @@
 from collections import Counter
-from itertools import chain
 import numpy as np
 
 class Vocabulary:
@@ -9,8 +8,8 @@ class Vocabulary:
         self.total_counts = Counter()
         self.positive_counts = Counter()
         self.negative_counts = Counter()
-        self.num_positive_examples = 0
-        self.num_negative_examples = 0
+        self.num_positive_reviews = 0
+        self.num_negative_reviews = 0
 
         self.count_words(reviews, targets)
 
@@ -22,15 +21,19 @@ class Vocabulary:
         for (review, target) in zip(reviews, targets):
             self.count_words_for_review(review, target)
 
+        for target in targets:
+            if target == 1:
+                self.num_positive_reviews += 1
+            else:
+                self.num_negative_reviews += 1
+
     def count_words_for_review(self, review, target):
         for word in set(review.split()):
             self.total_counts[word] += 1
             if target == 1:
                 self.positive_counts[word] += 1
-                self.num_positive_examples += 1
             else:
                 self.negative_counts[word] += 1
-                self.num_negative_examples += 1
 
     def select_words(self):
         # TODO: I'm supposed to be using Index99 here.

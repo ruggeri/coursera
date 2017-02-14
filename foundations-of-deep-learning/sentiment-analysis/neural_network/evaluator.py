@@ -1,7 +1,7 @@
 from collections import namedtuple
-from math import ceil, floor
-from neural_network.functions import cross_entropy
+from math import floor
 import random
+from .functions import cross_entropy
 
 Result = namedtuple("Result", "cross_entropy error_rate")
 

@@ -1,7 +1,7 @@
-from neural_network.back_propagator import BackPropagator
-from neural_network.stats_tracker import StatsTracker
 import numpy as np
 from time import time
+from .back_propagator import BackPropagator
+from .stats_tracker import StatsTracker
 
 class Trainer:
     def __init__(self, neural_network, learning_rate):

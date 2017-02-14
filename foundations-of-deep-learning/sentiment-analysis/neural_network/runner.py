@@ -1,8 +1,8 @@
-from neural_network.batcher import Batcher
-from neural_network.evaluator import Evaluator
-from neural_network.ff_neural_network import FFNeuralNetwork
-from neural_network.trainer import Trainer
 import sys
+from .batcher import Batcher
+from .evaluator import Evaluator
+from .ff_neural_network import FFNeuralNetwork
+from .trainer import Trainer
 
 class Runner:
     DEFAULT_NUM_HIDDEN_UNITS = 10
@@ -43,22 +43,18 @@ class Runner:
         for b_num, (b_inputs, b_targets) in enumerate(batches):
             self.trainer.train_batch(b_inputs, b_targets)
             error_rate = self.trainer.stats.error_rate()
-            strings = [f"\rEpoch {self.epoch_num}",
+            strings = [f"\r\x1b[KEpoch {self.epoch_num}",
                        f"Batch #{b_num}.",
                        f"Train Error rate: {error_rate:.3f}"]
             sys.stdout.write("\t".join(strings))
 
         result = self.evaluator.run(*self.validation_set)
-        strings = [f"\r>>>Epoch {self.epoch_num}",
+        strings = [f"\r\x1b[K>>>Epoch {self.epoch_num}",
                    f"CE: {result.cross_entropy:.3f}",
                    f"Valid Error rate: {result.error_rate:.3f}<<<"]
         print("\t".join(strings))
-        print("")
 
         self.epoch_num += 1
 
 # TODO: I would like to see the performance difference from using
 # sparse arrays.
-#
-# TODO: We should use an index99-type metric to reduce the number of
-# features presented.

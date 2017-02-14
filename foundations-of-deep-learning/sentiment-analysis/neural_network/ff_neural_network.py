@@ -1,5 +1,5 @@
-from neural_network.functions import sigmoid
 import numpy as np
+from .functions import sigmoid
 
 class FFNeuralNetwork:
     def __init__(self, num_input_units, num_hidden_units):

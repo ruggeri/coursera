@@ -1,6 +1,5 @@
 from input_reader import InputReader
 from neural_network.runner import Runner
-from test_data_generator import TestDataGenerator
 from vocabulary import Vocabulary
 
 def main():
@@ -15,8 +14,6 @@ def main():
     print(f"Vocab size: {vocabulary.num_words}")
     print("Converting inputs")
     inputs = vocabulary.featurize(reviews)
-
-#    (inputs, targets) = TestDataGenerator(1000).gen_samples(10000)
 
     print("Beginning Training")
     runner = Runner(inputs, targets)
