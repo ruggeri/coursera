@@ -43,9 +43,11 @@ class Runner:
         for b_num, (b_inputs, b_targets) in enumerate(batches):
             self.trainer.train_batch(b_inputs, b_targets)
             error_rate = self.trainer.stats.error_rate()
+            eps = self.trainer.stats.examples_per_second()
             strings = [f"\r\x1b[KEpoch {self.epoch_num}",
                        f"Batch #{b_num}.",
-                       f"Train Error rate: {error_rate:.3f}"]
+                       f"Train Error rate: {error_rate:.3f}",
+                       f"Speed: {int(eps):5}ex/sec"]
             sys.stdout.write("\t".join(strings))
 
         result = self.evaluator.run(*self.validation_set)
