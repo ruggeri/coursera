@@ -1,8 +1,10 @@
 from collections import Counter
+from math import log
 import numpy as np
 
 class Vocabulary:
-    THRESHOLD = 0.01
+    THRESHOLD = 0.05
+    PSEUDOCOUNTS = 2
 
     def __init__(self, reviews, targets):
         self.total_counts = Counter()
@@ -32,14 +34,38 @@ class Vocabulary:
             else:
                 self.negative_counts[word] += 1
 
-    def select_words(self):
-        # TODO: I'm supposed to be using Index99 here.
-        threshold = (self.THRESHOLD * self.num_reviews)
+    def log_odds_ratio(self, word):
+        pos_count = self.positive_counts[word] + self.PSEUDOCOUNTS
+        neg_count = self.negative_counts[word] + self.PSEUDOCOUNTS
+        odds_ratio = pos_count / neg_count
+        # Clearly if we pick a lot of positive reviews, this will bias
+        # the odds ratio high for every feature. But I don't know if
+        # this is the correct way to correct the effect. It doesn't
+        # really matter, since normalizer is the same everywhere.
+        normalizer = self.num_positive_reviews / self.num_negative_reviews
+        log_odds_ratio = log(odds_ratio / normalizer)
 
+        return log_odds_ratio
+
+    def log_odds_ratio_pairs(self):
+        lor_pairs = []
+        for word in self.total_counts:
+            lor = self.log_odds_ratio(word)
+            lor_pairs.append((word, lor))
+
+        # Sort in descending order of predictive power.
+        lor_pairs.sort(key = lambda p: -abs(p[1]))
+
+        return lor_pairs
+
+    def select_words(self):
+        lor_pairs = self.log_odds_ratio_pairs()
+
+        # Only pick the best words.
+        threshold = int(self.THRESHOLD * len(lor_pairs))
         selected_words = []
-        for (word, count) in self.total_counts.items():
-            if count > threshold:
-                selected_words.append(word)
+        for (word, _) in lor_pairs[:threshold]:
+            selected_words.append(word)
 
         return selected_words
 
