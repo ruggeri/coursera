@@ -10,8 +10,8 @@ mnist = input_data.read_data_sets(".", one_hot=True, reshape=False)
 
 # Parameters
 learning_rate = 0.001
-training_epochs = 5
-batch_size = 128
+training_epochs = 10
+batch_size = 1
 display_step = 1
 
 # MNIST input is 28*28=784, and there are 10 digits.
@@ -19,16 +19,16 @@ n_input = 784
 n_classes = 10
 
 # Number of units in each hidden layer.
-n_hidden_layer = 256
-n_hidden_layer2 = 128
-n_hidden_layer3 = 64
+n_hidden_layer1 = 510
+n_hidden_layer2 = 203
+n_hidden_layer3 = 203
 
 # Store layers weight & bias
 weights = {
     'hidden_layer': tf.Variable(
-        tf.random_normal([n_input, n_hidden_layer])
+        tf.random_normal([n_input, n_hidden_layer1])
     ), 'hidden_layer2': tf.Variable(
-        tf.random_normal([n_hidden_layer, n_hidden_layer2])
+        tf.random_normal([n_hidden_layer1, n_hidden_layer2])
     ), 'hidden_layer3': tf.Variable(
         tf.random_normal([n_hidden_layer2, n_hidden_layer3])
     ), 'out': tf.Variable(
@@ -36,7 +36,7 @@ weights = {
     )
 }
 biases = {
-    'hidden_layer': tf.Variable(tf.random_normal([n_hidden_layer])),
+    'hidden_layer': tf.Variable(tf.random_normal([n_hidden_layer1])),
     'hidden_layer2': tf.Variable(tf.random_normal([n_hidden_layer2])),
     'hidden_layer3': tf.Variable(tf.random_normal([n_hidden_layer3])),
     'out': tf.Variable(tf.random_normal([n_classes]))
