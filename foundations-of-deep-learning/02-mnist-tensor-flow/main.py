@@ -9,9 +9,9 @@ from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets(".", one_hot=True, reshape=False)
 
 # Parameters
-learning_rate = 0.001
+learning_rate = 0.1
 training_epochs = 10
-batch_size = 128
+batch_size = 1
 display_step = 1
 
 # MNIST input is 28*28=784, and there are 10 digits.
@@ -48,17 +48,18 @@ y = tf.placeholder("float", [None, n_classes])
 # Flatten x data.
 x_flat = tf.reshape(x, [-1, n_input])
 
+# Using sigmoid temporarily as an experiment with low batch sizes.
 # Hidden layer with RELU activation
 layer_1 = tf.add(
     tf.matmul(x_flat, weights['hidden_layer']), biases['hidden_layer']
 )
-layer_1 = tf.nn.relu(layer_1)
+layer_1 = tf.nn.sigmoid(layer_1)
 
 # Hidden layer with RELU activation
 layer_2 = tf.add(
     tf.matmul(layer_1, weights['hidden_layer2']), biases['hidden_layer2']
 )
-layer_2 = tf.nn.relu(layer_2)
+layer_2 = tf.nn.sigmoid(layer_2)
 
 # Hidden layer with RELU activation
 #layer_3 = tf.add(tf.matmul(layer_2, weights['hidden_layer3']), biases['hidden_layer3'])
