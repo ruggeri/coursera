@@ -110,8 +110,8 @@ with tf.Session() as sess:
     else:
         sess.run(init)
 
-    #run_training(sess)
-    #saver.save(sess, MODEL_FNAME)
+    run_training(sess)
+    saver.save(sess, MODEL_FNAME)
 
     # Run model on test data and calculate accuracy.
     correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
