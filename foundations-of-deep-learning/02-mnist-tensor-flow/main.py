@@ -11,7 +11,7 @@ mnist = input_data.read_data_sets(".", one_hot=True, reshape=False)
 # Parameters
 learning_rate = 0.001
 training_epochs = 10
-batch_size = 1
+batch_size = 128
 display_step = 1
 
 # MNIST input is 28*28=784, and there are 10 digits.
@@ -75,21 +75,31 @@ optimizer = tf.train.GradientDescentOptimizer(
     learning_rate=learning_rate
 ).minimize(cost)
 
+# Run model on test data and calculate accuracy.
+correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+
 def run_epoch(sess, epoch):
     num_batches = int(mnist.train.num_examples/batch_size)
     # Loop over all batches
-    for i in range(num_batches):
+    for batch_idx in range(num_batches):
         # Yay for global variables!
         batch_x, batch_y = mnist.train.next_batch(batch_size)
         # Perform optimization step.
         sess.run(optimizer, feed_dict={x: batch_x, y: batch_y})
+        if (batch_idx+1 % 1000 == 0):
+            print(f"Epoch: {epoch+1} | Batch: {batch_idx + 1}")
 
     if epoch % display_step == 0:
         # Compute the cost on the training data.
         computed_cost = sess.run(
             cost, feed_dict={x: batch_x, y: batch_y}
         )
-        print(f"Epoch: {epoch+1} cost={computed_cost:.3f}")
+        computed_accuracy = sess.run(
+            accuracy, feed_dict={x: batch_x, y: batch_y}
+        )
+        print((f"Epoch: {epoch+1} cost={computed_cost:.3f}"
+               f" accuracy={computed_accuracy:.3f}"))
 
 def run_training(sess):
     for epoch in range(training_epochs):
@@ -113,9 +123,6 @@ with tf.Session() as sess:
     run_training(sess)
     saver.save(sess, MODEL_FNAME)
 
-    # Run model on test data and calculate accuracy.
-    correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
     # Decrease test_size if you don't have enough memory
     test_size = len(mnist.test.images)
     computed_test_accuracy = sess.run(accuracy, feed_dict={
