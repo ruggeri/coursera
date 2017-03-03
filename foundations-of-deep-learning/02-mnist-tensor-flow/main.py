@@ -79,6 +79,21 @@ optimizer = tf.train.GradientDescentOptimizer(
 correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
+def evaluate_validation_set():
+    computed_cost = sess.run(
+        cost, feed_dict={
+            x: mnist.validation.images, y: mnist.validation.labels
+        }
+    )
+    computed_accuracy = sess.run(
+        accuracy, feed_dict={
+            x: mnist.validation.images, y: mnist.validation.labels
+        }
+    )
+
+    return computed_cost, computed_accuracy
+
+EVALUATION_PER_BATCHES = 1000
 def run_epoch(sess, epoch):
     num_batches = int(mnist.train.num_examples/batch_size)
     # Loop over all batches
@@ -87,19 +102,19 @@ def run_epoch(sess, epoch):
         batch_x, batch_y = mnist.train.next_batch(batch_size)
         # Perform optimization step.
         sess.run(optimizer, feed_dict={x: batch_x, y: batch_y})
-        if (batch_idx+1 % 1000 == 0):
-            print(f"Epoch: {epoch+1} | Batch: {batch_idx + 1}")
+        if ((batch_idx+1) % EVALUATION_PER_BATCHES == 0):
+            computed_cost, computed_accuracy = evaluate_validation_set()
+            print((
+                f"Epoch: {epoch+1} | Batch: {batch_idx + 1}"
+                f" cost={computed_cost:.3f} accuracy={computed_accuracy:.3f}"
+            ))
 
     if epoch % display_step == 0:
-        # Compute the cost on the training data.
-        computed_cost = sess.run(
-            cost, feed_dict={x: batch_x, y: batch_y}
-        )
-        computed_accuracy = sess.run(
-            accuracy, feed_dict={x: batch_x, y: batch_y}
-        )
-        print((f"Epoch: {epoch+1} cost={computed_cost:.3f}"
-               f" accuracy={computed_accuracy:.3f}"))
+        computed_cost, computed_accuracy = evaluate_validation_set()
+        print((
+            f">>>Epoch: {epoch+1}<<<"
+            f" cost={computed_cost:.3f} accuracy={computed_accuracy:.3f}"
+        ))
 
 def run_training(sess):
     for epoch in range(training_epochs):
@@ -115,7 +130,8 @@ MODEL_FNAME = "./model.ckpt"
 # Launch the graph
 with tf.Session() as sess:
     # This quickly loads the trained file if it already exists.
-    if os.path.isfile("./checkpoint"):
+    ipt = input("Load old model?")
+    if ipt != "no":
         saver.restore(sess, MODEL_FNAME)
     else:
         sess.run(init)
@@ -123,10 +139,8 @@ with tf.Session() as sess:
     run_training(sess)
     saver.save(sess, MODEL_FNAME)
 
-    # Decrease test_size if you don't have enough memory
-    test_size = len(mnist.test.images)
     computed_test_accuracy = sess.run(accuracy, feed_dict={
-        x: mnist.test.images[:test_size],
-        y: mnist.test.labels[:test_size]
+        x: mnist.test.images,
+        y: mnist.test.labels
     })
     print(f"Accuracy: {computed_test_accuracy:.3f}")
