@@ -90,8 +90,8 @@ def test_movie():
         return result
 
     try:
-        challenge_output = 'extra.mp4'
-        clip2 = VideoFileClip('challenge.mp4')
+        challenge_output = './output/extra.mp4'
+        clip2 = VideoFileClip('./tests/mp4s/challenge.mp4')
         challenge_clip = clip2.fl_image(process_image)
         challenge_clip.write_videofile(challenge_output, audio=False)
     except Exception as e:
