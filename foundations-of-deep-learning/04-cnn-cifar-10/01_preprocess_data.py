@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import pickle
 
 # Normalize all the feature data to be in the range [0, 1].
@@ -14,9 +15,11 @@ def one_hot_encode(y):
 
 # Preprocess some data and dump it out into a pickle file.
 def preprocess_and_save_segment(features, labels, filename):
+    print(f"Preprocessing {filename}")
     features = normalize(features)
     labels = one_hot_encode(labels)
 
+    print(f"Saving {filename}")
     filename = f"pickle-files/{filename}"
     pickle.dump((features, labels), open(filename, 'wb'))
 
@@ -36,6 +39,7 @@ def unpack_segment_data(segment_data):
 CIFAR_10_DATASET_FOLDER_PATH = 'cifar-10-batches-py'
 # Read in a segment worth of data from the CIFAR dataset.
 def load_cifar10_segment(segment_id):
+    print(f"Loading segment {segment_id}")
     segment_fname = (
         f"{CIFAR_10_DATASET_FOLDER_PATH}/data_batch_{segment_id+1}"
     )
@@ -70,11 +74,12 @@ def preprocess_and_save_data():
     preprocess_and_save_segment(
         np.array(valid_features),
         np.array(valid_labels),
-        "preprocessed_validation_data.p"
+        "preprocessed_validation_segment.p"
     )
 
     test_segment_fname = f"{CIFAR_10_DATASET_FOLDER_PATH}/test_batch"
     with open(test_segment_fname, mode='rb') as file:
+        print("Loading test segment")
         test_segment_data = pickle.load(file, encoding='latin1')
 
     # load the training data
@@ -84,7 +89,10 @@ def preprocess_and_save_data():
     preprocess_and_save_segment(
         np.array(test_features),
         np.array(test_labels),
-        "preprocessed_training_data.p"
+        "preprocessed_test_segment.p"
     )
 
-preprocess_and_save_data()
+if __name__ == "__main__":
+    if not os.path.isdir("./pickle-files"):
+        os.mkdir("./pickle-files")
+    preprocess_and_save_data()
