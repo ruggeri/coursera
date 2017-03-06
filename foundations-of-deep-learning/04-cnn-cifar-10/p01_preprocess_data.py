@@ -4,11 +4,14 @@ import pickle
 
 # Normalize all the feature data to be in the range [0, 1].
 def normalize(x):
-    result = (x - x.min()) / (x.max() - x.min())
+    result = np.ndarray(x.shape, dtype=np.float32)
+    result += x
+    result -= x.min()
+    result /= (x.max() - x.min())
     return result
 
 def one_hot_encode(y):
-    result = np.zeros((len(y), 10))
+    result = np.zeros((len(y), 10), dtype=np.float32)
     for idx, label in enumerate(y):
         result[idx][label] = 1.0
     return result
