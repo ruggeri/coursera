@@ -1,7 +1,9 @@
+import os
+import pickle
 import tensorflow as tf
 import time
 
-from network import build_network
+from p02_network import build_network
 
 def make_batches(features, labels, batch_size):
     for start in range(0, len(features), batch_size):
@@ -10,7 +12,7 @@ def make_batches(features, labels, batch_size):
 
 # We've stored our dataset on disk in five "segments." This method
 # loads one segment and splits it up into batches.
-NUM_SEGMENTS = 1
+NUM_SEGMENTS = 5
 def load_segment_in_batches(segment_id, batch_size):
     filename = f"pickle-files/preprocessed_segment_{segment_id}.p"
     features, labels = pickle.load(open(filename, mode='rb'))
@@ -54,8 +56,8 @@ class Trainer:
         cost = session.run(
             self.network.cost,
             feed_dict = {
-                self.network.x: batch_x,
-                self.network.y: batch_y,
+                self.network.x: x,
+                self.network.y:y,
                 self.network.keep_prob: 1.0
             }
         )
@@ -63,8 +65,8 @@ class Trainer:
         accuracy = session.run(
             self.network.accuracy,
             feed_dict = {
-                self.network.x: batch_x,
-                self.network.y: batch_y,
+                self.network.x: x,
+                self.network.y: y,
                 self.network.keep_prob: 1.0
             }
         )
@@ -73,29 +75,29 @@ class Trainer:
 
     def log_training_evaluation(self, batch_x, batch_y):
         train_c, train_a = self.evaluate(batch_x, batch_y)
-        print(f"Train Cost: {train_c:.3f}"
-              f"\tTrain Accu: {train_a:.3f}",
+        print(f"Train Cost: {train_c:.3f} | "
+              f"Train Accu: {train_a:.3f}",
               end="")
 
     def log_validation_evaluation(self):
-        valid_x, valid_y = self.validation_set
+        valid_x, valid_y = self.validation_segment
         valid_c, valid_a = self.evaluate(valid_x, valid_y)
-        print(f"Valid Cost: {valid_c:.3f}"
-              f"\tValid Accu: {valid_a:.3f}",
+        print(f"Valid Cost: {valid_c:.3f} | "
+              f"Valid Accu: {valid_a:.3f}",
               end="")
 
     def train_epoch_segment(self, epoch_idx, segment_idx, batches):
-        num_batches = len(num_batches)
+        num_batches = len(batches)
         batch_logging_mod = int(0.1 * num_batches)
-        for batch_idx, batch_x, batch_y in enumerate(batches):
+        for batch_idx, (batch_x, batch_y) in enumerate(batches):
             self.train_batch(batch_x, batch_y)
             if (batch_idx + 1) % batch_logging_mod == 0:
                 percent_complete = int(100 * (batch_idx+1) / num_batches)
                 print(
-                    f"Epoch {epoch_idx:>2} "
-                    f"CIFAR-10 Segment {segment_idx:>2} "
-                    f"Batch Idx: {batch_idx:>2} "
-                    f"%age Complete {percent_complete:>2}: ",
+                    f"Epoch {epoch_idx:>2} | "
+                    f"CIFAR-10 Segment {segment_idx:>2} | "
+                    f"Batch Idx: {batch_idx:>2} | "
+                    f"{percent_complete:>2}% Complete | ",
                     end=""
                 )
                 self.log_training_evaluation(batch_x, batch_y)
@@ -112,27 +114,30 @@ class Trainer:
         epoch_time = epoch_end_time - epoch_start_time
 
         print(
-            f"Epoch {epoch_idx:>2}: ",
+            f">>>> Epoch {epoch_idx:>2} | ",
             end=""
         )
-        self.log_validation_evaluation(*self.validation_segment)
-        print(f" Elapsed Epoch Time: {epoch_time:.1f}sec")
+        self.log_validation_evaluation()
+        print(f" Elapsed Epoch Time: {epoch_time:.1f}sec <<<<")
         print()
 
     def train_epochs(self, num_epochs):
         for epoch_idx in range(num_epochs):
             self.train_epoch(epoch_idx)
 
+SAVE_MODEL_DIR = "./saved_models"
 def run(session):
+    trainer = Trainer(session)
+
     # Initializing the variables
     session.run(tf.global_variables_initializer())
-
-    trainer = Trainer(session)
-    trainer.run_epochs(1)
+    trainer.train_epochs(NUM_EPOCHS)
 
     # Save Model
     saver = tf.train.Saver()
-    save_path = saver.save(session, save_model_path)
+    if not os.path.isdir(SAVE_MODEL_DIR):
+        os.mkdir(SAVE_MODEL_DIR)
+    save_path = saver.save(session, f"{SAVE_MODEL_DIR}/model")
 
 if __name__ == "__main__":
     with tf.Session() as session:
