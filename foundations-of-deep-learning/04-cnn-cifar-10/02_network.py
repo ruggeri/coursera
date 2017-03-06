@@ -1,3 +1,4 @@
+from collections import namedtuple
 import numpy as np
 import tensorflow as tf
 
@@ -111,7 +112,9 @@ def conv_net(x, keep_prob):
 
     return output_layer
 
-def setup_training():
+Network = namedtuple("Network", "x y keep_prob cost optimizer accuracy")
+
+def build_network():
     # Inputs
     x = tf.placeholder(tf.float32, shape=[None, 32, 32, 3], name="x")
     y = tf.placeholder(tf.float32, shape=[None, 10], name="y")
@@ -131,10 +134,21 @@ def setup_training():
     optimizer = tf.train.AdamOptimizer().minimize(cost)
 
     # Accuracy
-    correct_pred = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
+    correct_predictions = tf.equal(
+        tf.argmax(logits, 1), tf.argmax(y, 1)
+    )
     accuracy = tf.reduce_mean(
-        tf.cast(correct_pred, tf.float32), name='accuracy'
+        tf.cast(correct_predictions, tf.float32), name='accuracy'
+    )
+
+    return Network(
+        x = x,
+        y = y,
+        keep_prob = keep_prob,
+        cost = cost,
+        optimizer = optimizer,
+        accuracy = accuracy
     )
 
 if __name__ == "__main__":
-    setup_training()
+    build_network()
