@@ -13,76 +13,78 @@ def one_hot_encode(y):
     return result
 
 # Preprocess some data and dump it out into a pickle file.
-def preprocess_and_save_batch(features, labels, filename):
+def preprocess_and_save_segment(features, labels, filename):
     features = normalize(features)
     labels = one_hot_encode(labels)
 
     filename = f"pickle-files/{filename}"
     pickle.dump((features, labels), open(filename, 'wb'))
 
-def unpack_batch_data(batch_data):
+def unpack_segment_data(segment_data):
     # Looks like the data starts out flattened. Also it looks like
     # it's three image maps, rather than one 32x32 image with 3
     # channels per pixel.
-    num_examples = len(batch_data['data'])
-    features = (batch_data['data'].reshape(num_examples, 3, 32, 32))
+    num_examples = len(segment_data['data'])
+    features = (segment_data['data'].reshape(num_examples, 3, 32, 32))
     features = features.transpose(0, 2, 3, 1)
-    labels = batch_data['labels']
+    labels = segment_data['labels']
 
     return features, labels
 
+# They call the individual files "batches" but I call them
+# "segments". I'll set my own batch size later when training.
 CIFAR_10_DATASET_FOLDER_PATH = 'cifar-10-batches-py'
-# Read in a batch worth of data from the CIFAR dataset.
-def load_cifar10_batch(batch_id):
-    batch_fname = (
-        CIFAR_10_DATASET_FOLDER_PATH + f"/data_batch_{batch_id+1}"
+# Read in a segment worth of data from the CIFAR dataset.
+def load_cifar10_segment(segment_id):
+    segment_fname = (
+        f"{CIFAR_10_DATASET_FOLDER_PATH}/data_batch_{segment_id+1}"
     )
-    with open(batch_fname, mode='rb') as file:
-        batch_data = pickle.load(file, encoding='latin1')
+    with open(segment_fname, mode='rb') as file:
+        segment_data = pickle.load(file, encoding='latin1')
 
-    return unpack_batch_data(batch_data)
+    return unpack_segment_data(segment_data)
 
-NUM_BATCHES = 5
-# Go through each batch, normalizing and encoding, pickling, and
+NUM_SEGMENTS = 5
+# Go through each segment, normalizing and encoding, pickling, and
 # writing it out again.
 def preprocess_and_save_data():
     valid_features = []
     valid_labels = []
 
-    for batch_i in range(0, NUM_BATCHES):
-        features, labels = load_cifar10_batch(batch_i)
+    for segment_i in range(0, NUM_SEGMENTS):
+        features, labels = load_cifar10_segment(segment_i)
         validation_count = int(len(features) * 0.1)
 
-        # Prprocess and save a batch of training data
-        preprocess_and_save_batch(
+        # Prprocess and save a segment of training data
+        preprocess_and_save_segment(
             features[:-validation_count],
             labels[:-validation_count],
-            'preprocess_batch_' + str(batch_i) + '.p'
+            f"preprocessed_segment_{segment_i}.p"
         )
 
-        # Use a portion of each training batch for validation
+        # Use a portion of each training segment for validation
         valid_features.extend(features[-validation_count:])
         valid_labels.extend(labels[-validation_count:])
 
     # Preprocess and Save all validation data
-    preprocess_and_save_batch(
+    preprocess_and_save_segment(
         np.array(valid_features),
         np.array(valid_labels),
-        'preprocess_validation.p'
+        "preprocessed_validation_data.p"
     )
 
-    test_batch_fname = CIFAR_10_DATASET_FOLDER_PATH + '/test_batch'
-    with open(test_batch_fname, mode='rb') as file:
-        test_batch_data = pickle.load(file, encoding='latin1')
+    test_segment_fname = f"{CIFAR_10_DATASET_FOLDER_PATH}/test_batch"
+    with open(test_segment_fname, mode='rb') as file:
+        test_segment_data = pickle.load(file, encoding='latin1')
 
     # load the training data
-    test_features, test_labels = unpack_batch_data(test_batch_data)
+    test_features, test_labels = unpack_segment_data(test_segment_data)
 
     # Preprocess and save all training data
-    preprocess_and_save_batch(
+    preprocess_and_save_segment(
         np.array(test_features),
         np.array(test_labels),
-        'preprocess_training.p'
+        "preprocessed_training_data.p"
     )
 
 preprocess_and_save_data()
