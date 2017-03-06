@@ -21,7 +21,7 @@ def conv2d_maxpool(
     conv_weights = tf.truncated_normal(
         conv_weights_size, stddev=WEIGHT_STDDEV
     )
-    conv_weights = tf.Variable(conv_weights, "conv_weights")
+    conv_weights = tf.Variable(conv_weights, name = "conv_weights")
 
     # Apply convolution
     conv_layer = tf.nn.conv2d(
@@ -30,8 +30,9 @@ def conv2d_maxpool(
         [1, conv_stride, conv_stride, 1],
         "SAME"
     )
-    bias = np.zeros(num_output_channels)
-    conv_layer = tf.nn.bias_add(conv_layer, bias)
+    conv_bias = np.zeros(num_output_channels, dtype=np.float32)
+    conv_bias = tf.Variable(conv_bias, name = "conv_bias")
+    conv_layer = tf.nn.bias_add(conv_layer, conv_bias)
     conv_layer = tf.nn.relu(conv_layer)
 
     # Do max pooling.
@@ -59,8 +60,8 @@ def fully_conn(input_tensor, num_outputs):
         (num_input_units, num_outputs),
         stddev = WEIGHT_STDDEV
     )
-    weights = tf.Variable(weights)
-    bias = tf.Variable(tf.zeros(num_outputs))
+    weights = tf.Variable(weights, name = "fully_conn_weights")
+    bias = tf.Variable(tf.zeros(num_outputs), name = "fully_conn_bias")
     layer = tf.add(tf.matmul(input_tensor, weights), bias)
     layer = tf.nn.relu(layer)
 
@@ -72,8 +73,8 @@ def output(input_tensor, num_outputs):
         (num_input_units, num_outputs),
         stddev = WEIGHT_STDDEV
     )
-    weights = tf.Variable(weights)
-    bias = tf.Variable(tf.zeros(num_outputs))
+    weights = tf.Variable(weights, name = "output_weights")
+    bias = tf.Variable(tf.zeros(num_outputs), name = "output_bias")
     logits = tf.add(tf.matmul(input_tensor, weights), bias)
 
     # No need for RELU for logits, which are allowed to be
