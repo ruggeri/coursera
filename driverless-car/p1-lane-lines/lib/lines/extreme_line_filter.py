@@ -26,7 +26,7 @@ class ExtremeLineFilter:
         for line in lines:
             theta = line_theta(line)
             if (abs(theta) < self.THETA_MIN):
-                self.too_low_theta_lines.append(line)
+                too_low_theta_lines.append(line)
                 continue
             else:
                 good_lines.append(line)

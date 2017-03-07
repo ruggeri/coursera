@@ -17,3 +17,5 @@ class Runner:
         self.drawer.draw_transparent_lines(
             image, [left_line, right_line], (255, 0, 0), 20
         )
+
+        return image
