@@ -32,7 +32,7 @@ class EdgeDetector:
             dst = gb_image
         )
 
-        logger.log("EdgeDetector/gray_and_blur_image", gb_image)
+        logger.log_image("EdgeDetector/gray_and_blur_image", gb_image)
 
         return gb_image
 
@@ -55,7 +55,7 @@ class EdgeDetector:
             dst = edge_image
         )
 
-        logger.log("EdgeDetector/edge_image", edge_image)
+        logger.log_image("EdgeDetector/edge_image", edge_image)
 
         return edge_image
 

@@ -36,7 +36,7 @@ class LineAverager:
 
         average_line = self.fit_average_line()
 
-        self.logger.log_lines(
+        self.logger.log_line(
             f"LineAverager/{side}/result", average_line
         )
 

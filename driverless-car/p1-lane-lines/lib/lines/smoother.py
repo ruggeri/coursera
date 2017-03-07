@@ -16,10 +16,10 @@ class Smoother:
         if prev_line is None:
             return np.array(line)
 
-        new_line = np.array(line)
-        new_line += (self.DECAY_CONSTANT * prev_line)
-        new_line /= (1 + self.DECAY_CONSTANT)
+        smoothed_line = np.array(line)
+        smoothed_line += (self.DECAY_CONSTANT * prev_line)
+        smoothed_line /= (1 + self.DECAY_CONSTANT)
 
-        logger.log_lines(f"Smoother/{side}/result", [new_line])
+        logger.log_line(f"Smoother/{side}/result", smoothed_line)
 
-        return new_line
+        return smoothed_line
