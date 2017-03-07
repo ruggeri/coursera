@@ -12,6 +12,30 @@ def line_theta(line):
 
     return math.atan2(abs(dy), abs(dx))
 
+def norm(vector):
+    return math.sqrt(vector[0]**2 + vector[1]**2)
+
+def distance_to_line(point, line):
+    line_endpoint1 = (line[0], line[1])
+    line_endpoint2 = (line[2], line[3])
+    v_point = (
+        point[0] - line_endpoint1[0],
+        point[1] - line_endpoint1[1]
+    )
+    v_line = (
+        line_endpoint2[0] - line_endpoint1[0],
+        line_endpoint2[1] - line_endpoint1[1]
+    )
+    v_line = (v_line[0] / norm(v_line), v_line[1] / norm(v_line))
+
+    proj = (
+        (v_point[0]*v_line[0] + v_point[1]*v_line[1])
+    )
+    v_proj = (proj * v_line[0], proj * v_line[1])
+
+    residual = (v_point[0] - v_proj[0], v_point[1] - v_proj[1])
+    return norm(residual)
+
 def weighted_median(values_and_weights):
     if len(values_and_weights) == 0:
         raise Exception("Why no values and weights?")

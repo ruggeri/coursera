@@ -3,9 +3,6 @@ import numpy as np
 from .helpers import line_theta, line_length, weighted_median
 
 class ExtremeLineFilter:
-    # Ignore lines below this theta.
-    THETA_MIN = 15 * ((2 * np.pi) / 360)
-
     # Penalize lines this much different than previous line.
     PREV_THETA_DIFF_THRESHOLD = 10 * ((2 * np.pi) / 360)
     TOO_DIFFERENT_PENALTY = 0.75
@@ -16,27 +13,6 @@ class ExtremeLineFilter:
     def __init__(self, line_history, logger):
         self.line_history = line_history
         self.logger = logger
-
-    # Lines at a very great angle to the car's direction are not
-    # likely to be useful. Lane lines go forward.
-    def remove_low_theta_lines(self, lines, side):
-        too_low_theta_lines = []
-        good_lines = []
-
-        for line in lines:
-            theta = line_theta(line)
-            if (abs(theta) < self.THETA_MIN):
-                too_low_theta_lines.append(line)
-                continue
-            else:
-                good_lines.append(line)
-
-        self.logger.log_lines(
-            "ExtremeLineFilter/too_low_theta/{}".format(side),
-            too_low_theta_lines
-        )
-
-        return good_lines
 
     # Penalize lines that are too different from the line calculated in
     # the previous time step.

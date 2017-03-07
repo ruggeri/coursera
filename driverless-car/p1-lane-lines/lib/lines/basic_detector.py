@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+from .line import Line
+
 # Detect lines in the image, averaging and extending them.
 class BasicDetector:
     # Hough Constants
@@ -30,7 +32,7 @@ class BasicDetector:
             raise Exception("No lines detected!")
 
         # Unpack the lines from unneeded nesting.
-        lines = [line[0] for line in lines]
+        lines = [Line(line[0]) for line in lines]
 
         self.logger.log_lines("BasicDetector/lines", lines)
 

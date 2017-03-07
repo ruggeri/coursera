@@ -1,3 +1,5 @@
+import numpy as np
+
 class LineHistory:
     NUM_LINES_HISTORY = 5
 
@@ -24,4 +26,4 @@ class LineHistory:
         lines = self.get_lines(side)
         if len(lines) == self.NUM_LINES_HISTORY:
             lines.pop(0)
-        lines.append(line)
+        lines.append(np.array(line))

@@ -27,10 +27,16 @@ class LineAverager:
         # TODO: Probably want to knock down importance of too
         # different lines again?
         for line in lines:
-            self.add_line(line, line_length(line))
+            # I have chosen to give weight proportional to the length
+            # of the original line in the image, regardless of whether
+            # it has been extended.
+            weight = line_length(line.orig_line)
+            self.add_line(line, weight)
 
     def fit_average_line(self):
-        # Fits a line of best fit.
+        # Fits a line of best fit.  TODO: All my lines start/end at
+        # same y coordinats. So this is really just a weigheted
+        # average of the xs, I believe.
         p = np.polyfit(self.ys, self.xs, 1, w = self.ws)
 
         # Calculates endpoints of best fit line

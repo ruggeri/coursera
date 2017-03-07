@@ -1,14 +1,18 @@
 CONFIG = [
-    ("BasicDetector/lines", (0, 255, 0), 2),
     #("LeftRightSplitter/left", (255, 255, 0), 2),
     #("LeftRightSplitter/right", (0, 255, 255), 2),
     #("LeftRightSplitter/rejected", (255, 0, 255), 2),
     #("ExtremeLineFilter/too_low_theta/LEFT", (0, 0, 255), 2),
     #("ExtremeLineFilter/too_low_theta/RIGHT", (0, 0, 255), 2),
-    ("ExtremeLineFilter/result/LEFT", (0, 0, 255), 2),
-    ("ExtremeLineFilter/result/RIGHT", (0, 0, 255), 2),
-    ("LineAverager/result/LEFT", (255, 255, 0), 2),
-    ("LineAverager/result/RIGHT", (255, 255, 0), 2),
+    #("ExtremeLineFilter/result/LEFT", (0, 0, 255), 2),
+    #("ExtremeLineFilter/result/RIGHT", (0, 0, 255), 2),
+    #("OutlierToPrevLineFilter/result/LEFT", (0, 0, 255), 2),
+    #("OutlierToPrevLineFilter/result/RIGHT", (0, 0, 255), 2),
+    #("BasicDetector/lines", (0, 255, 0), 2),
+    #("LineAverager/result/LEFT", (255, 255, 0), 2),
+    #("LineAverager/result/RIGHT", (255, 255, 0), 2),
+    #("Smoother/result/LEFT", (255, 0, 255), 2),
+    #("Smoother/result/RIGHT", (255, 0, 255), 2),
 ]
 
 class Logger:

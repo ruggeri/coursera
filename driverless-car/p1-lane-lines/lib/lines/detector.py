@@ -4,6 +4,8 @@ from .extender import Extender
 from .extreme_line_filter import ExtremeLineFilter
 from .history import LineHistory
 from .left_right_splitter import LeftRightSplitter
+from .low_theta_filter import LowThetaFilter
+from .outlier_to_prev_line_filter import OutlierToPrevLineFilter
 from .smoother import Smoother
 
 class LineDetector:
@@ -31,11 +33,19 @@ class LineDetector:
         )
         left_lines, right_lines = lr_splitter.run(basic_lines)
 
-        extreme_line_filter = ExtremeLineFilter(
+        low_theta_filter = LowThetaFilter(self.logger)
+        left_lines = low_theta_filter.run(left_lines, "LEFT")
+        right_lines = low_theta_filter.run(right_lines, "RIGHT")
+
+        extender = Extender(*self.min_max_height())
+        left_lines = extender.run(left_lines)
+        right_lines = extender.run(right_lines)
+
+        outlier_filter = OutlierToPrevLineFilter(
             self.line_history, self.logger
         )
-        left_lines = extreme_line_filter.run(left_lines, "LEFT")
-        right_lines = extreme_line_filter.run(right_lines, "RIGHT")
+        left_lines = outlier_filter.run(left_lines, "LEFT")
+        right_lines = outlier_filter.run(right_lines, "RIGHT")
 
         line_averager = LineAverager(
             *self.min_max_height(), self.logger
@@ -46,10 +56,6 @@ class LineDetector:
         smoother = Smoother(self.line_history, self.logger)
         left_line = smoother.run(left_line, "LEFT")
         right_line = smoother.run(right_line, "RIGHT")
-
-        extender = Extender(*self.min_max_height())
-        left_line = extender.run(left_line)
-        right_line = extender.run(right_line)
 
         self.line_history.add(left_line, "LEFT")
         self.line_history.add(right_line, "RIGHT")
