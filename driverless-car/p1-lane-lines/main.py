@@ -27,8 +27,8 @@ class RunnerWrapper:
 
     def run(self, image):
         if self.runner is None:
-            runner = Runner(image.shape)
-        return runner.run(image)
+            self.runner = Runner(image.shape)
+        return self.runner.run(image)
 
 def run_movie(name):
     input_path = "tests/mp4s/{}".format(name)
@@ -49,4 +49,4 @@ if __name__ == "__main__":
     #run_movies()
     #run_movie("solidWhiteRight.mp4")
     #run_movie("solidYellowLeft.mp4")
-    #run_movie("challenge.mp4")
+    run_movie("challenge.mp4")
