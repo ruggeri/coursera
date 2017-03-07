@@ -24,9 +24,9 @@ class Extender:
         m = (y2 - y1) / (x2 - x1)
 
         # Calculate new endpoints.
-        y0 = min_height
+        y0 = self.min_height
         x0 = int(x1 + (y0 - y1) / m)
-        y3 = max_height
+        y3 = self.max_height
         x3 = int(x1 + ((y3 - y1) / m))
 
         new_line = [x0, y0, x3, y3]

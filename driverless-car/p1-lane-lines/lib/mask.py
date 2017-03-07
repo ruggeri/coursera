@@ -34,7 +34,7 @@ masks = {}
 def build_mask(image_shape, poly):
     # Try to reuse previously allocated mask.
     if image_shape not in masks:
-        mask = np.zeros(image_shape)
+        mask = np.zeros(image_shape, dtype=np.uint8)
         masks[image_shape] = mask
     else:
         # TODO: Still dumb, don't need to refill mask constantly,
@@ -42,7 +42,8 @@ def build_mask(image_shape, poly):
         mask = masks[image_shape]
         mask *= 0
 
-    if dimensions == 3:
+    num_dimensions = len(image_shape)
+    if num_dimensions == 3:
         num_channels = image_shape[2]
         mask_color = (255,) * num_channels
     else:

@@ -13,15 +13,15 @@ class LineHistory:
         else:
             raise Exception("Didn't ask for left or right lines")
 
-    def get_prev_last(self, side):
+    def get_prev_line(self, side):
         lines = self.get_lines(side)
         if len(lines) == 0:
             return None
         else:
             return lines[-1]
 
-    def add_line(self, line, side):
+    def add(self, line, side):
         lines = self.get_lines(side)
-        if len(lines) == NUM_LINES_HISTORY:
+        if len(lines) == self.NUM_LINES_HISTORY:
             lines.pop(0)
         lines.append(line)

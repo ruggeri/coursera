@@ -14,10 +14,10 @@ class LeftRightSplitter:
         # Sometimes a line does extend past the middle; we'll filter
         # those out. In fact, we don't want any lines, too close to
         # the middle, even if they don't cross it.
-        min_x = (self.width / 2) - (width * self.SAFETY_MARGIN)
-        max_x = (self.width / 2) + (width * self.SAFETY_MARGIN)
+        min_x = (self.width / 2) - (self.width * self.SAFETY_MARGIN)
+        max_x = (self.width / 2) + (self.width * self.SAFETY_MARGIN)
 
-        for line in self.lines:
+        for line in lines:
             if line[0] < min_x and (line[2] < min_x):
                 left_lines.append(line)
             elif (line[0] > max_x) and (line[2] > max_x):

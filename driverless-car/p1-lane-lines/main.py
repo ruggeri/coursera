@@ -1,6 +1,8 @@
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 
+from lib.runner import Runner
+
 def run_image(image_path):
     image = mpimg.imread(image_path)
     runner = Runner(image.shape)

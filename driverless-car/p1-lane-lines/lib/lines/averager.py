@@ -1,7 +1,12 @@
+import numpy as np
+
+from .helpers import line_length
+
 class LineAverager:
     def __init__(self, min_height, max_height, logger):
         self.min_height = min_height
         self.max_height = max_height
+        self.logger = logger
 
         self.xs = []
         self.ys = []
@@ -37,7 +42,7 @@ class LineAverager:
         average_line = self.fit_average_line()
 
         self.logger.log_line(
-            f"LineAverager/{side}/result", average_line
+            "LineAverager/{}/result".format(side), average_line
         )
 
         return average_line

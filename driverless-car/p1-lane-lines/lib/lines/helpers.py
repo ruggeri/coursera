@@ -1,3 +1,5 @@
+import math
+
 def line_length(line):
     dx = line[0] - line[2]
     dy = line[1] - line[3]

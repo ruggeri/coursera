@@ -1,9 +1,14 @@
+from .edge_detector import EdgeDetector
+from .drawer import Drawer
+from .lines.detector import LineDetector
+from .logger import Logger
+
 class Runner:
     def __init__(self, shape):
         self.logger = Logger()
-        self.edge_detector = EdgeDetector(shape, logger)
-        self.line_detector = LineDetector(shape, logger)
-        self.drawer = Drawer()
+        self.edge_detector = EdgeDetector(shape, self.logger)
+        self.line_detector = LineDetector(shape, self.logger)
+        self.drawer = Drawer(shape)
 
     def run(self, image):
         edge_image = self.edge_detector.run(image)

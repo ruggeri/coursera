@@ -1,6 +1,9 @@
+import cv2
+import numpy as np
+
 class Drawer:
     def __init__(self, shape):
-        self.image_buffer = np.zeros(image.shape)
+        self.image_buffer = np.zeros(shape, dtype=np.uint8)
 
     def draw_lines(self, image, lines, color, thickness):
         for line in lines:
@@ -13,7 +16,7 @@ class Drawer:
 
     def draw_transparent_lines(self, image, lines, color, thickness):
         self.image_buffer *= 0
-        self.draw_lines(lines, color, thickness, self.image_buffer)
+        self.draw_lines(self.image_buffer, lines, color, thickness)
 
         cv2.addWeighted(image, 1.0, self.image_buffer, 1.0, 0, image)
 

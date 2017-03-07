@@ -20,6 +20,8 @@ class Smoother:
         smoothed_line += (self.DECAY_CONSTANT * prev_line)
         smoothed_line /= (1 + self.DECAY_CONSTANT)
 
-        logger.log_line(f"Smoother/{side}/result", smoothed_line)
+        self.logger.log_line(
+            "Smoother/{}/result".format(side), smoothed_line
+        )
 
         return smoothed_line

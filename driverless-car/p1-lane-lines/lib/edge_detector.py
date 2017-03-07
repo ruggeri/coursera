@@ -1,6 +1,7 @@
 import cv2
+import numpy as np
 
-from lib.mask import perform_mask
+from .mask import perform_mask
 
 # Gray and Blur Constants
 BLUR_PIXELS = 11
@@ -10,12 +11,11 @@ CANNY_MAX_CUTOFF = 64
 
 class EdgeDetector:
     def __init__(self, shape, logger):
-        self.gb_image = np.zeros(shape)
-        self.edge_image = np.zeros(shape)
+        self.gb_image = np.zeros(shape[0:2], dtype=np.uint8)
+        self.edge_image = np.zeros(shape[0:2], dtype=np.uint8)
         self.logger = logger
 
     def perform_gray_and_blur(self, image):
-        height, width, depth = shape
         gb_image = self.gb_image
 
         # Gray the image and blur it.
@@ -25,18 +25,20 @@ class EdgeDetector:
         )
 
         # Mask to an appropriate window in front of the car.
+        height, width = gb_image.shape
         perform_mask(
             gb_image,
             height = height, width = width, extra_space = True,
             dst = gb_image
         )
 
-        logger.log_image("EdgeDetector/gray_and_blur_image", gb_image)
+        self.logger.log_image(
+            "EdgeDetector/gray_and_blur_image", gb_image
+        )
 
         return gb_image
 
     def detect_edges(self):
-        height, width = self.gb_image.shape
         edge_image = self.edge_image
 
         # Run edge detection.
@@ -48,17 +50,18 @@ class EdgeDetector:
 
         # Need to mask again, else will detect edges of mask :-P
         # This mask is a little narrower to cutoff those edges.
+        height, width = edge_image.shape
         perform_mask(
             edge_image,
             height = height, width = width, extra_space = False,
             dst = edge_image
         )
 
-        logger.log_image("EdgeDetector/edge_image", edge_image)
+        self.logger.log_image("EdgeDetector/edge_image", edge_image)
 
         return edge_image
 
-    def run(image):
+    def run(self, image):
         self.perform_gray_and_blur(image)
         self.detect_edges()
         return self.edge_image

@@ -1,3 +1,11 @@
+from .averager import LineAverager
+from .basic_detector import BasicDetector
+from .extender import Extender
+from .extreme_line_filter import ExtremeLineFilter
+from .history import LineHistory
+from .left_right_splitter import LeftRightSplitter
+from .smoother import Smoother
+
 class LineDetector:
     HORIZON_RATIO = 0.35
 
@@ -12,22 +20,22 @@ class LineDetector:
         )
         self.max_height = self.image_shape[1]
 
-        return (min_height, max_height)
+        return (self.min_height, self.max_height)
 
-    def run(edge_image):
-        basic_detector = BasicDetector(edge_image, self.logger)
-        basic_lines = basic_detector.run()
+    def run(self, edge_image):
+        basic_detector = BasicDetector(self.logger)
+        basic_lines = basic_detector.run(edge_image)
 
         lr_splitter = LeftRightSplitter(
-            basic_lines, self.width, self.logger
+            self.image_shape[1], self.logger
         )
-        left_lines, right_lines = lr_splitter.run(lines)
+        left_lines, right_lines = lr_splitter.run(basic_lines)
 
         extreme_line_filter = ExtremeLineFilter(
-            self.line_history, logger
+            self.line_history, self.logger
         )
-        left_lines = extreme_line_filter.run(lines, "LEFT")
-        right_lines = extreme_line_filter.run(lines, "RIGHT")
+        left_lines = extreme_line_filter.run(left_lines, "LEFT")
+        right_lines = extreme_line_filter.run(right_lines, "RIGHT")
 
         line_averager = LineAverager(
             *self.min_max_height(), self.logger
@@ -43,7 +51,7 @@ class LineDetector:
         left_line = extender.run(left_line)
         right_line = extender.run(right_line)
 
-        line_history.add(left_line, "LEFT")
-        line_history.add(right_line, "RIGHT")
+        self.line_history.add(left_line, "LEFT")
+        self.line_history.add(right_line, "RIGHT")
 
         return (left_line, right_line)

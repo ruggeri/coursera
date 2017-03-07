@@ -1,3 +1,7 @@
+import numpy as np
+
+from .helpers import line_theta, line_length, weighted_median
+
 class ExtremeLineFilter:
     # Ignore lines below this theta.
     THETA_MIN = 15 * ((2 * np.pi) / 360)
@@ -21,14 +25,14 @@ class ExtremeLineFilter:
 
         for line in lines:
             theta = line_theta(line)
-            if (abs(theta) < THETA_MIN):
+            if (abs(theta) < self.THETA_MIN):
                 self.too_low_theta_lines.append(line)
                 continue
             else:
                 good_lines.append(line)
 
         self.logger.log_lines(
-            f"ExtremeLineFilter/too_low_theta/{side}",
+            "ExtremeLineFilter/too_low_theta/{}".format(side),
             too_low_theta_lines
         )
 
@@ -39,7 +43,7 @@ class ExtremeLineFilter:
     def penalize_too_different_lines(self, lines_and_weights, side):
         # If this is the first time step, ignore this penalization
         # method.
-        prev_line = self.lines_history.get_last_line(side)
+        prev_line = self.line_history.get_prev_line(side)
         if prev_line is None:
             return lines_and_weights
         prev_line_theta = line_theta(prev_line)
@@ -62,7 +66,7 @@ class ExtremeLineFilter:
             new_lines_and_weights.append((line, weight))
 
         self.logger.log_lines(
-            f"ExtremeLineFilter/too_different/{side}",
+            "ExtremeLineFilter/too_different/{}".format(side),
             too_different_lines
         )
 
@@ -78,9 +82,9 @@ class ExtremeLineFilter:
         return lines_and_weights
 
     # Calculate a weighted median theta value.
-    def median_theta(lines_and_weights):
+    def median_theta(self, lines_and_weights):
         thetas_and_weights = list(
-            map(lines_and_weights, lambda p: (line_theta(p[0]), p[1]))
+            map(lambda p: (line_theta(p[0]), p[1]), lines_and_weights)
         )
 
         return weighted_median(thetas_and_weights)
@@ -93,27 +97,28 @@ class ExtremeLineFilter:
 
         for line in lines:
             theta = line_theta(line)
-            if abs(theta - median_theta) > THETA_DIFF_THRESHOLD:
+            theta_diff = abs(theta - median_theta)
+            if theta_diff > self.MEDIAN_THETA_DIFF_THRESHOLD:
                 # This is an outlier; skip it.
                 outlier_lines.append(line)
                 continue
 
-            self.good_lines.append(line)
+            good_lines.append(line)
 
         self.logger.log_lines(
-            f"ExtremeLineFilter/outlier/{side}", outlier_lines
+            "ExtremeLineFilter/outlier/{}".format(side), outlier_lines
         )
 
         return good_lines
 
-    def run(lines, side):
+    def run(self, lines, side):
         # Remove low theta lines.
         lines = self.remove_low_theta_lines(lines, side)
 
         # Calculate median theta.
         lines_and_weights = self.assign_lines_initial_weights(lines)
         lines_and_weights = self.penalize_too_different_lines(
-            self, lines_and_weights, side
+            lines_and_weights, side
         )
         median_theta = self.median_theta(lines_and_weights)
 

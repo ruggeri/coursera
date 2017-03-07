@@ -1,3 +1,6 @@
+import cv2
+import numpy as np
+
 # Detect lines in the image, averaging and extending them.
 class BasicDetector:
     # Hough Constants
@@ -7,12 +10,11 @@ class BasicDetector:
     MIN_LINE_LENGTH = 10
     MAX_LINE_GAP = 2
 
-    def __init__(self, edge_image, logger):
-        self.edge_image = edge_image
-        self.lines = None
+    def __init__(self, logger):
+        self.logger = logger
 
-    def run(self):
-        height, width = self.edge_image.shape
+    def run(self, edge_image):
+        height, width = edge_image.shape
 
         # Detect lines.
         lines = cv2.HoughLinesP(
@@ -28,8 +30,8 @@ class BasicDetector:
             raise Exception("No lines detected!")
 
         # Unpack the lines from unneeded nesting.
-        self.lines = [line[0] for line in lines]
+        lines = [line[0] for line in lines]
 
-        logger.log_lines("BasicDetector/lines", self.lines)
+        self.logger.log_lines("BasicDetector/lines", lines)
 
-        return self.lines
+        return lines
