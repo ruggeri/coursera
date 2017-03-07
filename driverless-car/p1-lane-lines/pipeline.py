@@ -1,33 +1,11 @@
 import cv2
 import math
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 import lib.config as config
 from lib.edges import preprocess_image, detect_edges
 from lib.lines import detect_lines
-
-def draw_lines(image, lines, color, thickness):
-    for line in lines:
-        x1, y1, x2, y2 = line
-        cv2.line(
-            image, (x1, y1), (x2, y2), color, thickness
-        )
-
-    return image
-
-CACHED_BUFFER = None
-def draw_transparent_lines(image, lines, color, thickness):
-    global CACHED_BUFFER
-    if (CACHED_BUFFER is None) or CACHED_BUFFER.shape != image.shape:
-        CACHED_BUFFER = np.zeros(image.shape, image.dtype)
-
-    CACHED_BUFFER *= 0
-    draw_lines(CACHED_BUFFER, lines, color, thickness)
-    cv2.addWeighted(image, 1.0, CACHED_BUFFER, 1.0, 0, image)
-    return image
 
 def run_pipeline(image):
     # Preprocess, detect edges, detect lines.
@@ -72,7 +50,6 @@ def run_pipeline_all():
         print(image_path)
 
         # Read Image
-        image = mpimg.imread(image_path)
         overlaid_image = run_pipeline(image)
 
         # Show the image.

@@ -9,14 +9,13 @@ CANNY_MIN_CUTOFF = 4
 CANNY_MAX_CUTOFF = 64
 
 class EdgeDetector:
-    def __init__(self, image, logger):
-        self.image = image
-        self.gb_image = np.zeros_likes(self.image)
-        self.edge_image = np.zeros_like(self.image)
+    def __init__(self, shape, logger):
+        self.gb_image = np.zeros(shape)
+        self.edge_image = np.zeros(shape)
         self.logger = logger
 
-    def perform_gray_and_blur(self):
-        height, width, depth = self.image.shape
+    def perform_gray_and_blur(self, image):
+        height, width, depth = shape
         gb_image = self.gb_image
 
         # Gray the image and blur it.
@@ -59,7 +58,7 @@ class EdgeDetector:
 
         return edge_image
 
-    def run():
-        self.perform_gray_and_blur()
+    def run(image):
+        self.perform_gray_and_blur(image)
         self.detect_edges()
         return self.edge_image

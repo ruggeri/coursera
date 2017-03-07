@@ -34,10 +34,11 @@ masks = {}
 def build_mask(image_shape, poly):
     # Try to reuse previously allocated mask.
     if image_shape not in masks:
-        mask = np.zeros_like(image)
+        mask = np.zeros(image_shape)
         masks[image_shape] = mask
     else:
-        # TODO: Still dumb, don't need to refill mask constantly.
+        # TODO: Still dumb, don't need to refill mask constantly,
+        # since the mask is almost always the same.
         mask = masks[image_shape]
         mask *= 0
 

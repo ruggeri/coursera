@@ -1,13 +1,5 @@
-detector = None
-class Detector:
+class LineDetector:
     HORIZON_RATIO = 0.35
-
-    @staticmethod
-    def run(edges_image, logger):
-        if detector is None:
-            detector = Detector(edges_image.shape, logger)
-
-        return detector.run(edges_image)
 
     def __init__(self, image_shape, logger):
         self.image_shape = image_shape
@@ -22,7 +14,7 @@ class Detector:
 
         return (min_height, max_height)
 
-    def run(edges_image):
+    def run(edge_image):
         basic_detector = BasicDetector(edge_image, self.logger)
         basic_lines = basic_detector.run()
 
