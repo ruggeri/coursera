@@ -17,8 +17,8 @@ def run_image(image_path):
     plt.show()
 
 def run_images():
-    for path in os.listdir("tests/jpgs/"):
-        image_path = "tests/jpgs/{}".format(path)
+    for fname in os.listdir("tests/jpgs/"):
+        image_path = "tests/jpgs/{}".format(fname)
         run_image(image_path)
 
 class RunnerWrapper:
@@ -40,6 +40,13 @@ def run_movie(name):
     challenge_clip = clip2.fl_image(runner.run)
     challenge_clip.write_videofile(output_path, audio = False)
 
+def run_movies():
+    for fname in os.listdir("tests/mp4s/"):
+        run_movie(fname)
+
 if __name__ == "__main__":
-    run_images()
+    #run_images()
+    #run_movies()
+    #run_movie("solidWhiteRight.mp4")
+    #run_movie("solidYellowLeft.mp4")
     #run_movie("challenge.mp4")
