@@ -18,4 +18,6 @@ class Runner:
             image, [left_line, right_line], (255, 0, 0), 20
         )
 
+        self.logger.dump_lines(image, self.drawer)
+
         return image

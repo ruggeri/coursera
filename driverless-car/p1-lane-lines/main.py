@@ -33,5 +33,5 @@ def run_movie(name):
     challenge_clip.write_videofile(output_path, audio = False)
 
 if __name__ == "__main__":
-    #run_image("tests/jpgs/solidWhiteCurve.jpg")
-    run_movie("challenge.mp4")
+    run_image("tests/jpgs/solidWhiteCurve.jpg")
+    #run_movie("challenge.mp4")

@@ -40,8 +40,8 @@ class LineDetector:
         line_averager = LineAverager(
             *self.min_max_height(), self.logger
         )
-        left_line = line_averager.run(left_lines, "LEFT")
         right_line = line_averager.run(right_lines, "RIGHT")
+        left_line = line_averager.run(left_lines, "LEFT")
 
         smoother = Smoother(self.line_history, self.logger)
         left_line = smoother.run(left_line, "LEFT")

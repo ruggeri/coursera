@@ -125,4 +125,8 @@ class ExtremeLineFilter:
         # Remove outliers.
         lines = self.remove_outlier_lines(median_theta, lines, side)
 
+        self.logger.log_lines(
+            "ExtremeLineFilter/result/{}".format(side), lines
+        )
+
         return lines
