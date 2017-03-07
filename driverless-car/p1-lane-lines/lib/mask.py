@@ -1,14 +1,12 @@
 import cv2
 import numpy as np
 
-import lib.config as config
-
 # Mask constants
 MASK_HEIGHT_RATIO = 0.35
 MASK_X_RATIO = 0.2
 MASK_EXTRA_WINDOW = 0.01
 
-def build_mask(height, width, extra_space):
+def build_mask_polygon(height, width, extra_space):
     min_y = height * (1 - MASK_HEIGHT_RATIO)
     min_y *= (1 - MASK_EXTRA_WINDOW) if extra_space else 1.0
     min_y = int(min_y)
@@ -30,20 +28,35 @@ def build_mask(height, width, extra_space):
 
     return poly
 
-# Inspired by code from Udacity.
-def apply_mask(image, poly):
-    mask = np.zeros_like(image)
+# Builds a mask where the polygon is entirely white and the rest is
+# entirely black.
+masks = {}
+def build_mask(image_shape, poly):
+    # Try to reuse previously allocated mask.
+    if image_shape not in masks:
+        mask = np.zeros_like(image)
+        masks[image_shape] = mask
+    else:
+        # TODO: Still dumb, don't need to refill mask constantly.
+        mask = masks[image_shape]
+        mask *= 0
 
-    dimensions = len(image.shape)
     if dimensions == 3:
-        num_channels = image.shape[2]
-        mask_color = (255,) * 3
+        num_channels = image_shape[2]
+        mask_color = (255,) * num_channels
     else:
         # Monochrome
         mask_color = 255
 
-    # All black except polygon, which is painted white.
+    # Paint the polygon white.
     cv2.fillPoly(mask, [poly], mask_color)
 
-    masked_image = cv2.bitwise_and(image, mask)
+    return mask
+
+def perform_mask(image, height, width, extra_space, dst = None):
+    poly = build_mask_polygon(
+        height = height, width = width, extra_space = extra_space
+    )
+    mask = build_mask(image.shape, poly)
+    masked_image = cv2.bitwise_and(image, mask, dst = dst)
     return masked_image
