@@ -3,7 +3,7 @@ import numpy as np
 from .helpers import distance_to_line
 
 class OutlierToPrevLineFilter:
-    MAX_DISTANCE = 25
+    MAX_DISTANCE = 40
     # The idea is that you don't want too many lines, but you want at
     # least two to average with.
     MIN_NUM_LINES = 2

@@ -1,18 +1,19 @@
 CONFIG = [
-    #("LeftRightSplitter/left", (255, 255, 0), 2),
-    #("LeftRightSplitter/right", (0, 255, 255), 2),
-    #("LeftRightSplitter/rejected", (255, 0, 255), 2),
-    #("ExtremeLineFilter/too_low_theta/LEFT", (0, 0, 255), 2),
-    #("ExtremeLineFilter/too_low_theta/RIGHT", (0, 0, 255), 2),
-    #("ExtremeLineFilter/result/LEFT", (0, 0, 255), 2),
-    #("ExtremeLineFilter/result/RIGHT", (0, 0, 255), 2),
-    #("OutlierToPrevLineFilter/result/LEFT", (0, 0, 255), 2),
-    #("OutlierToPrevLineFilter/result/RIGHT", (0, 0, 255), 2),
-    #("BasicDetector/lines", (0, 255, 0), 2),
-    #("LineAverager/result/LEFT", (255, 255, 0), 2),
-    #("LineAverager/result/RIGHT", (255, 255, 0), 2),
-    #("Smoother/result/LEFT", (255, 0, 255), 2),
-    #("Smoother/result/RIGHT", (255, 0, 255), 2),
+    # Extend lines come first...
+    #("OutlierToPrevLineFilter/rejected/LEFT", (150, 0, 105), 2),
+    #("OutlierToPrevLineFilter/rejected/RIGHT", (150, 0, 105), 2),
+    ("OutlierToPrevLineFilter/result/LEFT", (100, 200, 100), 2),
+    ("OutlierToPrevLineFilter/result/RIGHT", (100, 200, 100), 2),
+    ("LineAverager/result/LEFT", (255, 255, 0), 2),
+    ("LineAverager/result/RIGHT", (255, 255, 0), 2),
+    ("Smoother/result/LEFT", (255, 0, 255), 2),
+    ("Smoother/result/RIGHT", (255, 0, 255), 2),
+
+    # Then non-extended lines, to paint over.
+    ("BasicDetector/lines", (0, 255, 0), 2),
+    ("LeftRightSplitter/rejected", (0, 150, 105), 2),
+    ("LowThetaFilter/rejected/LEFT", (0, 105, 150), 2),
+    ("LowThetaFilter/rejected/RIGHT", (0, 105, 150), 2),
 ]
 
 class Logger:
