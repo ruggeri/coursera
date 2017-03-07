@@ -7,9 +7,9 @@ from .line import Line
 class BasicDetector:
     # Hough Constants
     RHO_ACCURACY = 1
-    THETA_ACCURACY = (2 * np.pi) / 180
-    THRESHOLD = 10
-    MIN_LINE_LENGTH = 10
+    THETA_ACCURACY = (1 * np.pi) / 180
+    THRESHOLD = 5
+    MIN_LINE_LENGTH = 5
     MAX_LINE_GAP = 2
 
     def __init__(self, logger):

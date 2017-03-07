@@ -2,8 +2,8 @@ CONFIG = [
     # Extend lines come first...
     #("OutlierToPrevLineFilter/rejected/LEFT", (150, 0, 105), 2),
     #("OutlierToPrevLineFilter/rejected/RIGHT", (150, 0, 105), 2),
-    ("OutlierToPrevLineFilter/result/LEFT", (100, 200, 100), 2),
-    ("OutlierToPrevLineFilter/result/RIGHT", (100, 200, 100), 2),
+    #("OutlierToPrevLineFilter/result/LEFT", (100, 200, 100), 2),
+    #("OutlierToPrevLineFilter/result/RIGHT", (100, 200, 100), 2),
     ("LineAverager/result/LEFT", (255, 255, 0), 2),
     ("LineAverager/result/RIGHT", (255, 255, 0), 2),
     ("Smoother/result/LEFT", (255, 0, 255), 2),
