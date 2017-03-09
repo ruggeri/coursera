@@ -14,6 +14,7 @@ class Runner:
         edge_image = self.edge_detector.run(image)
         left_line, right_line = self.line_detector.run(edge_image)
 
+        image = image.copy()
         self.drawer.draw_transparent_lines(
             image, [left_line, right_line], (255, 0, 0), 20
         )
