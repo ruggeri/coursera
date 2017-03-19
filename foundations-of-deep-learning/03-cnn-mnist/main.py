@@ -2,76 +2,100 @@
 # know that this CNN does any better than my two-layer basic FFNN, but
 # it's just a demo of how to setup a CNN.
 
+from collections import namedtuple
 import math
 import random
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
-mnist = input_data.read_data_sets(".", one_hot=True, reshape=False)
-
 # Parameters
-learning_rate = 0.001
-epochs = 1
-batch_size = 1
-calc_valid_acc_freq = 0.01
+LEARNING_RATE = 0.001
+NUM_EPOCHS = 1
+BATCH_SIZE = 2**10
+KEEP_PROB = 0.90  # Keep_Prob, probability to keep units
 
-# Network Parameters
-n_classes = 10  # MNIST total classes (0-9 digits)
-dropout = 0.50  # Dropout, probability to keep units
+# Constants
+NUM_CLASSES = 10  # MNIST total classes (0-9 digits)
+IMAGE_DIM = 28 # MNIST images are 28x28
+MODEL_FNAME = "./model.ckpt"
 
-# Initial weights and biases.
-weights = {
-    # 5x5 filter from 1 channel to 20 channels.
-    'conv_weights1': tf.Variable(
-        tf.random_normal([5, 5, 1, 20], stddev=1/math.sqrt(5*5))
-    ),
-    # 5x5 filter from 20 channels to 40 channels.
-    'conv_weights2': tf.Variable(
-        tf.random_normal([5, 5, 20, 40], stddev=1/math.sqrt(20 * 25))
-    ),
-    # Starts out as 28x28 input, but I do maxpooling with a stride of
-    # 2 after both convolutional layers.
-    'dense_weights1': tf.Variable(
-        tf.random_normal([7*7*40, 100], stddev=1/math.sqrt(7*7*40))
-    ),
-    'out': tf.Variable(
-        tf.random_normal([100, n_classes], stddev=1/math.sqrt(10*10))
-    )
-}
+def build_weights_and_biases():
+    # Initial weights and biases.
+    weights = {
+        # 5x5 filter from 1 channel to 20 channels.
+        'conv_weights1': tf.Variable(
+            tf.random_normal([5, 5, 1, 20], stddev=1/math.sqrt(5*5))
+        ),
+        # 5x5 filter from 20 channels to 40 channels.
+        'conv_weights2': tf.Variable(
+            tf.random_normal(
+                [5, 5, 20, 40], stddev=1/math.sqrt(20 * 25)
+            )
+        ),
+        # Starts out as 28x28 input, but I do maxpooling with a stride
+        # of 2 after both convolutional layers.
+        'dense_weights1': tf.Variable(
+            tf.random_normal([7*7*40, 100], stddev=1/math.sqrt(7*7*40))
+        ),
+        'out': tf.Variable(
+            tf.random_normal(
+                [100, NUM_CLASSES], stddev=1/math.sqrt(10*10)
+            )
+        )
+    }
 
-biases = {
-    'conv_biases1': tf.Variable(tf.ones([20])),
-    'conv_biases2': tf.Variable(tf.ones([40])),
-    'dense_biases1': tf.Variable(tf.ones([100])),
-    'out': tf.Variable(tf.ones([n_classes]))
-}
+    biases = {
+        'conv_biases1': tf.Variable(tf.ones([20])),
+        'conv_biases2': tf.Variable(tf.ones([40])),
+        'dense_biases1': tf.Variable(tf.ones([100])),
+        'out': tf.Variable(tf.ones([NUM_CLASSES]))
+    }
+
+    return (weights, biases)
+
+def build_placeholders():
+    x = tf.placeholder(tf.float32, [None, IMAGE_DIM, IMAGE_DIM, 1])
+    y = tf.placeholder(tf.float32, [None, NUM_CLASSES])
+    keep_prob = tf.placeholder(tf.float32)
+
+    return (x, y, keep_prob)
 
 # Setup a basic convolutional layer.
-def conv2d(x, W, b, strides = 1):
-    x = tf.nn.conv2d(
+def build_conv2d(x, W, b, strides = 1):
+    layer = tf.nn.conv2d(
         x, W, strides=[1, strides, strides, 1], padding='SAME'
     )
-    x = tf.nn.bias_add(x, b)
-    return tf.nn.relu(x)
+    layer = tf.nn.bias_add(layer, b)
+    layer = tf.nn.relu(layer)
+    return layer
 
 # Setup a basic maxpooling layer.
-def maxpool2d(x, k = 2):
+def build_maxpool2d(x, dim = 2):
     return tf.nn.max_pool(
-        x, ksize=[1, k, k, 1], strides=[1, k, k, 1], padding='SAME'
+        x,
+        ksize = [1, dim, dim, 1],
+        strides = [1, dim, dim, 1],
+        padding = 'SAME'
     )
 
 # This builds the CNN
-def conv_net(x, weights, biases, dropout):
+Model = namedtuple("Model", "x, y, keep_prob, logits")
+def build_model():
+    x, y, keep_prob = build_placeholders()
+    weights, biases = build_weights_and_biases()
+
     # Layer 1 - 28*28*1 to 14*14*20
-    conv1 = conv2d(x, weights['conv_weights1'], biases['conv_biases1'])
-    conv1 = maxpool2d(conv1, k=2)
+    conv1 = build_conv2d(
+        x, weights['conv_weights1'], biases['conv_biases1']
+    )
+    conv1 = build_maxpool2d(conv1, dim = 2)
 
     # Layer 2 - 14*14*20 to 7*7*40
-    conv2 = conv2d(
+    conv2 = build_conv2d(
         conv1, weights['conv_weights2'], biases['conv_biases2']
     )
-    conv2 = maxpool2d(conv2, k=2)
-    conv2 = tf.nn.dropout(conv2, dropout)
+    conv2 = build_maxpool2d(conv2, dim = 2)
+    conv2 = tf.nn.dropout(conv2, keep_prob)
 
     # Fully connected layer - 7*7*40 to 1024
     # First we flatten the 2D image to a 1D representation.
@@ -83,92 +107,140 @@ def conv_net(x, weights, biases, dropout):
     )
     fc1 = tf.nn.relu(fc1)
     # We use dropout here to regularize.
-    fc1 = tf.nn.dropout(fc1, dropout)
+    fc1 = tf.nn.dropout(fc1, keep_prob)
 
     # Output Layer.
-    out = tf.add(tf.matmul(fc1, weights['out']), biases['out'])
-    return out
+    logits = tf.add(tf.matmul(fc1, weights['out']), biases['out'])
 
-# Placeholders
-x = tf.placeholder(tf.float32, [None, 28, 28, 1])
-y = tf.placeholder(tf.float32, [None, n_classes])
-keep_prob = tf.placeholder(tf.float32)
-
-# Model
-logits = conv_net(x, weights, biases, keep_prob)
-
-# Define loss and optimizer
-cost = tf.reduce_mean(
-    tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y)
-)
-optimizer = tf.train.AdamOptimizer(
-    learning_rate=learning_rate
-).minimize(cost)
-
-# Calculate accuracy
-correct_pred = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
-accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
-
-VALID_TEST_SIZE = 1024
-def run_batch(epoch_idx, batch_idx, should_preform_acc_test):
-    # Train on batch.
-    batch_x, batch_y = mnist.train.next_batch(batch_size)
-    sess.run(optimizer, feed_dict={
-        x: batch_x, y: batch_y, keep_prob: dropout
-    })
-
-    if not should_perform_acc_test:
-        print("\r\033[K", end="")
-        print(f"Epoch {epoch_idx+1}, Batch {batch_idx+1}", end="", flush=True)
-        return
-
-    # Calculate batch loss and accuracy
-    loss = sess.run(cost, feed_dict={
-        x: batch_x, y: batch_y, keep_prob: 1.0
-    })
-
-    # Notice use of 1.0 as keep probability when evaluating.
-    valid_acc = sess.run(accuracy, feed_dict={
-        x: mnist.validation.images,
-        y: mnist.validation.labels,
-        keep_prob: 1.0
-    })
-    print("\r\033[K", end="")
-    print(f"Epoch {epoch_idx+1}, Batch {batch_idx+1} - "
-          f"Validation Loss: {loss:>10.4f} "
-          f"Validation Accuracy: {valid_acc:.6f}"
+    return Model(
+        x = x,
+        y = y,
+        keep_prob = keep_prob,
+        logits = logits
     )
 
-    saver = tf.train.Saver()
+Trainer = namedtuple("Trainer", "cost, optimizer, accuracy")
+def build_trainer(model):
+    # Define loss and optimizer
+    cost = tf.reduce_mean(
+        tf.nn.softmax_cross_entropy_with_logits(
+            logits = model.logits, labels = model.y
+        )
+    )
+    optimizer = tf.train.AdamOptimizer(
+        learning_rate = LEARNING_RATE
+    ).minimize(cost)
 
-MODEL_FNAME = "./model.ckpt"
+    # Calculate accuracy
+    correct_pred = tf.equal(
+        tf.argmax(model.logits, 1), tf.argmax(model.y, 1)
+    )
+    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
-# Launch the graph
-with tf.Session() as sess:
-    saver = tf.train.Saver()
+    return Trainer(
+        cost = cost,
+        optimizer = optimizer,
+        accuracy = accuracy
+    )
+
+VALID_ACC_TEST_FREQ = 0.1
+def should_perform_acc_test(batch_info):
+    batches_per_acc_test = max(
+        int(VALID_ACC_TEST_FREQ * batch_info.num_batches),
+        1
+    )
+
+    return (batch_info.batch_idx + 1) % batches_per_acc_test == 0
+
+def train_batch(session, model, trainer, batch_info):
+    bi = batch_info
+
+    batch_x, batch_y = bi.dataset.train.next_batch(BATCH_SIZE)
+
+    session.run(trainer.optimizer, feed_dict = {
+        model.x: batch_x, model.y: batch_y, model.keep_prob: KEEP_PROB
+    })
+
+    if not should_perform_acc_test(bi):
+        print("\r\033[K", end="")
+        print(
+            f"Epoch {bi.epoch_idx + 1}, Batch {bi.batch_idx + 1}",
+            end = "",
+            flush = True
+        )
+        return
+
+    # Calculate loss and accuracy
+    loss = session.run(trainer.cost, feed_dict = {
+        model.x: bi.dataset.validation.images,
+        model.y: bi.dataset.validation.labels,
+        model.keep_prob: 1.0
+    })
+    # Notice use of 1.0 as keep probability when evaluating.
+    accuracy = session.run(trainer.accuracy, feed_dict = {
+        model.x: bi.dataset.validation.images,
+        model.y: bi.dataset.validation.labels,
+        model.keep_prob: 1.0
+    })
+    print("\r\033[K", end = "")
+    print(
+        f"Epoch {bi.epoch_idx + 1}, Batch {bi.batch_idx + 1} - "
+        f"Validation Loss: {loss:>10.4f} "
+        f"Validation Accuracy: {accuracy:.6f}"
+    )
+
+BatchInfo = namedtuple(
+    "BatchInfo",
+    "dataset, epoch_idx, batch_idx, batch_size, num_batches"
+)
+def train(dataset, model, trainer):
+    num_batches = int(dataset.train.num_examples / BATCH_SIZE)
+    for epoch_idx in range(NUM_EPOCHS):
+        for batch_idx in range(num_batches):
+            batch_info = BatchInfo(
+                dataset = dataset,
+                epoch_idx = epoch_idx,
+                batch_idx = batch_idx,
+                batch_size = BATCH_SIZE,
+                num_batches = num_batches,
+            )
+
+            train_batch(
+                session = session,
+                model = model,
+                trainer = trainer,
+                batch_info = batch_info,
+            )
+
+    # Calculate Final Test Accuracy
+    test_acc = session.run(trainer.accuracy, feed_dict = {
+        model.x: dataset.test.images,
+        model.y: dataset.test.labels,
+        model.keep_prob: 1.0
+    })
+
+    print()
+    print(f"Testing Accuracy: {test_acc}")
+
+def run(session):
+    # Load data and build model.
+    dataset = input_data.read_data_sets(
+        ".", one_hot = True, reshape = False
+    )
+    model = build_model()
+    trainer = build_trainer(model)
 
     # This quickly loads the trained file if it already exists.
-    ipt = input("Load old model?")
+    ipt = input("Load old model? ")
+    saver = tf.train.Saver()
     if ipt != "no":
-        saver.restore(sess, MODEL_FNAME)
+        saver.restore(session, MODEL_FNAME)
     else:
         # Initializing the variables
-        sess.run(tf.global_variables_initializer())
+        session.run(tf.global_variables_initializer())
 
-    for epoch_idx in range(epochs):
-        num_batches = int(mnist.train.num_examples / batch_size)
-        for batch_idx in range(num_batches):
-            should_perform_acc_test = (
-                (batch_idx+1) % int(calc_valid_acc_freq*num_batches) == 0
-            )
-            run_batch(epoch_idx, batch_idx, should_perform_acc_test)
+    train(dataset, model, trainer)
+    saver.save(session, MODEL_FNAME)
 
-    saver.save(sess, MODEL_FNAME)
-
-    # Calculate Test Accuracy
-    test_acc = sess.run(accuracy, feed_dict={
-        x: mnist.test.images,
-        y: mnist.test.labels,
-        keep_prob: 1.0
-    })
-    print(f"Testing Accuracy: {test_acc}")
+with tf.Session() as session:
+    run(session)
