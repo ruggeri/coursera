@@ -1,17 +1,21 @@
 # This shows how to setup a CNN with dropout in TensorFlow! I don't
 # know that this CNN does any better than my two-layer basic FFNN, but
 # it's just a demo of how to setup a CNN.
+#
+# With a batch size of 10, this does ~450ex/sec on my machine.
 
 from collections import namedtuple
 import math
 import random
+import time
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
 # Parameters
+BENCHMARK_MODE = True
 LEARNING_RATE = 0.001
 NUM_EPOCHS = 1
-BATCH_SIZE = 2**10
+BATCH_SIZE = 10
 KEEP_PROB = 0.90  # Keep_Prob, probability to keep units
 
 # Constants
@@ -152,6 +156,7 @@ def should_perform_acc_test(batch_info):
 
     return (batch_info.batch_idx + 1) % batches_per_acc_test == 0
 
+EPOCH_TIME = None
 def train_batch(session, model, trainer, batch_info):
     bi = batch_info
 
@@ -161,8 +166,11 @@ def train_batch(session, model, trainer, batch_info):
         model.x: batch_x, model.y: batch_y, model.keep_prob: KEEP_PROB
     })
 
-    if not should_perform_acc_test(bi):
+    if not should_perform_acc_test(bi) or BENCHMARK_MODE:
+        elapsed_time = time.time() - EPOCH_TIME
+        rate = round(BATCH_SIZE * (bi.batch_idx+1) / elapsed_time, 2)
         print("\r\033[K", end="")
+        print(f"Rate: {rate:5.2f}, ", end = "")
         print(
             f"Epoch {bi.epoch_idx + 1}, Batch {bi.batch_idx + 1}",
             end = "",
@@ -193,9 +201,15 @@ BatchInfo = namedtuple(
     "BatchInfo",
     "dataset, epoch_idx, batch_idx, batch_size, num_batches"
 )
+
 def train(dataset, model, trainer):
+    global EPOCH_TIME
+
     num_batches = int(dataset.train.num_examples / BATCH_SIZE)
     for epoch_idx in range(NUM_EPOCHS):
+        if EPOCH_TIME is None:
+            EPOCH_TIME = time.time()
+
         for batch_idx in range(num_batches):
             batch_info = BatchInfo(
                 dataset = dataset,
