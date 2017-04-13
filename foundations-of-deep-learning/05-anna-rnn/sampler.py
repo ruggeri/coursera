@@ -1,7 +1,6 @@
 import config
 import graph as graph_fns
 import numpy as np
-import pdb
 import tensorflow as tf
 
 def sample_one_char(session, graph, states, prev_char):
@@ -41,7 +40,7 @@ def sample_chars(session, graph, prefix, num_chars_to_generate):
 
     print("Beginning production of new characters!")
     result = prefix[-1]
-    for char_idx in range(0, num_chars_to_generate):
+    for char_idx in range(num_chars_to_generate):
         prev_char = result[-1]
         char, states = sample_one_char(
             session, graph, states, prev_char
@@ -58,7 +57,7 @@ def run(session):
     )
 
     saver = tf.train.Saver()
-    saver.restore(session, "./two-layer-rnn-model-anna-simplified-19-0439.ckpt")
+    saver.restore(session, config.RESTORE_FILENAME)
 
     result = sample_chars(
         session,

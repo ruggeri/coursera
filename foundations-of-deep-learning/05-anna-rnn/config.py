@@ -49,6 +49,7 @@ LEARNING_RATE = .01
 NUM_EPOCHS = 20
 NUM_LAYERS = 3
 NUM_LSTM_UNITS = 256
+RESTORE_FILENAME = "./two-layer-rnn-model-anna-simplified-19-0439.ckpt"
 SAVER_BASENAME = "three-layer-rnn-model-anna-simplified"
 SAVE_FREQUENCY = 0.10
 STEP_SIZE = 100
