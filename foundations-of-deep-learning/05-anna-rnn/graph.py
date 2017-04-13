@@ -4,8 +4,14 @@ import numpy as np
 import tensorflow as tf
 
 Graph = namedtuple('Graph', [
-    'inputs', 'outputs', 'initial_states',
-    'final_states', 'all_predictions', 'avg_loss', 'accuracy', 'train_op'
+    'inputs',
+    'outputs',
+    'initial_states',
+    'final_states',
+    'all_predictions',
+    'avg_loss',
+    'accuracy',
+    'train_op'
 ])
 
 def build_graph(
@@ -96,7 +102,6 @@ def build_graph(
         accuracy += tf.reduce_mean(
             tf.cast(correct_predictions, "float")
         )
-
     avg_loss /= num_time_steps
     accuracy /= num_time_steps
 

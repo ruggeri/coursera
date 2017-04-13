@@ -2,7 +2,7 @@ import numpy as np
 import random
 import tensorflow as tf
 
-# Needed to make sure vocab is not random
+# Needed to make sure vocab is not random in test mode
 np.random.seed(1)
 
 # These settings work well for the two 6-letter words test.
@@ -57,4 +57,4 @@ TOP_N = 5
 VALIDATION_FREQUENCY = 0.10
 
 import file_reader as fr
-file_reader = fr.FileReader('../datasets/anna-simplified.txt')
+file_reader = fr.FileReader('./anna-simplified.txt')

@@ -63,13 +63,14 @@ class FileReader:
     def one_hot_text(self):
         if self.one_hot_text_:
             return self.one_hot_text_
-        self.one_hot_text_ = np.zeros([len(self.text()), self.vocab_size()])
+        self.one_hot_text_ = np.zeros(
+            [len(self.text()), self.vocab_size()]
+        )
         for i, char in enumerate(self.text()):
             char_int = self.char_to_int(char)
             self.one_hot_text_[i, char_int] = 1.0
 
         return self.one_hot_text_
-
 
 NUM_TEST_CHARS = 1000000
 def read_test_file():
