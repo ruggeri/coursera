@@ -5,8 +5,32 @@ import graph as graph_fns
 import numpy as np
 import tensorflow as tf
 
+BatchInfo = namedtuple(
+    "BatchInfo", [
+        "epoch_idx",
+        "batch_idx",
+        "batch_x",
+        "batch_y",
+        "states",
+    ]
+)
+
+RunInfo = namedtuple(
+    "RunInfo", [
+        "train_batches",
+        "validation_batches",
+        "num_training_batches",
+        "num_validation_batches",
+        "batches_per_save",
+        "batches_per_validation",
+        "graph",
+        "saver",
+    ]
+)
+
 def run_validation(session, run_info, batch_info):
-    graph = run_info.graph
+    ri = run_info
+    graph = ri.graph
 
     states = graph_fns.make_initial_states(
         config.BATCH_SIZE, config.NUM_LAYERS, config.NUM_LSTM_UNITS
@@ -14,7 +38,7 @@ def run_validation(session, run_info, batch_info):
 
     total_loss = 0
     total_accuracy = 0
-    for (validation_x, validation_y) in run_info.validation_batches:
+    for (validation_x, validation_y) in ri.validation_batches:
         validation_results = session.run({
             "avg_loss": graph.avg_loss,
             "accuracy": graph.accuracy,
@@ -25,10 +49,10 @@ def run_validation(session, run_info, batch_info):
             tuple(graph.initial_states): tuple(states)
         })
         total_loss += (
-            validation_results["avg_loss"] / run_info.num_validation_batches
+            validation_results["avg_loss"] / ri.num_validation_batches
         )
         total_accuracy += (
-            validation_results["accuracy"] / run_info.num_validation_batches
+            validation_results["accuracy"] / ri.num_validation_batches
         )
         states = validation_results["final_states"]
 
@@ -89,7 +113,8 @@ def run_epoch(session, run_info, epoch_idx):
     )
 
     states = initial_states[:]
-    for batch_idx, (batch_x, batch_y) in enumerate(run_info.train_batches):
+    train_batches = run_info.train_batches
+    for batch_idx, (batch_x, batch_y) in enumerate(train_batches):
         batch_info = BatchInfo(
             epoch_idx = epoch_idx,
             batch_idx = batch_idx,
@@ -99,29 +124,6 @@ def run_epoch(session, run_info, epoch_idx):
         )
 
         states = run_batch(session, run_info, batch_info)
-
-BatchInfo = namedtuple(
-    "BatchInfo", [
-        "epoch_idx",
-        "batch_idx",
-        "batch_x",
-        "batch_y",
-        "states",
-    ]
-)
-
-RunInfo = namedtuple(
-    "RunInfo", [
-        "train_batches",
-        "validation_batches",
-        "num_training_batches",
-        "num_validation_batches",
-        "batches_per_save",
-        "batches_per_validation",
-        "graph",
-        "saver",
-    ]
-)
 
 def run():
     train_batches, validation_batches = batcher.partition_batches(
