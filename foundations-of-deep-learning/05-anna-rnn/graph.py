@@ -1,3 +1,4 @@
+import basic_lstm_cell
 from collections import namedtuple
 import config
 import numpy as np
@@ -32,11 +33,19 @@ def build_graph(
         name="outputs"
     )
 
-    cells = [
-        tf.contrib.rnn.BasicLSTMCell(
-            num_lstm_units, state_is_tuple=True
-        ) for _ in range(num_layers)
-    ]
+    if config.USE_MY_LSTM_CELL:
+        cells = [
+            basic_lstm_cell.BasicLSTMCell(
+                num_lstm_units,
+                config.file_reader.vocab_size() if layer_idx == 0 else num_lstm_units
+            ) for layer_idx in range(num_layers)
+        ]
+    else:
+        cells = [
+            tf.contrib.rnn.BasicLSTMCell(
+                num_lstm_units, state_is_tuple=True
+            ) for _ in range(num_layers)
+        ]
 
     initial_states = [
         tf.contrib.rnn.LSTMStateTuple(
