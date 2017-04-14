@@ -40,18 +40,21 @@ def log_batches(run_info, batch_info, cumulative_loss, start_time):
     ri, bi = run_info, batch_info
     num_examples = ri.batches_per_logging * ri.batch_size
     end_time = time.time()
-    examples_per_sec = num_examples / (end_time - start_time)
+
+    average_loss = cumulative_loss / ri.batches_per_logging
+    examples_per_sec = int(num_examples / (end_time - start_time))
     print(f"Epoch: {bi.epoch_idx:03d} | "
           f"Batch: {bi.batch_idx:04d} / {ri.batches_per_epoch:04d} | "
-          f"Avg Train Loss: {cumulative_loss:.2f} | "
-          f"{examples_per_sec:3.2f} sec / example"
+          f"Avg Train Loss: {average_loss:.2f} | "
+          f"{examples_per_sec:04d} sec / example"
     )
 
 def run_epoch(run_info, epoch_idx):
-    batches = run_info.batcher.batches(ri.BATCH_SIZE, ri.WINDOW_SIZE)
+    batches = run_info.batcher.batches(
+        run_info.batch_size, run_info.window_size
+    )
 
-    cumulative_loss = 0
-    start_time = time.time()
+    cumulative_loss, start_time = 0, time.time()
     for batch_idx, (inputs, labels) in enumerate(batches):
         batch_info = BatchInfo(
             epoch_idx = epoch_idx,
@@ -63,12 +66,13 @@ def run_epoch(run_info, epoch_idx):
         cumulative_loss += run_batch(run_info, batch_info)
 
         should_log = (
-            ((batch_idx + 1) % ri.batches_per_logging) == 0
+            ((batch_idx + 1) % run_info.batches_per_logging) == 0
         )
         if should_log:
-            log_batches(batch_info, cumulative_loss, start_time)
-            cumulative_loss = 0
-            start_time = 0
+            log_batches(
+                run_info, batch_info, cumulative_loss, start_time
+            )
+            cumulative_loss, start_time = 0, time.time()
 
 def run(session):
     batcher = preprocessing.Batcher(config.SUBSAMPLE_THRESHOLD)
