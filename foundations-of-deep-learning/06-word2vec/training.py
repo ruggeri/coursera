@@ -26,7 +26,8 @@ def run_batch(run_info, batch_info):
     training_loss, _ = ri.session.run(
         [ri.graph.cost, ri.graph.optimizer],
         feed_dict = {
-            graph.inputs: bi.inputs, graph.labels: bi.labels
+            ri.graph.inputs: bi.inputs,
+            ri.graph.labels: bi.labels
         }
     )
 

@@ -11,7 +11,7 @@ Graph = namedtuple("Graph", [
 
 def build_graph(vocab_size, num_embedding_units, num_negative_samples):
     inputs = tf.placeholder(tf.int32, [None], name = "input_words")
-    labels = tf.placeholder(tf.int32, [None, 1], name = "labels")
+    labels = tf.placeholder(tf.int32, [None], name = "labels")
 
     # Perform the embedding.
     embedding_matrix = tf.Variable(
@@ -44,7 +44,7 @@ def build_graph(vocab_size, num_embedding_units, num_negative_samples):
     loss = tf.nn.sampled_softmax_loss(
         softmax_w,
         softmax_b,
-        labels,
+        tf.reshape(labels, (-1, 1)),
         embedded_inputs,
         num_negative_samples,
         vocab_size
