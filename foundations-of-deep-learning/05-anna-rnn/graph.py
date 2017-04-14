@@ -15,6 +15,24 @@ Graph = namedtuple('Graph', [
     'train_op'
 ])
 
+def build_cells(num_layers, num_lstm_units):
+    def build_cell(layer_idx):
+        if config.USE_MY_LSTM_CELL:
+            if layer_idx == 0:
+                num_input_units = config.file_reader.vocab_size()
+            else:
+                num_input_units = num_lstm_units
+
+            return basic_lstm_cell.BasicLSTMCell(
+                num_lstm_units, num_input_units
+            )
+        else:
+            return tf.contrib.rnn.BasicLSTMCell(
+                num_lstm_units, state_is_tuple=True
+            )
+
+    return [build_cell(layer_idx) for layer_idx in range(num_layers)]
+
 def build_graph(
         batch_size,
         num_chars,
@@ -33,19 +51,7 @@ def build_graph(
         name="outputs"
     )
 
-    if config.USE_MY_LSTM_CELL:
-        cells = [
-            basic_lstm_cell.BasicLSTMCell(
-                num_lstm_units,
-                config.file_reader.vocab_size() if layer_idx == 0 else num_lstm_units
-            ) for layer_idx in range(num_layers)
-        ]
-    else:
-        cells = [
-            tf.contrib.rnn.BasicLSTMCell(
-                num_lstm_units, state_is_tuple=True
-            ) for _ in range(num_layers)
-        ]
+    cells = build_cells(num_layers, num_lstm_units)
 
     initial_states = [
         tf.contrib.rnn.LSTMStateTuple(
