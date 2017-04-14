@@ -1,5 +1,4 @@
 from collections import namedtuple
-import config
 import tensorflow as tf
 
 Graph = namedtuple("Graph", [
@@ -27,7 +26,7 @@ def build_graph(vocab_size, num_embedding_units, num_negative_samples):
     )
 
     # Prepare the softmax weights/biases.
-    initial_weight_limit = 1 / config.NUM_EMBEDDING_UNITS
+    initial_weight_limit = 1 / num_embedding_units
     softmax_w = tf.Variable(
         tf.random_uniform(
             [vocab_size, num_embedding_units],
