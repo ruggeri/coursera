@@ -14,6 +14,7 @@ RunInfo = namedtuple("RunInfo", [
     "window_size",
     "batches_per_epoch",
     "batches_per_logging",
+    "batches_per_save",
 ])
 
 BatchInfo = namedtuple("BatchInfo", [
@@ -49,6 +50,14 @@ def log_batches(run_info, batch_info, cumulative_loss, start_time):
           f"{examples_per_sec:04d} sec / example"
     )
 
+def save(run_info, batch_info):
+    ri, bi = run_info, batch_info
+
+    run_info.saver.save(run_info.session, config.SAVE_BASENAME)
+    print(f"Epoch: {bi.epoch_idx:03d} | "
+          f"Batch: {bi.batch_idx:04d} / {ri.batches_per_epoch:04d} | "
+          f"Model saved!")
+
 def run_epoch(run_info, epoch_idx):
     batches = run_info.batcher.batches(
         run_info.batch_size, run_info.window_size
@@ -72,6 +81,15 @@ def run_epoch(run_info, epoch_idx):
             log_batches(
                 run_info, batch_info, cumulative_loss, start_time
             )
+
+        should_save = (
+            ((batch_idx + 1) % run_info.batches_per_save) == 0
+        )
+        if should_save:
+            save(run_info, batch_info)
+
+        if should_log:
+            # Doing this at the very end to not include the saving time.
             cumulative_loss, start_time = 0, time.time()
 
 def run(session):
@@ -96,6 +114,9 @@ def run(session):
         batches_per_logging = int(
             num_batches * config.LOGGING_FREQUENCY
         ),
+        batches_per_save = int(
+            num_batches * config.SAVING_FREQUENCY
+        )
     )
 
     for epoch_idx in range(1, config.NUM_EPOCHS + 1):
