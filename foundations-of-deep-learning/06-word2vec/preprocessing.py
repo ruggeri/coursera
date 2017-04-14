@@ -2,7 +2,6 @@ from collections import Counter
 import config
 import math
 import random
-import re
 
 def replace_punctuation(text):
     # Replace punctuation with tokens so we can use them in our model

@@ -1,9 +1,5 @@
 import preprocessing
 import config
-import numpy as np
-import tensorflow as tf
-import time
-import utils
 
 with open('data/text8') as f:
     text = f.read()
