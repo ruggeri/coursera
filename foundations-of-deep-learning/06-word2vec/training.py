@@ -3,12 +3,14 @@ import config
 import graph as graph_fns
 import preprocessing
 import tensorflow as tf
+import time
 
 RunInfo = namedtuple("RunInfo", [
     "session",
     "graph",
     "saver",
     "batcher",
+    "batch_size",
     "batches_per_epoch",
     "batches_per_logging",
 ])
@@ -23,7 +25,7 @@ BatchInfo = namedtuple("BatchInfo", [
 def run_batch(run_info, batch_info):
     ri, bi = run_info, batch_info
 
-    training_loss, _ = ri.session.run(
+    batch_training_loss, _ = ri.session.run(
         [ri.graph.cost, ri.graph.optimizer],
         feed_dict = {
             ri.graph.inputs: bi.inputs,
@@ -31,21 +33,26 @@ def run_batch(run_info, batch_info):
         }
     )
 
-    should_log = (
-        ((bi.batch_idx + 1) % ri.batches_per_logging) == 0
+    return batch_training_loss
+
+def log_batches(run_info, batch_info, cumulative_loss, start_time):
+    ri, bi = run_info, batch_info
+    num_examples = ri.batches_per_logging * ri.batch_size
+    end_time = time.time()
+    examples_per_sec = num_examples / (end_time - start_time)
+    print(f"Epoch: {bi.epoch_idx:03d} | "
+          f"Batch: {bi.batch_idx:04d} / {ri.batches_per_epoch:04d} | "
+          f"Avg Train Loss: {cumulative_loss:.2f} | "
+          f"{examples_per_sec:3.2f} sec / example"
     )
-    if should_log:
-        print(f"Epoch: {bi.epoch_idx:03d} | "
-              f"Batch: {bi.batch_idx:04d} / {ri.batches_per_epoch:04d} | "
-              f"Avg Train Loss: {training_loss:.2f} | "
-              f"0 sec / example"
-        )
 
 def run_epoch(run_info, epoch_idx):
     batches = run_info.batcher.batches(
         config.BATCH_SIZE, config.WINDOW_SIZE
     )
 
+    cumulative_loss = 0
+    start_time = time.time()
     for batch_idx, (inputs, labels) in enumerate(batches):
         batch_info = BatchInfo(
             epoch_idx = epoch_idx,
@@ -54,7 +61,15 @@ def run_epoch(run_info, epoch_idx):
             labels = labels,
         )
 
-        run_batch(run_info, batch_info)
+        cumulative_loss += run_batch(run_info, batch_info)
+
+        should_log = (
+            ((batch_idx + 1) % ri.batches_per_logging) == 0
+        )
+        if should_log:
+            log_batches(batch_info, cumulative_loss, start_time)
+            cumulative_loss = 0
+            start_time = 0
 
 def run(session):
     batcher = preprocessing.Batcher()
@@ -72,6 +87,7 @@ def run(session):
         graph = graph,
         saver = tf.train.Saver(),
         batcher = batcher,
+        batch_size = config.BATCH_SIZE,
         batches_per_epoch = num_batches,
         batches_per_logging = int(
             num_batches * config.LOGGING_FREQUENCY
