@@ -53,10 +53,14 @@ def log_batches(run_info, batch_info, cumulative_loss, start_time):
 def save(run_info, batch_info):
     ri, bi = run_info, batch_info
 
-    run_info.saver.save(run_info.session, config.SAVE_BASENAME)
+    run_info.saver.save(
+        run_info.session,
+        f"{config.SAVE_BASENAME}-{bi.epoch_idx:03d}-{bi.batch_idx:04d}"
+    )
     print(f"Epoch: {bi.epoch_idx:03d} | "
           f"Batch: {bi.batch_idx:04d} / {ri.batches_per_epoch:04d} | "
-          f"Model saved!")
+          f"Model saved!"
+    )
 
 def run_epoch(run_info, epoch_idx):
     batches = run_info.batcher.batches(
