@@ -37,19 +37,19 @@ def create_lookup_tables(words):
 def int_encode_words(words, word_to_int):
     return [word_to_int[word] for word in words]
 
-def subsample(int_words):
-    total_num_words = len(int_words)
-    counts = Counter(int_words)
-    new_int_words = []
-    for int_word in int_words:
-        word_count = counts[int_word]
+def subsample(words):
+    total_num_words = len(words)
+    counts = Counter(words)
+    new_words = []
+    for word in words:
+        word_count = counts[word]
         word_freq = word_count / total_num_words
         reject_prob = (
             1 - math.sqrt(config.SUBSAMPLE_THRESHOLD / word_freq)
         )
         if random.random() >= reject_prob:
-            new_int_words.append(int_word)
-    return new_int_words
+            new_words.append(word)
+    return new_words
 
 def word_context(words, idx, window_size=5):
     context_size = random.randrange(1, window_size)
@@ -80,6 +80,7 @@ class Batcher:
     def __init__(self):
         self.training_text_ = None
         self.training_words_ = None
+        self.training_int_words_ = None
         self.words_to_ints_ = None
         self.ints_to_words_ = None
         self.int_words_ = None
@@ -89,12 +90,16 @@ class Batcher:
         if not self.training_text_:
             with open('data/text8') as f:
                 self.training_text_ = f.read()
+
         return self.training_text_
 
     def training_words(self):
         if not self.training_words_:
             self.training_words_ = replace_punctuation(
                 self.training_text()
+            )
+            self.training_words_ = subsample(
+                self.training_words_
             )
         return self.training_words_
 
@@ -120,7 +125,6 @@ class Batcher:
             self.training_int_words_ = int_encode_words(
                 self.training_words(), self.words_to_ints()
             )
-            self.training_int_words_ = subsample(self.int_words_)
         return self.training_int_words_
 
     def word_to_int(self, word):
@@ -133,6 +137,9 @@ class Batcher:
         return make_training_batches(
             self.training_int_words(), batch_size, window_size
         )
+
+    def num_batches(self, batch_size):
+        return len(self.training_int_words()) // batch_size
 
     def vocab_size(self):
         if not self.vocab_size_:
