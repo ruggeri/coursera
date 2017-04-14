@@ -1,5 +1,4 @@
 from collections import Counter
-import config
 import math
 import random
 
@@ -37,7 +36,7 @@ def create_lookup_tables(words):
 def int_encode_words(words, word_to_int):
     return [word_to_int[word] for word in words]
 
-def subsample(words):
+def subsample(words, subsample_threshold):
     total_num_words = len(words)
     counts = Counter(words)
     new_words = []
@@ -45,7 +44,7 @@ def subsample(words):
         word_count = counts[word]
         word_freq = word_count / total_num_words
         reject_prob = (
-            1 - math.sqrt(config.SUBSAMPLE_THRESHOLD / word_freq)
+            1 - math.sqrt(subsample_threshold / word_freq)
         )
         if random.random() >= reject_prob:
             new_words.append(word)
@@ -77,7 +76,9 @@ def make_training_batches(words, batch_size, window_size):
         yield x, y
 
 class Batcher:
-    def __init__(self):
+    def __init__(self, subsample_threshold):
+        self.subsample_treshold = subsample_threshold
+
         self.training_text_ = None
         self.training_words_ = None
         self.training_int_words_ = None
@@ -99,7 +100,8 @@ class Batcher:
                 self.training_text()
             )
             self.training_words_ = subsample(
-                self.training_words_
+                self.training_words_,
+                self.subsample_treshold
             )
         return self.training_words_
 

@@ -11,6 +11,7 @@ RunInfo = namedtuple("RunInfo", [
     "saver",
     "batcher",
     "batch_size",
+    "window_size",
     "batches_per_epoch",
     "batches_per_logging",
 ])
@@ -47,9 +48,7 @@ def log_batches(run_info, batch_info, cumulative_loss, start_time):
     )
 
 def run_epoch(run_info, epoch_idx):
-    batches = run_info.batcher.batches(
-        config.BATCH_SIZE, config.WINDOW_SIZE
-    )
+    batches = run_info.batcher.batches(ri.BATCH_SIZE, ri.WINDOW_SIZE)
 
     cumulative_loss = 0
     start_time = time.time()
@@ -72,7 +71,7 @@ def run_epoch(run_info, epoch_idx):
             start_time = 0
 
 def run(session):
-    batcher = preprocessing.Batcher()
+    batcher = preprocessing.Batcher(config.SUBSAMPLE_THRESHOLD)
     num_batches = batcher.num_batches(config.BATCH_SIZE)
     graph = graph_fns.build_graph(
         vocab_size = batcher.vocab_size(),
@@ -88,6 +87,7 @@ def run(session):
         saver = tf.train.Saver(),
         batcher = batcher,
         batch_size = config.BATCH_SIZE,
+        window_size = config.WINDOW_SIZE,
         batches_per_epoch = num_batches,
         batches_per_logging = int(
             num_batches * config.LOGGING_FREQUENCY
