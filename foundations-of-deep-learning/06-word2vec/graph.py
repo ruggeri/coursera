@@ -4,20 +4,22 @@ import tensorflow as tf
 
 Graph = namedtuple("Graph", [
     "inputs",
-    "outputs",
+    "labels",
     "cost",
     "optimizer"
 ])
 
-def build_graph(vocab_size):
+def build_graph(vocab_size, num_embedding_units, num_negative_samples):
     inputs = tf.placeholder(tf.int32, [None], name = "input_words")
-    labels = tf.placeholder(tf.int32, [None, 1], name = "output_words")
+    labels = tf.placeholder(tf.int32, [None, 1], name = "labels")
 
     # Perform the embedding.
     embedding_matrix = tf.Variable(
-        tf.random_uniform([vocab_size, num_embedding_units]),
-        minval = -1,
-        maxval = 1,
+        tf.random_uniform(
+            [vocab_size, num_embedding_units],
+            minval = -1,
+            maxval = 1,
+        ),
         name = "embedding_matrix"
     )
     embedded_inputs = tf.nn.embedding_lookup(
@@ -53,7 +55,7 @@ def build_graph(vocab_size):
 
     return Graph(
         inputs = inputs,
-        outputs = outputs,
+        labels = labels,
         cost = cost,
         optimizer = optimizer
     )
