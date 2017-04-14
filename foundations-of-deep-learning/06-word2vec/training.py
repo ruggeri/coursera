@@ -35,10 +35,10 @@ def run_batch(run_info, batch_info):
         ((bi.batch_idx + 1) % ri.batches_per_logging) == 0
     )
     if should_log:
-        print(f"Epoch: {bi.epoch_idx:03.d} | "
-              f"Batch: {bi.batch_idx:04.d} / {ri.batches_per_epoch:04.d} | "
+        print(f"Epoch: {bi.epoch_idx:03d} | "
+              f"Batch: {bi.batch_idx:04d} / {ri.batches_per_epoch:04d} | "
               f"Avg Train Loss: {training_loss:.2f} | "
-              f"{0} sec / example"
+              f"0 sec / example"
         )
 
 def run_epoch(run_info, epoch_idx):
@@ -59,14 +59,17 @@ def run_epoch(run_info, epoch_idx):
 def run(session):
     batcher = preprocessing.Batcher()
     num_batches = batcher.num_batches(config.BATCH_SIZE)
+    graph = graph_fns.build_graph(
+        vocab_size = batcher.vocab_size(),
+        num_embedding_units = config.NUM_EMBEDDING_UNITS,
+        num_negative_samples = config.NUM_NEGATIVE_SAMPLES,
+    )
+
+    session.run(tf.global_variables_initializer())
 
     run_info = RunInfo(
         session = session,
-        graph = graph_fns.build_graph(
-            vocab_size = batcher.vocab_size(),
-            num_embedding_units = config.NUM_EMBEDDING_UNITS,
-            num_negative_samples = config.NUM_NEGATIVE_SAMPLES,
-        ),
+        graph = graph,
         saver = tf.train.Saver(),
         batcher = batcher,
         batches_per_epoch = num_batches,
