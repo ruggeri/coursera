@@ -68,52 +68,73 @@ def make_training_batches(words, batch_size, window_size):
 
     for idx in range(0, len(words), batch_size):
         x, y = [], []
-        batch = words[idx:idx+batch_size]
+        batch = words[idx:(idx + batch_size)]
         for ii in range(len(batch)):
             word = batch[ii]
             context_words = word_context(batch, ii, window_size)
-            y.extend(word)
-            x.extend([context_words] * len(batch_y))
+            y.extend(context_words)
+            x.extend([word] * len(context_words))
         yield x, y
 
 class Batcher:
     def __init__(self):
-        self.text_ = None
-        self.words_ = None
+        self.training_text_ = None
+        self.training_words_ = None
         self.words_to_ints_ = None
         self.ints_to_words_ = None
         self.int_words_ = None
+        self.vocab_size_ = None
 
-    def text(self):
-        if self.text_:
-            return self.text_
-        with open('data/text8') as f:
-            self.text_ = f.read()
-        return self.text_
+    def training_text(self):
+        if not self.training_text_:
+            with open('data/text8') as f:
+                self.training_text_ = f.read()
+        return self.training_text_
 
-    def words(self):
-        if self.words_:
-            return self.words_
+    def training_words(self):
+        if not self.training_words_:
+            self.training_words_ = replace_punctuation(
+                self.training_text()
+            )
+        return self.training_words_
 
-        self.words_ = replace_punctuation(self.text())
-        return self.words_
-
-    def words_to_ints_maps(self):
-        if self.words_to_ints_ and self.ints_to_words_:
-            return (self.words_to_ints_, self.ints_to_words_)
-        self.words_to_ints_, self.ints_to_words_ = (
-            create_lookup_tables(self.words())
-        )
+    def make_words_and_ints_maps(self):
+        if not self.words_to_ints_ or not self.ints_to_words_:
+            self.words_to_ints_, self.ints_to_words_ = (
+                create_lookup_tables(self.training_words())
+            )
         return (self.words_to_ints_, self.ints_to_words_)
 
-    def int_words(self):
-        if self.int_words_:
-            return self.int_words_
-        self.int_words_ = int_encode_words(words, self.words_to_ints())
-        self.int_words_ = subsample(self.int_words_)
-        return self.int_to_words_
+    def words_to_ints(self):
+        if not self.words_to_ints_:
+            self.make_words_and_ints_maps()
+        return self.words_to_ints_
+
+    def ints_to_words(self):
+        if not self.ints_to_words_:
+            self.make_words_and_ints_maps()
+        return self.ints_to_words_
+
+    def training_int_words(self):
+        if not self.training_int_words_:
+            self.training_int_words_ = int_encode_words(
+                self.training_words(), self.words_to_ints()
+            )
+            self.training_int_words_ = subsample(self.int_words_)
+        return self.training_int_words_
+
+    def word_to_int(self, word):
+        return self.words_to_ints()[word]
+
+    def int_to_word(self, int_word):
+        return self.ints_to_words()[int_word]
 
     def batches(self, batch_size, window_size):
         return make_training_batches(
-            self.int_words(), batch_size, window_size
+            self.training_int_words(), batch_size, window_size
         )
+
+    def vocab_size(self):
+        if not self.vocab_size_:
+            self.vocab_size_ = len(self.words_to_ints())
+        return self.vocab_size_
