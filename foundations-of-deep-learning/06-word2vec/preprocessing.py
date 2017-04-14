@@ -60,7 +60,7 @@ def word_context(words, idx, window_size=5):
 
     return context
 
-def make_training_batches(words, batch_size, window_size=5):
+def make_training_batches(words, batch_size, window_size):
     n_batches = len(words) // batch_size
 
     # get only full batches
@@ -75,3 +75,45 @@ def make_training_batches(words, batch_size, window_size=5):
             y.extend(word)
             x.extend([context_words] * len(batch_y))
         yield x, y
+
+class Batcher:
+    def __init__(self):
+        self.text_ = None
+        self.words_ = None
+        self.words_to_ints_ = None
+        self.ints_to_words_ = None
+        self.int_words_ = None
+
+    def text(self):
+        if self.text_:
+            return self.text_
+        with open('data/text8') as f:
+            self.text_ = f.read()
+        return self.text_
+
+    def words(self):
+        if self.words_:
+            return self.words_
+
+        self.words_ = replace_punctuation(self.text())
+        return self.words_
+
+    def words_to_ints_maps(self):
+        if self.words_to_ints_ and self.ints_to_words_:
+            return (self.words_to_ints_, self.ints_to_words_)
+        self.words_to_ints_, self.ints_to_words_ = (
+            create_lookup_tables(self.words())
+        )
+        return (self.words_to_ints_, self.ints_to_words_)
+
+    def int_words(self):
+        if self.int_words_:
+            return self.int_words_
+        self.int_words_ = int_encode_words(words, self.words_to_ints())
+        self.int_words_ = subsample(self.int_words_)
+        return self.int_to_words_
+
+    def batches(self, batch_size, window_size):
+        return make_training_batches(
+            self.int_words(), batch_size, window_size
+        )
