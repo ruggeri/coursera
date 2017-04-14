@@ -9,19 +9,19 @@ Graph = namedtuple("Graph", [
     "optimizer"
 ])
 
-def build_graph():
-    inputs = tf.placeholder(tf.int32, [None], "input_int_word")
-    labels = tf.placeholder(tf.int32, [None, 1], "output_int_word")
+def build_graph(vocab_size):
+    inputs = tf.placeholder(tf.int32, [None], name = "input_words")
+    labels = tf.placeholder(tf.int32, [None, 1], name = "output_words")
 
     # Perform the embedding.
     embedding_matrix = tf.Variable(
         tf.random_uniform([vocab_size, num_embedding_units]),
         minval = -1,
         maxval = 1,
-        name="embedding_matrix"
+        name = "embedding_matrix"
     )
     embedded_inputs = tf.nn.embedding_lookup(
-        embedding_matrix, inputs, name="embedded_inputs"
+        embedding_matrix, inputs, name = "embedded_inputs"
     )
 
     # Prepare the softmax weights/biases.
@@ -35,7 +35,7 @@ def build_graph():
         name="softmax_weights"
     )
     softmax_b = tf.Variable(
-        tf.zeros([vocab_size]), name="softmax_biases"
+        tf.zeros([vocab_size]), name = "softmax_biases"
     )
 
     # Calculate the loss using negative sampling
