@@ -27,10 +27,10 @@ class Validator:
         return self.embedding_matrix_
 
     def validation_words(self):
-        return validation_words_
+        return self.validation_words_
 
     def similarity_scores(self):
-        if self.similarity_scores_:
+        if self.similarity_scores_ is not None:
             return self.similarity_scores_
 
         validation_words = tf.constant(
@@ -41,16 +41,17 @@ class Validator:
             tf.sqrt(tf.reduce_sum(tf.square(self.embedding_matrix()), 1))
         )
         normalized_representations = (
-            self.embedding_matrix() / embedding_representation_norms
+            self.embedding_matrix() /
+            tf.reshape(embedding_representation_norms, (-1, 1))
         )
 
         normalized_validation_representations = tf.nn.embedding_lookup(
-            normalized_embedding_matrix, validation_words
+            normalized_representations, validation_words
         )
 
         self.similarity_scores_ = tf.matmul(
             normalized_validation_representations,
-            tf.transpose(normalized_embedding_matrix)
+            tf.transpose(normalized_representations)
         )
 
         return self.similarity_scores_
@@ -86,6 +87,6 @@ class Validator:
               f"Batch: {bi.batch_idx:04d} / {ri.batches_per_epoch:04d} | "
               f"Validation!")
 
-        for (word, similar_words) in results:
+        for (word, similar_words) in results.items():
             similar_words_str = ", ".join(similar_words)
             print(f">> {word}: {similar_words_str}")
