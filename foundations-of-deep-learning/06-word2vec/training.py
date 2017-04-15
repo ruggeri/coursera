@@ -10,11 +10,13 @@ RunInfo = namedtuple("RunInfo", [
     "graph",
     "saver",
     "batcher",
+    "validator"
     "batch_size",
     "window_size",
     "batches_per_epoch",
     "batches_per_logging",
     "batches_per_save",
+    "batches_per_validation",
 ])
 
 BatchInfo = namedtuple("BatchInfo", [
@@ -68,7 +70,7 @@ def run_epoch(run_info, epoch_idx):
     )
 
     cumulative_loss, start_time = 0, time.time()
-    for batch_idx, (inputs, labels) in enumerate(batches):
+    for batch_idx, (inputs, labels) in enumerate(batches, 1):
         batch_info = BatchInfo(
             epoch_idx = epoch_idx,
             batch_idx = batch_idx,
@@ -78,22 +80,24 @@ def run_epoch(run_info, epoch_idx):
 
         cumulative_loss += run_batch(run_info, batch_info)
 
-        should_log = (
-            ((batch_idx + 1) % run_info.batches_per_logging) == 0
-        )
+        should_log = (batch_idx % run_info.batches_per_logging) == 0
         if should_log:
             log_batches(
                 run_info, batch_info, cumulative_loss, start_time
             )
 
-        should_save = (
-            ((batch_idx + 1) % run_info.batches_per_save) == 0
-        )
+        should_save = (batch_idx % run_info.batches_per_save) == 0
         if should_save:
             save(run_info, batch_info)
+        should_validate = (
+            (batch_idx % run_info.batches_per_validation) == 0
+        )
+        if should_validate:
+            run_info.validator.run_and_log(run_info, batch_info)
 
         if should_log:
-            # Doing this at the very end to not include the saving time.
+            # Doing this at the very end to not include the saving or
+            # validation time.
             cumulative_loss, start_time = 0, time.time()
 
 def run(session):
@@ -104,6 +108,10 @@ def run(session):
         num_embedding_units = config.NUM_EMBEDDING_UNITS,
         num_negative_samples = config.NUM_NEGATIVE_SAMPLES,
     )
+    validator = validator.Validator(
+        batcher.vocab_size(),
+        graph.embedding_matrix
+    )
 
     session.run(tf.global_variables_initializer())
 
@@ -112,6 +120,7 @@ def run(session):
         graph = graph,
         saver = tf.train.Saver(),
         batcher = batcher,
+        validator = validator,
         batch_size = config.BATCH_SIZE,
         window_size = config.WINDOW_SIZE,
         batches_per_epoch = num_batches,
@@ -120,7 +129,10 @@ def run(session):
         ),
         batches_per_save = int(
             num_batches * config.SAVING_FREQUENCY
-        )
+        ),
+        batches_per_validation = int(
+            num_batches * config.VALIDATION_FREQUENCY
+        ),
     )
 
     for epoch_idx in range(1, config.NUM_EPOCHS + 1):

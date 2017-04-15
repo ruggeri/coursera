@@ -4,6 +4,7 @@ import tensorflow as tf
 Graph = namedtuple("Graph", [
     "inputs",
     "labels",
+    "embedding_matrix",
     "cost",
     "optimizer"
 ])
@@ -55,6 +56,7 @@ def build_graph(vocab_size, num_embedding_units, num_negative_samples):
     return Graph(
         inputs = inputs,
         labels = labels,
+        embedding_matrix = embedding_matrix,
         cost = cost,
         optimizer = optimizer
     )
