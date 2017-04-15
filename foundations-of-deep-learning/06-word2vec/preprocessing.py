@@ -76,8 +76,9 @@ def make_training_batches(words, batch_size, window_size):
         yield x, y
 
 class Batcher:
-    def __init__(self, subsample_threshold):
+    def __init__(self, subsample_threshold, test_mode = False):
         self.subsample_treshold = subsample_threshold
+        self.test_mode = test_mode
 
         self.training_text_ = None
         self.training_words_ = None
@@ -99,6 +100,16 @@ class Batcher:
             self.training_words_ = replace_punctuation(
                 self.training_text()
             )
+
+            # Downsample words for faster testing iteration
+            if self.test_mode:
+                self.training_words_ = list(
+                    filter(
+                        lambda _: random.random() > 0.95,
+                        self.training_words_
+                    )
+                )
+
             self.training_words_ = subsample(
                 self.training_words_,
                 self.subsample_treshold

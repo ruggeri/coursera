@@ -102,7 +102,9 @@ def run_epoch(run_info, epoch_idx):
             cumulative_loss, start_time = 0, time.time()
 
 def run(session):
-    batcher = preprocessing.Batcher(config.SUBSAMPLE_THRESHOLD)
+    batcher = preprocessing.Batcher(
+        config.SUBSAMPLE_THRESHOLD, config.TEST_MODE
+    )
     num_batches = batcher.num_batches(config.BATCH_SIZE)
     graph = graph_fns.build_graph(
         vocab_size = batcher.vocab_size(),
