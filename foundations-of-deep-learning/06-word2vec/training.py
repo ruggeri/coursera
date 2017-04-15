@@ -4,13 +4,14 @@ import graph as graph_fns
 import preprocessing
 import tensorflow as tf
 import time
+import validator
 
 RunInfo = namedtuple("RunInfo", [
     "session",
     "graph",
     "saver",
     "batcher",
-    "validator"
+    "validator",
     "batch_size",
     "window_size",
     "batches_per_epoch",
@@ -108,10 +109,6 @@ def run(session):
         num_embedding_units = config.NUM_EMBEDDING_UNITS,
         num_negative_samples = config.NUM_NEGATIVE_SAMPLES,
     )
-    validator = validator.Validator(
-        batcher.vocab_size(),
-        graph.embedding_matrix
-    )
 
     session.run(tf.global_variables_initializer())
 
@@ -120,7 +117,10 @@ def run(session):
         graph = graph,
         saver = tf.train.Saver(),
         batcher = batcher,
-        validator = validator,
+        validator = validator.Validator(
+            batcher.vocab_size(),
+            graph.embedding_matrix
+        ),
         batch_size = config.BATCH_SIZE,
         window_size = config.WINDOW_SIZE,
         batches_per_epoch = num_batches,
