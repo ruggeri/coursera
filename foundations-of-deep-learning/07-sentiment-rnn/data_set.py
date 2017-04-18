@@ -132,7 +132,7 @@ class DataSet:
             return self.features_
         self.features_ = np.array(
             list(map(self.featurize_review, self.reviews_ints())),
-            dtype=np.int32
+            dtype = np.int32
         )
         return self.features_
 

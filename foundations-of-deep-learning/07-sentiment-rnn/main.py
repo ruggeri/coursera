@@ -33,7 +33,7 @@ def run_batch(run_info, batch_info):
     ], feed_dict = {
         ri.graph.inputs: batch_info.inputs,
         ri.graph.labels: batch_info.labels,
-        ri.graph.keep_prob: 0.5,
+        ri.graph.keep_prob: config.KEEP_PROB,
         ri.graph.initial_cell_states: initial_cell_states
     })
     ri.summary_file_writer.add_summary(
@@ -95,6 +95,7 @@ def run(session):
 
     run_info.summary_file_writer.add_graph(session.graph)
 
+    # Just some basic sanity check information.
     print(f"# Training xs: {len(ds.dataset('train')[0])}")
     print(f"# Training ys: {len(ds.dataset('train')[1])}")
     print(f"Vocab size: {ds.vocab_size()}")

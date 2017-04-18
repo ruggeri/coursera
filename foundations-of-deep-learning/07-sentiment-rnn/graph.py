@@ -20,6 +20,7 @@ def build_graph(vocab_size):
     tf.summary.histogram("labels", labels)
     keep_prob = tf.placeholder(tf.float32)
 
+    # Perform embedding.
     embedding_matrix = tf.Variable(
         tf.truncated_normal([vocab_size, config.EMBEDDING_DIMS])
     )
@@ -27,6 +28,7 @@ def build_graph(vocab_size):
     embedded_inputs = tf.nn.embedding_lookup(embedding_matrix, inputs)
     tf.summary.histogram("embedded_inputs", embedded_inputs)
 
+    # Setup LSTM.
     lstm_cell = tf.contrib.rnn.BasicLSTMCell(config.LSTM_SIZE)
     drop_cell = tf.contrib.rnn.DropoutWrapper(
         lstm_cell, output_keep_prob = keep_prob
@@ -38,6 +40,7 @@ def build_graph(vocab_size):
         config.BATCH_SIZE, tf.float32
     )
 
+    # Produce LSTM outputs.
     outputs, _ = tf.nn.dynamic_rnn(
         multi_cell,
         embedded_inputs,
@@ -45,6 +48,7 @@ def build_graph(vocab_size):
     )
     tf.summary.histogram("outputs", outputs[:, -1])
 
+    # Last LSTM output goes through a FC layered layer with sigmoid.
     logits = tf.contrib.layers.fully_connected(
         outputs[:, -1], 1, activation_fn = None
     )
@@ -54,22 +58,25 @@ def build_graph(vocab_size):
         logits
     )
     tf.summary.scalar("avg_cost", avg_cost)
+
+    # Calculate the prediction accuracy.
     estimated_probabilities = tf.sigmoid(logits)
     tf.summary.histogram(
-        "estimated_probabilities",
-        estimated_probabilities
+        "estimated_probabilities", estimated_probabilities
     )
-
     max_prob_estimates = tf.cast(
         tf.round(estimated_probabilities), tf.int32
     )
     tf.summary.histogram("max_prob_estimates", max_prob_estimates)
+    # Notice that we must reshape labels because otherwise tf.equal
+    # does some stupid broadcasting thing.
     accuracy = tf.reduce_mean(tf.cast(
         tf.equal(max_prob_estimates, tf.reshape(labels, (-1, 1))),
         tf.float32)
     )
     tf.summary.scalar("accuracy", accuracy)
 
+    # Setup the optimizer.
     optimizer = tf.train.AdamOptimizer(
         config.LEARNING_RATE
     ).minimize(avg_cost)
