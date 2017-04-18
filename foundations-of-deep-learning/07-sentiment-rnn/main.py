@@ -16,6 +16,7 @@ RunInfo = namedtuple("RunInfo", [
     "graph",
     "data_set",
     "saver",
+    "summary_file_writer",
 ])
 
 def run_batch(run_info, batch_info):
@@ -24,14 +25,20 @@ def run_batch(run_info, batch_info):
         ri.graph.initial_cell_states
     )
 
-    avg_cost, accuracy, _ = ri.session.run([
-        ri.graph.avg_cost, ri.graph.accuracy, ri.graph.optimizer
+    avg_cost, accuracy, summaries, _ = ri.session.run([
+        ri.graph.avg_cost,
+        ri.graph.accuracy,
+        ri.graph.summaries,
+        ri.graph.optimizer,
     ], feed_dict = {
         ri.graph.inputs: batch_info.inputs,
         ri.graph.labels: batch_info.labels,
         ri.graph.keep_prob: 0.5,
         ri.graph.initial_cell_states: initial_cell_states
     })
+    ri.summary_file_writer.add_summary(
+        summaries, global_step = batch_info.batch_idx
+    )
 
     print(f"Epoch: {batch_info.epoch_idx}/{config.NUM_EPOCHS}",
           f"Batch: {batch_info.batch_idx}/{batch_info.num_batches}",
@@ -82,8 +89,11 @@ def run(session):
         session = session,
         graph = graph.build_graph(ds.vocab_size()),
         data_set = ds,
-        saver = tf.train.Saver()
+        saver = tf.train.Saver(),
+        summary_file_writer = tf.summary.FileWriter(config.TBOARD_NAME),
     )
+
+    run_info.summary_file_writer.add_graph(session.graph)
 
     print(f"# Training xs: {len(ds.dataset('train')[0])}")
     print(f"# Training ys: {len(ds.dataset('train')[1])}")

@@ -8,3 +8,4 @@ LSTM_SIZE = 256
 NUM_EPOCHS = 1
 SEQN_LEN = 200
 SPLIT_FRAC = (0.8, 0.1, 0.1)
+TBOARD_NAME = "logs/default"
