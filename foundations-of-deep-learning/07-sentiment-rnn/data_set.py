@@ -120,6 +120,8 @@ class DataSet:
         self.labels_ = [
             1 if label == "positive" else 0 for label in labels_text
         ]
+        self.labels_ = np.array(self.labels_)
+
         return self.labels_
 
     def label_counts(self):
@@ -136,7 +138,7 @@ class DataSet:
 
     def featurize_review(self, review):
         if len(review) >= config.SEQN_LEN:
-            return review[:config.SEQN_LEN]
+            return review[len(review) - config.SEQN_LEN:]
         num_zeros = config.SEQN_LEN - len(review)
         featurized_review = np.zeros(config.SEQN_LEN)
         featurized_review[num_zeros:] = review
