@@ -3,7 +3,7 @@ import tensorflow as tf
 
 VGG_BGR_MEANS = [103.939, 116.779, 123.68]
 
-class VGG:
+class VGG16Model:
     def __init__(self, npy_file_path):
         # A dictionary was saved as an ndarray scalar of type
         # object. That way they could save it using the npy format.
