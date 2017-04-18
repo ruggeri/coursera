@@ -50,17 +50,23 @@ def build_graph(vocab_size):
     )
     tf.summary.histogram("logits", logits)
     avg_cost = tf.losses.sigmoid_cross_entropy(
-        tf.reshape(labels, (-1, 1)), logits
+        tf.reshape(labels, (-1, 1)),
+        logits
     )
     tf.summary.scalar("avg_cost", avg_cost)
     estimated_probabilities = tf.sigmoid(logits)
-    tf.summary.histogram("estimated_probabilities", estimated_probabilities)
+    tf.summary.histogram(
+        "estimated_probabilities",
+        estimated_probabilities
+    )
+
     max_prob_estimates = tf.cast(
         tf.round(estimated_probabilities), tf.int32
     )
     tf.summary.histogram("max_prob_estimates", max_prob_estimates)
-    accuracy = tf.reduce_mean(
-        tf.cast(tf.equal(max_prob_estimates, labels), tf.float32)
+    accuracy = tf.reduce_mean(tf.cast(
+        tf.equal(max_prob_estimates, tf.reshape(labels, (-1, 1))),
+        tf.float32)
     )
     tf.summary.scalar("accuracy", accuracy)
 
