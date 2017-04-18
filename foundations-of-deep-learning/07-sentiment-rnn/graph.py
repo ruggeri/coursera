@@ -27,7 +27,9 @@ def build_graph(vocab_size):
     drop_cell = tf.contrib.rnn.DropoutWrapper(
         lstm_cell, output_keep_prob = keep_prob
     )
-    multi_cell = tf.contrib.rnn.MultiRNNCell([drop_cell] * config.LSTM_LAYERS)
+    multi_cell = tf.contrib.rnn.MultiRNNCell(
+        [drop_cell] * config.LSTM_LAYERS
+    )
     initial_cell_states = multi_cell.zero_state(
         config.BATCH_SIZE, tf.float32
     )

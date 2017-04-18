@@ -48,16 +48,12 @@ def run_validation(run_info, batch_info):
     num_batches = ri.data_set.num_batches(validation_x, validation_y)
     batches = run_info.data_set.get_batches(validation_x, validation_y)
     for inputs, labels in batches:
-        feed = {inputs_: x,
-                labels_: y,
-                keep_prob: 1,
-                initial_state: val_state}
-        batch_accuracy = sess.run(ri.accuracy, feed_dict = {
+        batch_accuracy = ri.session.run(ri.graph.accuracy, feed_dict = {
             ri.graph.inputs: inputs,
             ri.graph.labels: labels,
             ri.graph.keep_prob: 1.0,
         })
-        validation_accuracy += batch_acc
+        validation_accuracy += batch_accuracy
 
     validation_accuracy /= num_batches
     print(f"Val acc: {validation_accuracy:.3f}")
@@ -78,7 +74,7 @@ def run_epoch(run_info, epoch_idx):
         run_batch(run_info, batch_info)
 
         if batch_idx % config.BATCHES_PER_VALIDATION == 0:
-            run_validation()
+            run_validation(run_info, batch_info)
 
 def run(session):
     ds = data_set.DataSet()
