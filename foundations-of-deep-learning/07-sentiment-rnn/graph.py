@@ -40,17 +40,18 @@ def build_graph(vocab_size):
         initial_state = initial_cell_states
     )
 
-    predictions = tf.contrib.layers.fully_connected(
-        outputs[:, -1], 1, activation_fn = tf.sigmoid
+    logits = tf.contrib.layers.fully_connected(
+        outputs[:, -1], 1, activation_fn = None
     )
-    avg_cost = tf.losses.mean_squared_error(
-        tf.reshape(labels, (-1, 1)), predictions
+    avg_cost = tf.losses.sigmoid_cross_entropy(
+        tf.reshape(labels, (-1, 1)), logits
     )
-    prediction_is_correct = tf.equal(
-        tf.cast(tf.round(predictions), tf.int32), labels
+    estimated_probabilities = tf.sigmoid(logits)
+    max_prob_estimates = tf.cast(
+        tf.round(estimated_probabilities), tf.int32
     )
     accuracy = tf.reduce_mean(
-        tf.cast(prediction_is_correct, tf.float32)
+        tf.cast(tf.equal(max_prob_estimates, labels), tf.float32)
     )
 
     optimizer = tf.train.AdamOptimizer(

@@ -85,7 +85,10 @@ def run(session):
         saver = tf.train.Saver()
     )
 
-    print(f"Label counts: {run_info.data_set.label_counts()}")
+    print(f"# Training xs: {len(ds.dataset('train')[0])}")
+    print(f"# Training ys: {len(ds.dataset('train')[1])}")
+    print(f"Vocab size: {ds.vocab_size()}")
+    print(f"Label counts: {ds.label_counts()}")
 
     session.run(tf.global_variables_initializer())
     for epoch_idx in range(config.NUM_EPOCHS):
