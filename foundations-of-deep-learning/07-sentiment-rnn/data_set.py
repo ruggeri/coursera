@@ -39,17 +39,16 @@ class DataSet:
         return review_words
 
     def review_words_to_review_ints(self, review_words):
-        words_to_ints = self.words_to_ints()
-        review_ints = list(map(
-            lambda word: words_to_ints[word], review_words
-        ))
+        review_ints = list(map(self.word_to_int, review_words))
         return np.array(review_ints)
+
+    def review_ints_to_review_words(self, review_ints):
+        return list(map(self.int_to_word, review_ints))
 
     def reviews_ints(self):
         if self.reviews_ints_ is not None:
             return self.reviews_ints_
 
-        words_to_ints = self.words_to_ints()
         self.reviews_ints_ = list(map(
             self.review_words_to_review_ints,
             self.reviews_words()
@@ -99,10 +98,16 @@ class DataSet:
             self.build_words_to_ints_maps()
         return self.words_to_ints_
 
+    def word_to_int(self, word):
+        return self.words_to_ints()[word]
+
     def ints_to_words(self):
         if self.ints_to_words_ is None:
             self.build_words_to_ints_maps()
         return self.ints_to_words_
+
+    def int_to_word(self, word_int):
+        return self.ints_to_words()[word_int]
 
     def vocab_size(self):
         return len(self.words_to_ints())
