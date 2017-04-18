@@ -1,7 +1,11 @@
+from collections import namedtuple
 import config
+import numpy as np
 import os
 import pickle
 import skimage
+import skimage.io
+import skimage.transform
 import tensorflow as tf
 import vgg
 
@@ -12,7 +16,7 @@ RunInfo = namedtuple("RunInfo", [
 ])
 
 def load_image(filename):
-    img = skimage.io.imread(filename)
+    img = skimage.io.imread(filename) / 255.0
     assert (0 <= img).all() and (img <= 1.0).all()
 
     # Crop to center
@@ -22,7 +26,7 @@ def load_image(filename):
     img = img[top_y:(top_y + short_edge), left_x:(left_x + short_edge)]
 
     # Now resize to proper dimensions.
-    img = skimage.transform.resize(img, VGG_IMG_DIMS[0:2])
+    img = skimage.transform.resize(img, config.VGG_IMG_DIMS[0:2])
     return img
 
 def build_vgg_model():
@@ -40,12 +44,14 @@ def flower_class_names():
     subdirs = os.listdir(flower_data_dir)
     flower_class_names = [
         dirname
-        for dirname in subdirs if os.isdir(flower_data_dir + dirname)
+        for dirname in subdirs if os.path.isdir(flower_data_dir + dirname)
     ]
     return flower_class_names
 
 def flower_batches(flower_class_name):
-    flower_files = os.listdir(FLOWER_DATA_DIR + flower_class_name)
+    flower_files = os.listdir(
+        config.FLOWER_DATA_DIR + flower_class_name
+    )
     num_flowers = len(flower_files)
 
     flower_start_idxs = range(
@@ -67,7 +73,10 @@ def transform_flower_batch(
 
     batch = []
     for flower_file in flower_files:
-        img = load_image(os.path.join(class_path, flower_file))
+        fname = os.path.join(
+            config.FLOWER_DATA_DIR, flower_class_name, flower_file
+        )
+        img = load_image(fname)
         batch.append(img.reshape(config.VGG_IMG_DIMS))
 
     imgs = np.array(batch)
@@ -83,7 +92,7 @@ def transform_flower_class(
     codes = []
     for flower_batch_files in flower_batches(flower_class_name):
         batch_codes = transform_flower_batch(
-            run_info, flower_class_name, flower_batch
+            run_info, flower_class_name, flower_batch_files
         )
         codes.append(batch_codes)
 
@@ -98,8 +107,11 @@ def transform_flower_classes(run_info):
         label_idx = len(label_idx_to_flower_class_name)
         label_idx_to_flower_class_name[flower_class_name] = label_idx
 
-        class_codes = transform_flower_class(flower_class_name)
-        class_labels = np.ones(class_codes.shape[0]) * label_idx
+        class_codes = transform_flower_class(
+            run_info, flower_class_name
+        )
+        class_labels = np.zeros(class_codes.shape[0], dtype=np.int32)
+        class_labels.fill(label_idx)
 
         codes.append(class_codes)
         labels.append(class_labels)

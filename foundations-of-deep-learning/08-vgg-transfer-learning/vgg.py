@@ -16,7 +16,7 @@ class VGG16Model:
         # Splits out input into layers so we can mean normalize and
         # put into BGR format.
         red_layer, green_layer, blue_layer = (
-            tf.split(self.rgb_layers, axis=3)
+            tf.split(self.rgb_layers, 3, axis = 3)
         )
 
         bgr_layers_list = [
@@ -66,7 +66,7 @@ class VGG16Model:
 
         # Final layer of 1k units. fc8 is the logits.
         self.fc8 = self.fully_connected_layer("fc8", self.fc7)
-        self.probabilities = tf.nn.softmax(fc8)
+        self.probabilities = tf.nn.softmax(self.fc8)
 
     def conv_layer(self, layer_name, layer_input):
         # All convolutions are 3x3. Step size of one in each
@@ -81,12 +81,12 @@ class VGG16Model:
             padding = "SAME"
         )
 
-        conv_layer = tf.add_bias(conv_layer, filter_biases)
+        conv_layer = tf.nn.bias_add(conv_layer, filter_biases)
         conv_layer = tf.nn.relu(conv_layer)
 
         return conv_layer
 
-    def fc_layer(self, layer_name, layer_input):
+    def fully_connected_layer(self, layer_name, layer_input):
         weights = self.get_weights(layer_name)
         biases = self.get_biases(layer_name)
 
@@ -109,8 +109,8 @@ class VGG16Model:
             padding = "SAME"
         )
 
-    def get_weights(name):
+    def get_weights(self, name):
         return tf.constant(self.parameters[name][0])
 
-    def get_biases(name):
+    def get_biases(self, name):
         return tf.constant(self.parameters[name][1])
