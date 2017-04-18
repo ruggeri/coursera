@@ -1,3 +1,8 @@
+from collections import Counter
+import config
+import numpy as np
+import string
+
 class DataSet:
     def __init__(self):
         self.reviews_words_ = None
@@ -15,7 +20,7 @@ class DataSet:
         if self.reviews_words_ is not None:
             return self.reviews_words_
 
-        with open('./reviews.txt', 'r') as f:
+        with open('./datasets/reviews.txt', 'r') as f:
             all_reviews_string = f.read()
         reviews_strings = all_reviews_string.split("\n")
 
@@ -105,7 +110,7 @@ class DataSet:
     def labels(self):
         if self.labels_ is not None:
             return self.labels_
-        with open('./labels.txt', 'r') as f:
+        with open('./datasets/labels.txt', 'r') as f:
             labels_text = f.read().split("\n")
         self.labels_ = [
             1 if label == "positive" else 0 for label in labels_text
@@ -125,10 +130,10 @@ class DataSet:
         return self.features_
 
     def featurize_review(self, review):
-        if len(review) >= SEQN_LEN:
-            return review[:SEQN_LEN]
-        num_zeros = SEQN_LEN - len(review)
-        featurized_review = np.zeros(SEQN_LEN)
+        if len(review) >= config.SEQN_LEN:
+            return review[:config.SEQN_LEN]
+        num_zeros = config.SEQN_LEN - len(review)
+        featurized_review = np.zeros(config.SEQN_LEN)
         featurized_review[num_zeros:] = review
         return featurized_review
 
@@ -139,12 +144,12 @@ class DataSet:
         features = self.features()
         labels = self.labels()
 
-        splits = [int(features.shape[0] * SPLIT_FRAC[0])]
+        splits = [int(features.shape[0] * config.SPLIT_FRAC[0])]
         splits.append(
-            splits[-1] + int(features.shape[0] * SPLIT_FRAC[1])
+            splits[-1] + int(features.shape[0] * config.SPLIT_FRAC[1])
         )
         splits.append(
-            splits[-1] + int(features.shape[0] * SPLIT_FRAC[2])
+            splits[-1] + int(features.shape[0] * config.SPLIT_FRAC[2])
         )
 
         train_x = features[:splits[0], :]
@@ -167,15 +172,15 @@ class DataSet:
     def get_batches(self, x, y):
         num_batches = self.num_batches(x, y)
 
-        x = x[:(num_batches * BATCH_SIZE)]
-        y = y[:(num_batches * BATCH_SIZE)]
+        x = x[:(num_batches * config.BATCH_SIZE)]
+        y = y[:(num_batches * config.BATCH_SIZE)]
 
-        for batch_start_idx in range(0, len(x), BATCH_SIZE):
-            batch_end_idx = batch_start_idx + BATCH_SIZE
+        for batch_start_idx in range(0, len(x), config.BATCH_SIZE):
+            batch_end_idx = batch_start_idx + config.BATCH_SIZE
             yield (
                 x[batch_start_idx:batch_end_idx],
                 y[batch_start_idx:batch_end_idx]
             )
 
     def num_batches(self, x, y):
-        return len(x) // BATCH_SIZE
+        return len(x) // config.BATCH_SIZE

@@ -1,6 +1,7 @@
-from collections import Counter, namedtuple
-import numpy as np
-import string
+from collections import namedtuple
+import config
+import data_set
+import graph
 import tensorflow as tf
 
 BatchInfo = namedtuple("BatchInfo", [
@@ -32,7 +33,7 @@ def run_batch(run_info, batch_info):
         ri.graph.initial_cell_states: initial_cell_states
     })
 
-    print(f"Epoch: {batch_info.epoch_idx}/{NUM_EPOCHS}",
+    print(f"Epoch: {batch_info.epoch_idx}/{config.NUM_EPOCHS}",
           f"Batch: {batch_info.batch_idx}/{batch_info.num_batches}",
           f"Train loss: {avg_cost:.3f}",
           f"accuracy: {accuracy:.3f}")
@@ -76,24 +77,24 @@ def run_epoch(run_info, epoch_idx):
 
         run_batch(run_info, batch_info)
 
-        if batch_idx % BATCHES_PER_VALIDATION == 0:
+        if batch_idx % config.BATCHES_PER_VALIDATION == 0:
             run_validation()
 
 def run(session):
-    data_set = DataSet()
+    ds = data_set.DataSet()
     run_info = RunInfo(
         session = session,
-        graph = build_graph(data_set.vocab_size()),
-        data_set = data_set,
+        graph = graph.build_graph(ds.vocab_size()),
+        data_set = ds,
         saver = tf.train.Saver()
     )
 
     print(f"Label counts: {run_info.data_set.label_counts()}")
 
     session.run(tf.global_variables_initializer())
-    for epoch_idx in range(NUM_EPOCHS):
+    for epoch_idx in range(config.NUM_EPOCHS):
         run_epoch(run_info, epoch_idx)
-        run_info.saver.save(session, CHECKPOINT_NAME)
+        run_info.saver.save(session, config.CHECKPOINT_NAME)
 
 with tf.Session() as session:
     run(session)

@@ -1,3 +1,7 @@
+from collections import namedtuple
+import config
+import tensorflow as tf
+
 Graph = namedtuple("Graph", [
     "inputs",
     "labels",
@@ -10,21 +14,23 @@ Graph = namedtuple("Graph", [
 ])
 
 def build_graph(vocab_size):
-    inputs = tf.placeholder(tf.int32, [None, SEQN_LEN])
+    inputs = tf.placeholder(tf.int32, [None, config.SEQN_LEN])
     labels = tf.placeholder(tf.int32, [None])
     keep_prob = tf.placeholder(tf.float32)
 
     embedding_matrix = tf.Variable(
-        tf.truncated_normal([vocab_size, EMBEDDING_DIMS])
+        tf.truncated_normal([vocab_size, config.EMBEDDING_DIMS])
     )
     embedded_inputs = tf.nn.embedding_lookup(embedding_matrix, inputs)
 
-    lstm_cell = tf.contrib.rnn.BasicLSTMCell(LSTM_SIZE)
+    lstm_cell = tf.contrib.rnn.BasicLSTMCell(config.LSTM_SIZE)
     drop_cell = tf.contrib.rnn.DropoutWrapper(
         lstm_cell, output_keep_prob = keep_prob
     )
-    multi_cell = tf.contrib.rnn.MultiRNNCell([drop_cell] * LSTM_LAYERS)
-    initial_cell_states = multi_cell.zero_state(BATCH_SIZE, tf.float32)
+    multi_cell = tf.contrib.rnn.MultiRNNCell([drop_cell] * config.LSTM_LAYERS)
+    initial_cell_states = multi_cell.zero_state(
+        config.BATCH_SIZE, tf.float32
+    )
 
     outputs, _ = tf.nn.dynamic_rnn(
         multi_cell,
@@ -45,7 +51,9 @@ def build_graph(vocab_size):
         tf.cast(prediction_is_correct, tf.float32)
     )
 
-    optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(avg_cost)
+    optimizer = tf.train.AdamOptimizer(
+        config.LEARNING_RATE
+    ).minimize(avg_cost)
 
     return Graph(
         inputs = inputs,
