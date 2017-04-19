@@ -1,3 +1,5 @@
+BATCHES_PER_VALIDATION = 20
+CHECKPOINT_NAME = "checkpoints/default"
 CODES_FILENAME = "./npy/codes.npy"
 FLOWER_DATA_DIR = "./flower_photos/"
 KEEP_PROBABILITY = 0.75

@@ -50,7 +50,7 @@ def run_validation(run_info, batch_info):
         batch_accuracy = ri.session.run(ri.graph.accuracy, feed_dict = {
             ri.graph.inputs: inputs,
             ri.graph.labels: labels,
-            ri.graph.keep_prob: 1.0,
+            ri.graph.keep_probability: 1.0,
         })
         validation_accuracy += batch_accuracy
 

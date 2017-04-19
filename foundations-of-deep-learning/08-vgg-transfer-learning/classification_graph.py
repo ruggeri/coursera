@@ -53,6 +53,7 @@ def build_graph(num_code_units, num_labels):
     accuracy = tf.reduce_mean(
         tf.cast(tf.equal(predictions, tf.argmax(labels, 1)), tf.float32)
     )
+    tf.summary.scalar("accuracy", accuracy)
 
     summaries = tf.summary.merge_all()
 
