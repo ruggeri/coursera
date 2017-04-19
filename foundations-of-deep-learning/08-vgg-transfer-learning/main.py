@@ -1,5 +1,6 @@
 from collections import namedtuple
 import config
+import dataset
 import classification_graph
 import tensorflow as tf
 
@@ -13,7 +14,9 @@ BatchInfo = namedtuple("BatchInfo", [
 RunInfo = namedtuple("RunInfo", [
     "session",
     "graph",
+    "dataset",
     "saver",
+    "summary_file_writer",
 ])
 
 def run_batch(run_info, batch_info):
@@ -23,11 +26,11 @@ def run_batch(run_info, batch_info):
         ri.graph.avg_cost,
         ri.graph.accuracy,
         ri.graph.summaries,
-        ri.graph.optimizer,
+        ri.graph.optimization_op,
     ], feed_dict = {
         ri.graph.inputs: batch_info.inputs,
         ri.graph.labels: batch_info.labels,
-        ri.graph.keep_probability: config.KEEP_PROB,
+        ri.graph.keep_probability: config.KEEP_PROBABILITY,
     })
     ri.summary_file_writer.add_summary(
         summaries, global_step = batch_info.batch_idx
@@ -55,7 +58,7 @@ def run_validation(run_info, batch_info):
     print(f"Val acc: {validation_accuracy:.3f}")
 
 def run_epoch(run_info, epoch_idx):
-    (num_batches, batches) = run_info.dataset.get_batches("train")
+    (num_batches, batches) = run_info.dataset.get_batches("training")
     for batch_idx, (inputs, labels) in enumerate(batches, 1):
         batch_info = BatchInfo(
             epoch_idx = epoch_idx,
@@ -71,13 +74,13 @@ def run_epoch(run_info, epoch_idx):
             run_validation(run_info, batch_info)
 
 def run(session):
-    dataset = load_dataset()
+    ds = dataset.Dataset()
     run_info = RunInfo(
         session = session,
-        graph = graph.build_graph(
-            dataset.num_code_units(), dataset.num_labels()
+        graph = classification_graph.build_graph(
+            ds.num_code_units(), ds.num_labels()
         ),
-        dataset = dataset,
+        dataset = ds,
         saver = tf.train.Saver(),
         summary_file_writer = tf.summary.FileWriter(config.TBOARD_NAME),
     )

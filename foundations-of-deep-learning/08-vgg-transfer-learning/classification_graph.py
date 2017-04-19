@@ -1,15 +1,8 @@
 from collections import namedtuple
+import config
 import math
 import numpy as np
 import tensorflow as tf
-
-codes = np.load(config.CODES_FILENAME)
-labels = np.load(config.LABELS_FILENAME)
-with open(config.LABELS_MAP_FILENAME, "rb") as f:
-    labels_map = pickle.load(f)
-one_hot_labels = np.zeros((len(labels), len(labels_map)))
-for label_idx, label in enumerate(labels):
-    one_hot_labels[label_idx, label] = 1.0
 
 Graph = namedtuple("Graph", [
     "inputs",
@@ -34,7 +27,7 @@ def build_graph(num_code_units, num_labels):
     biases1 = tf.Variable(
         tf.zeros([config.NUM_HIDDEN_UNITS])
     )
-    fc1 = tf.nn.relu(tf.matmul(inputs, weights) + biases)
+    fc1 = tf.nn.relu(tf.matmul(inputs, weights1) + biases1)
     fc1 = tf.nn.dropout(fc1, keep_prob = keep_probability)
 
     weights2 = tf.Variable(
