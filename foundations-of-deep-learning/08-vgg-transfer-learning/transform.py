@@ -48,6 +48,13 @@ def flower_class_names():
     ]
     return flower_class_names
 
+def num_flowers(flower_class_name):
+    flower_files = os.listdir(
+        config.FLOWER_DATA_DIR + flower_class_name
+    )
+    num_flowers = len(flower_files)
+    return num_flowers
+
 def flower_batches(flower_class_name):
     flower_files = os.listdir(
         config.FLOWER_DATA_DIR + flower_class_name
@@ -91,8 +98,12 @@ def transform_flower_class(
         flower_class_name):
     codes = []
     batches = flower_batches(flower_class_name)
+    num_batches = (
+        num_flowers(flower_class_name) // config.TRANSFORM_BATCH_SIZE
+    )
     for idx, flower_batch_files in enumerate(batches):
-        print(f"Beginning batch {idx} of {flower_class_name}!")
+        print(f"Beginning batch {idx}/{num_batches} of "
+              f"{flower_class_name}!")
         batch_codes = transform_flower_batch(
             run_info, flower_class_name, flower_batch_files
         )
