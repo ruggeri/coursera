@@ -90,7 +90,9 @@ def transform_flower_class(
         run_info,
         flower_class_name):
     codes = []
-    for flower_batch_files in flower_batches(flower_class_name):
+    batches = flower_batches(flower_class_name)
+    for idx, flower_batch_files in enumerate(batches):
+        print(f"Beginning batch {idx} of {flower_class_name}!")
         batch_codes = transform_flower_batch(
             run_info, flower_class_name, flower_batch_files
         )
@@ -104,6 +106,7 @@ def transform_flower_classes(run_info):
     codes = []
     labels = []
     for flower_class_name in flower_class_names():
+        print(f"Beginning transformation of {flower_class_name} files!")
         label_idx = len(label_idx_to_flower_class_name)
         label_idx_to_flower_class_name[flower_class_name] = label_idx
 
