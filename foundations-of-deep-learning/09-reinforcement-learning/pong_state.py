@@ -24,15 +24,18 @@ class PongState:
     def nudge(self, player_num, action_num):
         ps2 = self.copy()
         if (player_num == PLAYER1) and (action_num == ACTION_UP):
-            ps2.paddle1_pos += NUDGE_SIZE
+            ps2.paddle1_pos -= PADDLE_SPEED
         elif (player_num == PLAYER1) and (action_num == ACTION_DOWN):
-            ps2.paddle1_pos -= NUDGE_SIZE
-        if (player_num == PLAYER2) and (action_num == ACTION_UP):
-            ps2.paddle2_pos += NUDGE_SIZE
+            ps2.paddle1_pos += PADDLE_SPEED
+        elif (player_num == PLAYER2) and (action_num == ACTION_UP):
+            ps2.paddle2_pos -= PADDLE_SPEED
         elif (player_num == PLAYER2) and (action_num == ACTION_DOWN):
-            ps2.paddle2_pos -= NUDGE_SIZE
+            ps2.paddle2_pos += PADDLE_SPEED
         else:
-            raise Exception("unknown player_num or action_num")
+            raise Exception(
+                f"unknown player_num {player_num} or "
+                f"action_num {action_num}"
+            )
 
         ps2.paddle1_pos = max(ps2.paddle1_pos, 0)
         ps2.paddle1_pos = min(ps2.paddle1_pos, 1.0)
@@ -43,13 +46,13 @@ class PongState:
 
     def bounce(self, direction):
         ps2 = self.copy()
-        if direction == X_DIR:
+        if direction == DIR_X:
             ps2.ball_vel[1] *= -1
-            ps2.ball_vel[0] += random.uniform(
+            ps2.ball_vel[0] += np.random.uniform(
                 -BOUNCE_JITTER,
                 +BOUNCE_JITTER
             )
-        elif direction == Y_DIR:
+        elif direction == DIR_Y:
             ps2.ball_vel[0] *= -1
         else:
             raise Exception("unknown direction")
@@ -63,7 +66,7 @@ class PongState:
 def new(training_mode = False):
     return PongState()
 
-def constrain_ball_vel(ball_vel):
+def constrain_ball_velocity(ball_vel):
     theta = np.arctan2(ball_vel[0], ball_vel[1])
 
     # Limit the angle from -pi/2 to pi/2
@@ -86,9 +89,9 @@ def constrain_ball_vel(ball_vel):
 
 def paddle_pos(state, player_num):
     if player_num == PLAYER1:
-        return self.paddle1_pos
+        return state.paddle1_pos
     elif player_num == PLAYER2:
-        return self.paddle2_pos
+        return state.paddle2_pos
     else:
         raise Exception("no such player_num")
 
@@ -115,23 +118,24 @@ def ball_touches_wall(state):
 
 def ball_touches_paddle(state, player_num):
     paddle_min, paddle_max = paddle_endpoints(state, player_num)
-    if ((state.ball_pos[0] < paddle_min)
-        or (state.ball_pos[0] > paddle_max):
+    if state.ball_pos[0] < paddle_min:
+        return False
+    elif paddle_max < state.ball_pos[0]:
         return False
 
     if player_num == PLAYER1:
-        x_min, x_max = 0, COLLISION_EPSILON
+        x_min, x_max = -np.inf, COLLISION_EPSILON
     elif player_num == PLAYER2:
-        x_min, x_max = 1 - COLLISION_EPSILON, 1.0
+        x_min, x_max = 1 - COLLISION_EPSILON, +np.inf
     else:
         raise Exception("unknown player_num")
 
     if (state.ball_pos[1] < x_min) or (x_max < state.ball_pos[1]):
         return False
 
-    if (player_num == PLAYER1) and (0.0 < state.ball_vel[0]):
+    if (player_num == PLAYER1) and (0.0 < state.ball_vel[1]):
         return False
-    if (player_num == PLAYER2) and (state.ball_vel[0] < 0.0):
+    if (player_num == PLAYER2) and (state.ball_vel[1] < 0.0):
         return False
 
     return True
@@ -139,15 +143,15 @@ def ball_touches_paddle(state, player_num):
 def play_default_move(state, player_num):
     paddle_pos_ = paddle_pos(state, player_num)
 
-    if state.ball_pos[0] < paddle_pos:
+    if state.ball_pos[0] < paddle_pos_:
         return state.nudge(player_num, ACTION_UP)
     else:
         return state.nudge(player_num, ACTION_DOWN)
 
 def did_score_point(state):
-    if self.ball_pos[1] < 0:
+    if state.ball_pos[1] < 0:
         return PLAYER2
-    elif self.ball_pos[1] > 1:
+    elif state.ball_pos[1] > 1:
         return PLAYER1
     else:
         return None
@@ -156,13 +160,13 @@ def evolve(state):
     state = state.move_ball()
 
     if ball_touches_paddle(state, PLAYER1):
-        state = bounce(state, DIR_X)
+        state = state.bounce(DIR_X)
 
     if ball_touches_paddle(state, PLAYER2):
-        state = bounce(state, DIR_X)
+        state = state.bounce(DIR_X)
 
     if ball_touches_wall(state):
-        state = bounce(state, DIR_Y)
+        state = state.bounce(DIR_Y)
 
     if did_score_point(state):
         state = PongState()
