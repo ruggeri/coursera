@@ -25,6 +25,10 @@ def model_state(game_state):
         game_state.ball_vel[1],
     ])
 
+def did_reset(prev_stats, next_stats):
+    return ((prev_stats.p1_points != next_stats.p1_points)
+            or (prev_stats.p2_points != next_stats.p2_points))
+
 def reward(prev_state, prev_stats, next_state, next_stats):
     if config.REWARD_TYPE == "BALL_FOLLOW_REWARD":
         r = ball_follow_reward(
@@ -47,14 +51,18 @@ def reward(prev_state, prev_stats, next_state, next_stats):
 
     scale_factor = config.REWARD_SCALING_FACTOR
     # Idea here is to integrate out to 1.0.
-    scale_factor *= 2 * (
-        config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
-        * (1 - next_state.ball_pos[1])
-    ) / config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
+    if config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE:
+        scale_factor *= 2 * (
+            config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
+            * (1 - next_state.ball_pos[1])
+        ) / config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
 
     return scale_factor * r
 
 def ball_follow_reward(prev_state, prev_stats, next_state, next_stats):
+    if did_reset(prev_stats, next_stats):
+        return 0.0
+
     prev_distance = pong_state.distance_to_ball(
         prev_state, pong_constants.PLAYER1
     )
@@ -67,6 +75,9 @@ def ball_follow_reward(prev_state, prev_stats, next_state, next_stats):
 
 def ideal_anticipation_reward(
         prev_state, prev_stats, next_state, next_stats):
+    if did_reset(prev_stats, next_stats):
+        return 0.0
+
     prev_ideal_distance = pong_state.ideal_distance(
         prev_state, pong_constants.PLAYER1
     )
