@@ -37,15 +37,25 @@ def evaluate_performance(
         return pong_stats.total_points(game.stats)
 
     while total_points(game) < config.NUM_POINTS_PER_EVALUATION:
+        prev_stats = game.stats
         prev_game_state = example.model_state(game.state)
         chosen_action_idx = choose_action(
             session, graph, prev_game_state
         )
         play_action_idx(game, chosen_action_idx)
+        next_stats = game.stats
 
         if callback:
             callback()
 
-        if total_points(game) % config.POINTS_PER_LOG == 0:
-            print("eval point #{total_points(game)}")
+        points_did_change = (
+            pong_stats.total_points(prev_stats)
+            != pong_stats.total_points(next_stats)
+        )
+        should_log = (
+            points_did_change
+            and (total_points(game) % config.POINTS_PER_LOG == 0)
+        )
+        if should_log:
+            print(f"eval point #{total_points(game)}")
             print(game.stats)

@@ -11,7 +11,8 @@ class PongGame:
         return pong_stats.score(self.stats)
 
     def evolve(self):
-        self.state = pong_state.evolve(self.state)
+        self.state, events = pong_state.evolve(self.state)
+        self.stats = pong_stats.add_events(self.stats, events)
 
     def play_default_move(self, player_num):
         self.state = pong_state.play_default_move(

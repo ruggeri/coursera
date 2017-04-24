@@ -1,4 +1,5 @@
 from pong_constants import *
+import pong_events
 
 class PongState:
     def __init__(self, training_mode = False):
@@ -148,30 +149,36 @@ def play_default_move(state, player_num):
     else:
         return state.nudge(player_num, ACTION_DOWN)
 
-def did_score_point(state):
-    if state.ball_pos[1] < 0:
-        return PLAYER2
-    elif state.ball_pos[1] > 1:
-        return PLAYER1
+def did_score_point(state, player_num):
+    if (player_num == PLAYER2) and (state.ball_pos[1] < 0):
+        return True
+    elif (player_num == PLAYER1) and (state.ball_pos[1] > 1):
+        return True
     else:
-        return None
+        return False
 
 def evolve(state):
+    events = []
     state = state.move_ball()
 
     if ball_touches_paddle(state, PLAYER1):
         state = state.bounce(DIR_X)
-
+        events.append(pong_events.P1_BOUNCE)
     if ball_touches_paddle(state, PLAYER2):
         state = state.bounce(DIR_X)
+        events.append(pong_events.P2_BOUNCE)
 
     if ball_touches_wall(state):
         state = state.bounce(DIR_Y)
 
-    if did_score_point(state):
+    if did_score_point(state, PLAYER1):
         state = PongState()
+        events.append(pong_events.P1_POINT_SCORED)
+    if did_score_point(state, PLAYER2):
+        state = PongState()
+        events.append(pong_events.P2_POINT_SCORED)
 
-    return state
+    return (state, events)
 
 def initial_conditions(training_mode):
     ball_pos = np.array([0.5, 0.5])
