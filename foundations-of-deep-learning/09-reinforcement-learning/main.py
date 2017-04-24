@@ -1,3 +1,4 @@
+import graph as g
 import tensorflow as tf
 import train
 
@@ -16,8 +17,8 @@ def maybe_restore(session, saver):
 
 if __name__ == "__main__":
     with tf.Session() as session:
-        saver = tf.train.Saver()
         graph = g.build_graph()
+        saver = tf.train.Saver()
 
         maybe_restore(session, saver)
         train.train(session, graph, saver)

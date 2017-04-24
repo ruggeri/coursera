@@ -1,12 +1,20 @@
+from collections import namedtuple
+import config
+import example
+import memory as m
+import numpy as np
+import play
+import pong
+
 RunInfo = namedtuple("RunInfo", [
     "session",
     "graph",
-    "saver",
     "memory",
 ])
 
 BatchInfo = namedtuple("BatchInfo", [
     "epoch_idx",
+    "batch_idx",
     "exploration_rate",
     "reward_decay"
 ])
@@ -21,7 +29,7 @@ def log_batch(batch_info, losses, game):
 
     print(f"Epoch {epoch_idx} | Batch {batch_idx} | "
           f"Avg Loss {avg_loss}")
-    print(game.stats())
+    print(game.stats)
 
 def train_batch(run_info, batch_info):
     session, graph, memory = (
@@ -63,22 +71,24 @@ def train_batch(run_info, batch_info):
 
     return avg_loss
 
-def train_epoch(run_info, batch_info):
+def train_epoch(run_info, epoch_idx):
     game = pong.PongGame(training_mode = True)
 
     losses = []
     batch_idxs = range(1, config.NUM_BATCHES_PER_EPOCH + 1)
     for batch_idx in batch_idxs:
-        generate_data(run_info, batch_info)
-        batch_loss = train_batch(run_info, batch_info)
+        bi = batch_info(epoch_idx, batch_idx)
+
+        example.generate_data(run_info, bi, game)
+        batch_loss = train_batch(run_info, bi)
+
         if batch_loss:
             losses.append(batch_loss)
-
         if batch_idx % config.BATCHES_PER_LOG == 0:
-            log_batch(batch_info, avg_loss, game)
+            log_batch(bi, losses, game)
             losses = []
 
-def batch_info(epoch_idx):
+def batch_info(epoch_idx, batch_idx):
     exploration_rate = config.EXPLORATION_START_RATE
     exploration_rate = exploration_rate ** (
         1 - config.EXPLORATION_DECAY_RATE
@@ -93,6 +103,7 @@ def batch_info(epoch_idx):
 
     return BatchInfo(
         epoch_idx = epoch_idx,
+        batch_idx = batch_idx,
         exploration_rate = exploration_rate,
         reward_decay = reward_decay
     )
@@ -105,11 +116,12 @@ def train(session, graph, saver):
     )
 
     for epoch_idx in range(1, config.NUM_EPOCHS + 1):
-        bi = batch_info(epoch_idx)
-        train_epoch(run_info, bi)
+        train_epoch(ri, epoch_idx)
 
         if epoch_idx % config.NUM_EPOCHS_PER_EVAL == 0:
-            play.evaluate_performance(session, graph)
+            play.evaluate_performance(
+                session, graph, training_mode = False
+            )
 
         print("Saving!")
         saver.save(session, config.CHECKPOINT_FILENAME)

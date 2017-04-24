@@ -8,7 +8,7 @@ PONG_STATS_FIELDS = [
     "p1_nudge_ups",
     "p1_nudge_downs",
     "p2_nudge_ups",
-    "p1_nudge_downs",
+    "p2_nudge_downs",
 ]
 
 PongStats = namedtuple("PongStats", PONG_STATS_FIELDS)

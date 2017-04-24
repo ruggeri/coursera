@@ -1,9 +1,10 @@
 import pong_state
+import pong_stats
 
 class PongGame:
     def __init__(self, training_mode):
         self.training_mode = training_mode
-        #self.stats = pong_stats.new()
+        self.stats = pong_stats.new()
         self.state = pong_state.new()
 
     def score(self):
