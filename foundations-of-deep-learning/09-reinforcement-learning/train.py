@@ -118,10 +118,9 @@ def train(session, graph, saver):
     for epoch_idx in range(1, config.NUM_EPOCHS + 1):
         train_epoch(ri, epoch_idx)
 
+        print("Saving!")
+        saver.save(session, config.CHECKPOINT_FILENAME)
         if epoch_idx % config.NUM_EPOCHS_PER_EVAL == 0:
             play.evaluate_performance(
                 session, graph, training_mode = False
             )
-
-        print("Saving!")
-        saver.save(session, config.CHECKPOINT_FILENAME)
