@@ -1,3 +1,4 @@
+import asyncio
 import config
 import example
 import numpy as np
@@ -28,7 +29,12 @@ def play_action_idx(game, chosen_action_idx):
     game.play_default_move(pong_constants.PLAYER2)
     game.evolve()
 
-def evaluate_performance(
+def evaluate_performance(session, graph, training_mode):
+    asyncio.wait(
+        async_evaluate_performance(session, graph, training_mode)
+    )
+
+async def async_evaluate_performance(
         session, graph, training_mode, callback = None):
 
     game = pong.PongGame(training_mode = training_mode)
@@ -46,7 +52,7 @@ def evaluate_performance(
         next_stats = game.stats
 
         if callback:
-            callback()
+            await callback(game)
 
         points_did_change = (
             pong_stats.total_points(prev_stats)

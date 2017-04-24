@@ -1,3 +1,4 @@
+import config
 import graph as g
 import tensorflow as tf
 import train

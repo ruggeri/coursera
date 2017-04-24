@@ -20,7 +20,7 @@ NUM_ACTIONS = 2 # Can move up or down.
 NUM_STATE_DIMENSIONS = 6 # 2x positions of paddle; pos and vel of ball
 
 # Exploration Params
-EXPLORATION_START_RATE = 0.50
+EXPLORATION_START_RATE = 0.01
 EXPLORATION_DECAY_RATE = 0.05
 EXPLORATION_RATE_MIN = 0.01
 REWARD_DECAY_START = 0.75
