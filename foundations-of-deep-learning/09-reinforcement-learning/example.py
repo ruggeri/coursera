@@ -46,7 +46,7 @@ def reward(prev_state, prev_stats, next_state, next_stats):
     next_ideal_distance = pong_state.ideal_distance(
         next_state, pong_constants.PLAYER1
     )
-    return -1 * (next_ideal_distance - prev_ideal_distance)
+    return -100 * (next_ideal_distance - prev_ideal_distance)
 
 def did_episode_end(prev_state, prev_stats, next_state, next_stats):
     if (next_stats.p2_points - prev_stats.p2_points) == 1:
