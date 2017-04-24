@@ -46,8 +46,10 @@ def reward(prev_state, prev_stats, next_state, next_stats):
         return 0.0
 
     scale_factor = config.REWARD_SCALING_FACTOR
-    if config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE:
-        scale_factor *= (1 - next_state.ball_pos[1])
+    scale_factor *= 1 + (
+        config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
+        * (1 - next_state.ball_pos[1])
+    )
 
     return scale_factor * r
 

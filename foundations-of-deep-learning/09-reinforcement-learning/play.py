@@ -4,6 +4,7 @@ import example
 import numpy as np
 import pong
 import pong_constants
+import pong_state
 import pong_stats
 
 def choose_action(session, graph, game_state):
@@ -20,36 +21,34 @@ def choose_action(session, graph, game_state):
     best_action = np.argmax(q_values)
     return best_action
 
+def evaluation_action(game_state, action_idx):
+    # Shouldn't matter what mode because we replace the state.
+    game = pong.PongGame(training_mode = False)
+    # Unpack the game state.
+    game.state.paddle1_pos = game_state[0]
+    game.state.paddle2_pos = game_state[1]
+    game.state.ball_pos = np.array([game_state[2], game_state[3]])
+    game.state.ball_vel = np.array([game_state[4], game_state[5]])
+    prev_state = game.state
+    prev_stats = game.stats
+    play_action_idx(game, action_idx)
+    next_state = game.state
+    next_stats = game.stats
+
+    return example.reward(
+        prev_state, prev_stats, next_state, next_stats
+    )
+
 # This code tells us to take the locally optimal action.
 def choose_best_action(session, graph, game_state):
-    import pong_state
+    reward0 = evaluate_action(game_state, 0)
+    reward1 = evaluate_action(game_state, 1)
 
-    game = pong.PongGame(training_mode = True)
-    game.state.paddle1_pos = game_state[0]
-    game.state.paddle2_pos = game_state[1]
-    game.state.ball_pos = np.array([game_state[2], game_state[3]])
-    game.state.ball_vel = np.array([game_state[4], game_state[5]])
-    prev_state = game.state
-    prev_stats = game.stats
-    play_action_idx(game, 0)
-    next_state = game.state
-    next_stats = game.stats
-    reward0 = example.reward(prev_state, prev_stats, next_state, next_stats)
+    if not config.CHOOSE_BEST_STOCHASTIC:
+        return 1 if reward0 < reward1 else 0
 
-    game = pong.PongGame(training_mode = True)
-    game.state.paddle1_pos = game_state[0]
-    game.state.paddle2_pos = game_state[1]
-    game.state.ball_pos = np.array([game_state[2], game_state[3]])
-    game.state.ball_vel = np.array([game_state[4], game_state[5]])
-    prev_state = game.state
-    prev_stats = game.stats
-    play_action_idx(game, 1)
-    next_state = game.state
-    next_stats = game.stats
-    reward1 = example.reward(prev_state, prev_stats, next_state, next_stats)
-
-    return 1 if reward0 < reward1 else 0
-
+    prob0 = np.exp(result0) / (np.exp(result0) + np.exp(result1))
+    return 0 if np.random.uniform() < prob0 else 1
 
 def play_action_idx(game, chosen_action_idx):
     chosen_action_name = example.action_idx_to_action_name(
