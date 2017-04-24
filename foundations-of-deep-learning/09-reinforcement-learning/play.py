@@ -30,7 +30,7 @@ def play_action_idx(game, chosen_action_idx):
     game.evolve()
 
 def evaluate_performance(session, graph, training_mode):
-    asyncio.wait(
+    asyncio.get_event_loop().run_until_complete(
         async_evaluate_performance(session, graph, training_mode)
     )
 
