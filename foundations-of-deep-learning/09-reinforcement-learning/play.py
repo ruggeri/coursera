@@ -21,7 +21,7 @@ def choose_action(session, graph, game_state):
     best_action = np.argmax(q_values)
     return best_action
 
-def evaluation_action(game_state, action_idx):
+def evaluate_action(game_state, action_idx):
     # Shouldn't matter what mode because we replace the state.
     game = pong.PongGame(training_mode = False)
     # Unpack the game state.
@@ -44,10 +44,12 @@ def choose_best_action(session, graph, game_state):
     reward0 = evaluate_action(game_state, 0)
     reward1 = evaluate_action(game_state, 1)
 
-    if not config.CHOOSE_BEST_STOCHASTIC:
+    if config.CHOOSE_BEST_STOCHASTIC_RATIO is None:
         return 1 if reward0 < reward1 else 0
 
-    prob0 = np.exp(result0) / (np.exp(result0) + np.exp(result1))
+    reward0 *= config.CHOOSE_BEST_STOCHASTIC_RATIO
+    reward1 *= config.CHOOSE_BEST_STOCHASTIC_RATIO
+    prob0 = np.exp(reward0) / (np.exp(reward0) + np.exp(reward1))
     return 0 if np.random.uniform() < prob0 else 1
 
 def play_action_idx(game, chosen_action_idx):
