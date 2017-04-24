@@ -2,14 +2,22 @@ import aiohttp.web
 import asyncio
 import json
 import pong
+import pong_stats
 import pong_constants
 
-def game_state_to_json(state):
+def game_state_to_json(stats, state):
     return json.dumps({
-        "paddle1Pos": state.paddle1_pos,
-        "paddle2Pos": state.paddle2_pos,
-        "ballPos": list(state.ball_pos),
-        "ballVel": list(state.ball_vel)
+        "stats": {
+            "score": pong_stats.score(stats),
+            "p1Points": stats.p1_points,
+            "p2Points": stats.p2_points,
+        },
+        "state": {
+            "paddle1Pos": state.paddle1_pos,
+            "paddle2Pos": state.paddle2_pos,
+            "ballPos": list(state.ball_pos),
+            "ballVel": list(state.ball_vel),
+        }
     })
 
 async def index(request):
@@ -32,7 +40,7 @@ async def play_learned_ai(callback):
         await play.async_evaluate_performance(
             session,
             graph,
-            training_mode = True,
+            training_mode = False,
             callback = callback
         )
 
@@ -49,7 +57,7 @@ async def websocket_handler(request):
     await ws.prepare(request)
 
     async def callback(game):
-        ws.send_str(game_state_to_json(game.state))
+        ws.send_str(game_state_to_json(game.stats, game.state))
         await asyncio.sleep(pong_constants.POLL_FREQUENCY)
 
     if PLAY_LEARNED_AI:

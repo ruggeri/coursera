@@ -8,16 +8,16 @@ const PLAYER2 = 2;
 const canvasEl = document.getElementById("game");
 const ctx = canvasEl.getContext("2d");
 
-function drawGame(state) {
-  state = JSON.parse(state);
+function drawGame(msg) {
+  msg = JSON.parse(msg);
 
   ctx.fillStyle = "green";
   ctx.fillRect(0, 0, CANVAS_DIM, CANVAS_DIM);
 
-  drawBall(state.ballPos);
-  drawPaddle(state.paddle1Pos, PLAYER1);
-  drawPaddle(state.paddle2Pos, PLAYER2);
-  drawScore(state.score);
+  drawBall(msg.state.ballPos);
+  drawPaddle(msg.state.paddle1Pos, PLAYER1);
+  drawPaddle(msg.state.paddle2Pos, PLAYER2);
+  drawScore(msg.stats.score);
 }
 
 function drawBall(pos) {
