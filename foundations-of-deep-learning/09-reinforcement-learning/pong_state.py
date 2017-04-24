@@ -160,10 +160,15 @@ def did_score_point(state, player_num):
 def evolve(state):
     events = []
     state = state.move_ball()
-
     if ball_touches_paddle(state, PLAYER1):
         state = state.bounce(DIR_X)
         events.append(pong_events.P1_BOUNCE)
+
+        # In training mode, we don't even let the ball bounce back to
+        # the other player.
+        if state.training_mode:
+            state = PongState(state.training_mode)
+            return (state, events)
     if ball_touches_paddle(state, PLAYER2):
         state = state.bounce(DIR_X)
         events.append(pong_events.P2_BOUNCE)
@@ -193,12 +198,31 @@ def initial_conditions(training_mode):
         if (ball_vel[1] > 0):
             ball_vel[1] *= -1
 
+        # For now, let's try prohibiting bounces in training mode.
+        if config.TRAINING_MODE_NO_BOUNCES:
+            x_time, y_time = x_and_y_times(ball_pos, ball_vel)
+            if y_time < x_time:
+                return initial_conditions(training_mode)
+
     return (ball_pos, ball_vel)
 
 def distance_to_ball(state, player_num):
     return np.abs(
         paddle_pos(state, player_num) - state.ball_pos[0]
     )
+
+def x_and_y_times(ball_pos, ball_vel):
+    if ball_vel[1] > 0.0:
+        x_time = (1 - ball_pos[1]) / ball_vel[1]
+    else:
+        x_time = -ball_pos[1] / ball_vel[1]
+
+    if ball_vel[0] > 0.0:
+        y_time = (1 - ball_pos[0]) / ball_vel[0]
+    else:
+        y_time = -ball_pos[0] / ball_vel[0]
+
+    return (x_time, y_time)
 
 def ideal_position(state, player_num):
     if player_num != PLAYER1:
@@ -210,11 +234,7 @@ def ideal_position(state, player_num):
     ball_pos = state.ball_pos
     ball_vel = state.ball_vel
     while True:
-        x_time = -ball_pos[1] / ball_vel[1]
-        if ball_vel[0] > 0.0:
-            y_time = (1 - ball_pos[0]) / ball_vel[0]
-        else:
-            y_time = -ball_pos[0] / ball_vel[0]
+        x_time, y_time = x_and_y_times(ball_pos, ball_vel)
 
         if x_time < y_time:
             return ball_pos[0] + (x_time * ball_vel[0])
