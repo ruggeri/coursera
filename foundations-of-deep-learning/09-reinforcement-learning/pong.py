@@ -5,7 +5,7 @@ class PongGame:
     def __init__(self, training_mode):
         self.training_mode = training_mode
         self.stats = pong_stats.new()
-        self.state = pong_state.new()
+        self.state = pong_state.new(training_mode = training_mode)
 
     def score(self):
         return pong_stats.score(self.stats)

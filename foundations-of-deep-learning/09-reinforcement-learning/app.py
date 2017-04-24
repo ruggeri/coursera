@@ -32,8 +32,8 @@ async def play_learned_ai(callback):
         await play.async_evaluate_performance(
             session,
             graph,
-            True,
-            callback
+            training_mode = True,
+            callback = callback
         )
 
 async def play_hand_ai(callback):

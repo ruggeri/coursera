@@ -2,7 +2,7 @@ from pong_constants import *
 import pong_events
 
 class PongState:
-    def __init__(self, training_mode = False):
+    def __init__(self, training_mode):
         self.training_mode = training_mode
 
         self.paddle1_pos = 0.5
@@ -12,9 +12,8 @@ class PongState:
         )
 
     def copy(self):
-        ps2 = PongState()
+        ps2 = PongState(self.training_mode)
 
-        ps2.training_mode = self.training_mode
         ps2.paddle1_pos = self.paddle1_pos
         ps2.paddle2_pos = self.paddle2_pos
         ps2.ball_pos = self.ball_pos.copy()
@@ -64,8 +63,8 @@ class PongState:
         ps2.ball_pos += ps2.ball_vel
         return ps2
 
-def new(training_mode = False):
-    return PongState()
+def new(training_mode):
+    return PongState(training_mode)
 
 def constrain_ball_velocity(ball_vel):
     theta = np.arctan2(ball_vel[0], ball_vel[1])
@@ -172,10 +171,10 @@ def evolve(state):
         state = state.bounce(DIR_Y)
 
     if did_score_point(state, PLAYER1):
-        state = PongState()
+        state = PongState(state.training_mode)
         events.append(pong_events.P1_POINT_SCORED)
     if did_score_point(state, PLAYER2):
-        state = PongState()
+        state = PongState(state.training_mode)
         events.append(pong_events.P2_POINT_SCORED)
 
     return (state, events)
@@ -190,8 +189,7 @@ def initial_conditions(training_mode):
         ball_pos = np.random.uniform(
             low = 0, high = +1, size = (2,)
         )
-
-    if (ball_vel[1] > 0):
-        ball_vel[1] *= -1
+        if (ball_vel[1] > 0):
+            ball_vel[1] *= -1
 
     return (ball_pos, ball_vel)
