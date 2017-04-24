@@ -1,3 +1,4 @@
+import config
 from pong_constants import *
 import numpy as np
 import pong_events
