@@ -37,6 +37,11 @@ def reward(prev_state, prev_stats, next_state, next_stats):
     else:
         raise Exception("Unknown reward setting")
 
+    if config.REWARD_BOUNCES:
+        r += reward_bounce(
+            prev_state, prev_stats, next_state, next_stats
+        )
+
     if np.random.uniform() >= config.REWARD_PROBABILITY:
         return 0.0
 
@@ -68,6 +73,12 @@ def ideal_anticipation_reward(
 
     return -((next_ideal_distance ** config.DISTANCE_ERROR_POWER)
              - (prev_ideal_distance) ** config.DISTANCE_ERROR_POWER)
+
+def reward_bounce(prev_state, prev_stats, next_state, next_stats):
+    return (
+        (next_stats.p1_bounces - prev_stats.p1_bounces)
+        + (prev_stats.p2_points - next_stats.p2_points)
+    )
 
 def did_episode_end(prev_state, prev_stats, next_state, next_stats):
     if (next_stats.p2_points - prev_stats.p2_points) == 1:
