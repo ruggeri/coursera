@@ -72,7 +72,7 @@ def train_batch(run_info, batch_info):
     return avg_loss
 
 def train_epoch(run_info, epoch_idx):
-    game = pong.PongGame(training_mode = True)
+    game = pong.PongGame(training_mode = config.TRAINING_MODE)
 
     losses = []
     batch_idxs = range(1, config.NUM_BATCHES_PER_EPOCH + 1)

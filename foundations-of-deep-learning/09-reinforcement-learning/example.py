@@ -37,10 +37,14 @@ def reward(prev_state, prev_stats, next_state, next_stats):
     else:
         raise Exception("Unknown reward setting")
 
-    if np.random.uniform() < config.REWARD_PROBABILITY:
-        return r
-    else:
+    if np.random.uniform() >= config.REWARD_PROBABILITY:
         return 0.0
+
+    scale_factor = config.REWARD_SCALING_FACTOR
+    if config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE:
+        scale_factor *= (1 - next_state.ball_pos[1])
+
+    return scale_factor * r
 
 def ball_follow_reward(prev_state, prev_stats, next_state, next_stats):
     prev_distance = pong_state.distance_to_ball(
@@ -50,7 +54,8 @@ def ball_follow_reward(prev_state, prev_stats, next_state, next_stats):
         next_state, pong_constants.PLAYER1
     )
 
-    return -(next_distance - prev_distance)
+    return -((next_distance ** config.DISTANCE_ERROR_POWER)
+             - (prev_distance) ** config.DISTANCE_ERROR_POWER)
 
 def ideal_anticipation_reward(
         prev_state, prev_stats, next_state, next_stats):
@@ -61,7 +66,8 @@ def ideal_anticipation_reward(
         next_state, pong_constants.PLAYER1
     )
 
-    return -(next_ideal_distance - prev_ideal_distance)
+    return -((next_ideal_distance ** config.DISTANCE_ERROR_POWER)
+             - (prev_ideal_distance) ** config.DISTANCE_ERROR_POWER)
 
 def did_episode_end(prev_state, prev_stats, next_state, next_stats):
     if (next_stats.p2_points - prev_stats.p2_points) == 1:
