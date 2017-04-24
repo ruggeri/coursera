@@ -199,3 +199,35 @@ def distance_to_ball(state, player_num):
     return np.abs(
         paddle_pos(state, player_num) - state.ball_pos[0]
     )
+
+def ideal_position(state, player_num):
+    if player_num != PLAYER1:
+        raise Exception("Lazy")
+
+    if state.ball_vel[1] > 0.0:
+        return 0.5
+
+    ball_pos = state.ball_pos
+    ball_vel = state.ball_vel
+    while True:
+        x_time = -ball_pos[1] / ball_vel[1]
+        if ball_vel[0] > 0.0:
+            y_time = (1 - ball_pos[0]) / ball_vel[0]
+        else:
+            y_time = -ball_pos[0] / ball_vel[0]
+
+        if x_time < y_time:
+            return ball_pos[0] + (x_time * ball_vel[0])
+        ball_pos = np.array([
+            ball_pos[0] + (y_time * ball_vel[0]),
+            ball_pos[1] + (y_time * ball_vel[1]),
+        ])
+        ball_vel = np.array([
+            -1 * ball_vel[0],
+            ball_vel[1]
+        ])
+
+def ideal_distance(state, player_num):
+    return np.abs(
+        paddle_pos(state, player_num) - ideal_position(state, player_num)
+    )
