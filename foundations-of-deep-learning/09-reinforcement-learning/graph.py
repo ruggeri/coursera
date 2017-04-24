@@ -128,6 +128,7 @@ def build_graph():
         next_game_state_q_values,
         (1 - tf.cast(did_episodes_end, tf.float32))
     )
+    # TODO: this seems to cause divergence problems!!
     next_game_state_q_values = tf.stop_gradient(
         next_game_state_q_values
     )

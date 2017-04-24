@@ -27,3 +27,6 @@ def new():
 
 def score(stats):
     return (stats.p1_points - stats.p2_points)
+
+def total_points(stats):
+    return (stats.p1_points + stats.p2_points)
