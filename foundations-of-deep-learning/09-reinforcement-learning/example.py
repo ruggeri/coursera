@@ -31,12 +31,14 @@ def reward(prev_state, prev_stats, next_state, next_stats):
     #if (next_stats.p1_bounces - prev_stats.p1_bounces) == 1:
     #    return +1
 
-    distance_change = (
-        pong_state.paddle_pos(next_state, pong_constants.PLAYER1)
-        - pong_state.paddle_pos(prev_state, pong_constants.PLAYER1)
+    prev_distance = pong_state.distance_to_ball(
+        prev_state, pong_constants.PLAYER1
+    )
+    next_distance = pong_state.distance_to_ball(
+        next_state, pong_constants.PLAYER1
     )
 
-    return -100 * distance_change
+    return -1000 * (next_distance - prev_distance)
 
 def did_episode_end(prev_state, prev_stats, next_state, next_stats):
     if (next_stats.p2_points - prev_stats.p2_points) == 1:

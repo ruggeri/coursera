@@ -1,4 +1,5 @@
 from pong_constants import *
+import numpy as np
 import pong_events
 
 class PongState:
@@ -193,3 +194,8 @@ def initial_conditions(training_mode):
             ball_vel[1] *= -1
 
     return (ball_pos, ball_vel)
+
+def distance_to_ball(state, player_num):
+    return np.abs(
+        paddle_pos(state, player_num) - state.ball_pos[0]
+    )
