@@ -24,3 +24,15 @@ perfectly. It took two epochs to train.
 
 But then again, I tried another time and got performance on par with
 the hand-built AI. So there may be high variance in training.
+
+## Overall
+
+My experience with this was not particularly positive. My network was
+always fluctuating a ton. I feel pretty disappointed wiht Q
+learning. One thing that was frustrating was training the Q network
+and seeing that it was doing a bad job of settling on Q values, but
+having no idea whether that would mean the learned policy was any
+good.
+
+I spent a lot of time on this so I would like to reevaluate before I
+return to Q learning...
