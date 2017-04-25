@@ -17,3 +17,10 @@ close. With these tweaks, it appears we can learn the ideal strategy.
 
 Weird note: performance got a lot worse after the first epoch of
 training!
+
+I got extremely good performance at
+d2bf210841114295e194e6d18478c5abdbe5c8e0. This plays basically
+perfectly. It took two epochs to train.
+
+But then again, I tried another time and got performance on par with
+the hand-built AI. So there may be high variance in training.

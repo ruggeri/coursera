@@ -41,11 +41,6 @@ def reward(prev_state, prev_stats, next_state, next_stats):
     else:
         raise Exception("Unknown reward setting")
 
-    if config.REWARD_BOUNCES:
-        r += reward_bounce(
-            prev_state, prev_stats, next_state, next_stats
-        )
-
     if np.random.uniform() >= config.REWARD_PROBABILITY:
         return 0.0
 
@@ -56,8 +51,13 @@ def reward(prev_state, prev_stats, next_state, next_stats):
             config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
             * (1 - next_state.ball_pos[1])
         ) / config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
+    r *= scale_factor
 
-    return scale_factor * r
+    r += REWARD_BOUNCES_FACTOR * reward_bounce(
+        prev_state, prev_stats, next_state, next_stats
+    )
+
+    return r
 
 def ball_follow_reward(prev_state, prev_stats, next_state, next_stats):
     if did_reset(prev_stats, next_stats):
