@@ -19,7 +19,7 @@ BatchInfo = namedtuple("BatchInfo", [
 def run_batch(run_info, batch_info):
     d, g = run_info.dataset, run_info.graph
 
-    examples = random.sample(d.idx_examples, config.BATCH_SIZE)
+    examples = random.sample(d.training_idx_examples, config.BATCH_SIZE)
     _, loss = run_info.session.run(
         [g.training_op, g.training_loss],
         feed_dict = {
@@ -37,7 +37,9 @@ def run_validation(run_info, epoch_idx):
     print("Beginning validation")
     d, g = run_info.dataset, run_info.graph
 
-    examples = random.sample(d.idx_examples, config.BATCH_SIZE)
+    examples = random.sample(
+        d.validation_idx_examples, config.BATCH_SIZE
+    )
     accuracy = run_info.session.run(
         g.accuracy,
         feed_dict = {
@@ -77,7 +79,7 @@ def run(session):
         session = session
     )
     for epoch_idx in range(1, config.NUM_EPOCHS):
-        num_batches = len(d.idx_examples) // config.BATCH_SIZE
+        num_batches = len(d.training_idx_examples) // config.BATCH_SIZE
         for batch_idx in range(1, num_batches):
             batch_info = BatchInfo(
                 epoch_idx = epoch_idx,

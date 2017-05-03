@@ -72,9 +72,11 @@ Dataset = namedtuple("Dataset", [
     "examples",
     "word_to_idx",
     "idx_to_word",
-    "idx_examples",
+    "training_idx_examples",
+    "validation_idx_examples",
 ])
 
+TRAINING_FRACTION = 0.9
 def dataset(max_length, num_examples):
     examples_ = examples(max_length, num_examples)
     word_to_idx, idx_to_word = vocab_maps(examples_)
@@ -82,9 +84,12 @@ def dataset(max_length, num_examples):
         pad_examples(examples_), word_to_idx
     )
 
+    num_training_examples = int(len(examples_) * TRAINING_FRACTION)
+
     return Dataset(
         examples = examples_,
         word_to_idx = word_to_idx,
         idx_to_word = idx_to_word,
-        idx_examples = idx_examples
+        training_idx_examples = idx_examples[:num_training_examples],
+        validation_idx_examples = idx_examples[num_training_examples:],
     )

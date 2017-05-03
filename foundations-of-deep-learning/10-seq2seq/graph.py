@@ -137,11 +137,13 @@ def graph(batch_size,
     ).minimize(training_loss)
 
     with tf.name_scope("accuracy"):
-        # TODO: Problem is that if output is longer than
-        # sequence_length + 1 we'll be comparing wrong-length things...
         accuracy = tf.reduce_all(
             tf.equal(
-                tf.argmax(inference_output.rnn_output, axis = 2),
+                tf.slice(
+                    tf.argmax(inference_output.rnn_output, axis = 2),
+                    [0, 0],
+                    [batch_size, sequence_length + 1]
+                ),
                 tf.cast(terminated_output_sequence, tf.int64)
             ),
             axis = 1
