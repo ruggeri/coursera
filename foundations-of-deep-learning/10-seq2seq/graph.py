@@ -77,7 +77,8 @@ def graph(batch_size,
     )
 
     decoder_embedding_matrix = tf.Variable(
-        tf.truncated_normal([vocab_size, num_embedding_dimensions])
+        tf.truncated_normal([vocab_size, num_embedding_dimensions]),
+        name ="decoder_embedding_matrix"
     )
     embedded_decoder_training_inputs = tf.nn.embedding_lookup(
         decoder_embedding_matrix,
