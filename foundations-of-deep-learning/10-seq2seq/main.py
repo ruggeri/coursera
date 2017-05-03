@@ -1,12 +1,26 @@
+from collections import namedtuple
 import config
 import dataset
 import graph
 import random
 import tensorflow as tf
 
-def run_batch(session, d, g):
+RunInfo = namedtuple("RunInfo", [
+    "dataset",
+    "graph",
+    "session",
+])
+
+BatchInfo = namedtuple("BatchInfo", [
+    "epoch_idx",
+    "batch_idx",
+])
+
+def run_batch(run_info, batch_info):
+    d, g = run_info.dataset, run_info.graph
+
     examples = random.sample(d.idx_examples, config.BATCH_SIZE)
-    _, loss = session.run(
+    _, loss = run_info.session.run(
         [g.training_op, g.training_loss],
         feed_dict = {
             g.input_sequence: [e[0] for e in examples],
@@ -15,7 +29,26 @@ def run_batch(session, d, g):
         }
     )
 
-    print(f"Loss: {loss}")
+    print(f"Epoch {batch_info.epoch_idx:02d} | "
+          f"Batch {batch_info.batch_idx:02d} | "
+          f"Loss: {loss:.3f}")
+
+def run_validation(run_info, epoch_idx):
+    print("Beginning validation")
+    d, g = run_info.dataset, run_info.graph
+
+    examples = random.sample(d.idx_examples, config.BATCH_SIZE)
+    accuracy = run_info.session.run(
+        g.accuracy,
+        feed_dict = {
+            g.input_sequence: [e[0] for e in examples],
+            g.output_sequence: [e[1] for e in examples],
+        }
+    )
+
+    print(f"Epoch {epoch_idx:02d} | "
+          f"Accuracy: {accuracy:.3f}")
+
 
 def run(session):
     d = dataset.dataset(
@@ -38,10 +71,20 @@ def run(session):
 
     file_writer = tf.summary.FileWriter('logs/', session.graph)
 
+    run_info = RunInfo(
+        dataset = d,
+        graph = g,
+        session = session
+    )
     for epoch_idx in range(1, config.NUM_EPOCHS):
         num_batches = len(d.idx_examples) // config.BATCH_SIZE
         for batch_idx in range(1, num_batches):
-            run_batch(session, d, g)
+            batch_info = BatchInfo(
+                epoch_idx = epoch_idx,
+                batch_idx = batch_idx,
+            )
+            run_batch(run_info, batch_info)
+        run_validation(run_info, epoch_idx)
 
 with tf.Session() as session:
     run(session)

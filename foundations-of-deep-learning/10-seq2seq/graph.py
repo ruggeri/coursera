@@ -9,6 +9,7 @@ Graph = namedtuple("Graph", [
     "training_loss",
     "training_op",
     "predictions",
+    "accuracy",
 ])
 
 def graph(batch_size,
@@ -28,6 +29,12 @@ def graph(batch_size,
         tf.int32,
         [batch_size, sequence_length],
         name = "output_sequence"
+    )
+    # Need to add a terminator word to signal decoder output is done.
+    terminated_output_sequence = tf.concat(
+        [output_sequence,
+         tf.fill([batch_size, 1], stop_word_idx)],
+        axis = 1
     )
     learning_rate = tf.placeholder(
         tf.float32, name = "learning_rate"
@@ -64,15 +71,9 @@ def graph(batch_size,
     # word into the decoder, even if this was not the one that was
     # selected at the previous time step. This leads to better
     # training.
-    decoder_training_inputs = tf.strided_slice(
-        output_sequence,
-        [0, 0],
-        [batch_size, sequence_length - 1],
-        [1, 1]
-    )
     decoder_training_inputs = tf.concat(
         [tf.fill([batch_size, 1], start_word_idx),
-         decoder_training_inputs],
+         output_sequence],
         axis = 1
     )
 
@@ -100,7 +101,7 @@ def graph(batch_size,
         training_decoder_cells,
         tf.contrib.seq2seq.TrainingHelper(
             embedded_decoder_training_inputs,
-            tf.fill([batch_size], sequence_length)
+            tf.fill([batch_size], sequence_length + 1)
         ),
         final_encoder_state,
         output_layer = output_layer
@@ -127,13 +128,27 @@ def graph(batch_size,
     # to learn how to do a sampled loss?
     training_loss = tf.contrib.seq2seq.sequence_loss(
         training_output.rnn_output,
-        output_sequence,
-        tf.fill([batch_size, sequence_length], 1.0)
+        terminated_output_sequence,
+        tf.fill([batch_size, sequence_length + 1], 1.0)
     )
 
     training_op = tf.train.AdamOptimizer(
         learning_rate = learning_rate,
     ).minimize(training_loss)
+
+    with tf.name_scope("accuracy"):
+        # TODO: Problem is that if output is longer than
+        # sequence_length + 1 we'll be comparing wrong-length things...
+        accuracy = tf.reduce_all(
+            tf.equal(
+                tf.argmax(inference_output.rnn_output, axis = 2),
+                tf.cast(terminated_output_sequence, tf.int64)
+            ),
+            axis = 1
+        )
+        accuracy = tf.reduce_mean(
+            tf.cast(accuracy, tf.float32), name = "percentage"
+        )
 
     return Graph(
         input_sequence = input_sequence,
@@ -141,5 +156,6 @@ def graph(batch_size,
         learning_rate = learning_rate,
         training_loss = training_loss,
         training_op = training_op,
-        predictions = inference_output.rnn_output
+        predictions = inference_output.rnn_output,
+        accuracy = accuracy
     )
