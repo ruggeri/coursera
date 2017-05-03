@@ -86,17 +86,24 @@ def graph(batch_size,
         decoder_training_inputs
     )
 
-    # This densely connects the encoder LSTM units to make predictions
-    # on the words.
+    # This will densely connect the encoder LSTM units to make
+    # predictions on the words. We use a linear activation function
+    # here; that's common when mapping embeddings to word idxs.
     output_layer = Dense(
         vocab_size,
-        activation = tf.nn.relu,
         name = "decoder_predictions",
     )
 
     # Both the training and inference decoders will use the same LSTM
     # cell, but will have a different Helper. The helper decides what
-    # to feed to the next time step's LSTM
+    # to feed to the next time step's LSTM.
+
+    # TODO: in this code, we treat every example as if it had the same
+    # length, and use "padding" cells to ensure that. But dynamic_rnn
+    # has a `sequence_length` parameter to let you specify a length
+    # per example, as does TrainingHelper. That would stop exposing
+    # padding to the encoder, and stop asking the decoder to produce
+    # padding words.
     training_decoder = tf.contrib.seq2seq.BasicDecoder(
         training_decoder_cells,
         tf.contrib.seq2seq.TrainingHelper(
@@ -124,8 +131,10 @@ def graph(batch_size,
         inference_decoder
     )
 
-    # TODO: (1) should not count loss on padding words?, (2) may want
-    # to learn how to do a sampled loss?
+    # TODO: Failure to accurately produce padding words results in
+    # loss. Padding should be eliminated form the modelling task.
+    # TODO: if the vocabulary were large, I would want to do a sampled
+    # softmax loss here.
     training_loss = tf.contrib.seq2seq.sequence_loss(
         training_output.rnn_output,
         terminated_output_sequence,
@@ -137,6 +146,13 @@ def graph(batch_size,
     ).minimize(training_loss)
 
     with tf.name_scope("accuracy"):
+        # TODO: I use slice in case the decoder produces any sequence
+        # in excess of `sequence_length + 1` tokens. I will treat any
+        # such production as a failure since it won't have the stop
+        # word at position `sequence_length`. However, this code would
+        # produce an error if every production has length `<
+        # sequence_length + 1`. But that should be vanishingly
+        # unlikely if the training goes well.
         accuracy = tf.reduce_all(
             tf.equal(
                 tf.slice(

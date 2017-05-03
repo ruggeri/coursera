@@ -30,7 +30,6 @@ stop_word = "</s>"
 
 special_words = [
     pad_word,
-    "<unk>",
     start_word,
     stop_word,
 ]
