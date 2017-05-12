@@ -1,87 +1,47 @@
+import batch as batch_module
 import config
 import graph as graph_module
 import numpy as np
 import tensorflow as tf
 
-def generate_z(num_samples):
-    return np.random.uniform(-1, 1, size = [num_samples, config.Z_DIMS])
-
-def generate_samples(session, graph, class_label):
-    num_samples = class_label.shape[0]
-    z = generate_z(num_samples)
-
-    return session.run(graph.generator_x, feed_dict = {
-        graph.class_label: class_label,
-        graph.z: z,
-    })
-
-def run_discriminator_batch(session, graph, dataset, batch_size):
-    x, class_label = dataset.next_batch(batch_size)
-    # TODO: Trying unconditional to get that working first...
-    class_label = np.ones_like(class_label)
-    x = x.reshape([-1, config.IMAGE_DIMS])
-    # Renormalize x to (-1, +1)
-    x = (2 * x) - 1
-
-    # For each true example, generate a fake one.
-    generator_x = generate_samples(
-        session = session,
-        graph = graph,
-        class_label = class_label
-    )
-
-    # Concatenate real and fake results
-    x = np.concatenate([x, generator_x], axis = 0)
-    class_label = np.concatenate([class_label, class_label], axis = 0)
-    authenticity_label = np.concatenate(
-        [np.ones(batch_size) * (1 - config.LABEL_SMOOTHING),
-         np.zeros(batch_size)],
-        axis = 0
-    )
-
+def run_discriminator_batch(session, graph, batch):
     _, loss, accuracy = session.run([
         graph.train_discriminator_op,
         graph.discriminator_loss,
         graph.discriminator_accuracy,
     ], feed_dict = {
-        graph.class_label: class_label,
-        graph.discriminator_x: x,
-        graph.authenticity_label: authenticity_label
+        graph.class_label: batch.combined_class_label,
+        graph.discriminator_x: batch.combined_x,
+        graph.authenticity_label: batch.combined_authenticity_label
     })
 
     return (loss, accuracy)
 
-def run_generator_batch(session, graph, batch_size, num_classes):
-    class_label = np.random.choice(
-        num_classes, size = batch_size, replace = True
-    )
-    z = generate_z(batch_size)
-
+def run_generator_batch(session, graph, batch):
     _, loss = session.run(
         [graph.train_generator_op, graph.generator_loss],
         feed_dict = {
-            graph.class_label: class_label,
-            graph.z: z,
+            graph.class_label: batch.fake_class_label,
+            graph.z: batch.fake_z,
         }
     )
 
     return loss
 
 def run_batch(session, graph, epoch_idx, batch_idx, dataset):
-    generator_loss = run_generator_batch(
-        session = session,
-        graph = graph,
-        batch_size = config.BATCH_SIZE,
-        num_classes = config.NUM_CLASSES,
+    batch = batch_module.next_batch(
+        session, graph, dataset, config.BATCH_SIZE
     )
 
-    discriminator_loss, discriminator_accuracy = (
-        run_discriminator_batch(
-            session = session,
-            graph = graph,
-            dataset = dataset,
-            batch_size = config.BATCH_SIZE
-        )
+    run_discriminator_batch(
+        session = session,
+        graph = graph,
+        batch = batch,
+    )
+    run_generator_batch(
+        session = session,
+        graph = graph,
+        batch = batch,
     )
 
     num_batches = dataset.num_examples // config.BATCH_SIZE
@@ -89,10 +49,36 @@ def run_batch(session, graph, epoch_idx, batch_idx, dataset):
         batch_idx % int(config.LOG_FREQUENCY * num_batches)) == 0
     )
     if should_log:
+        g_loss, d_loss, d_accuracy = evaluate(
+            session, graph, dataset, config.BATCH_SIZE
+        )
         print(f"Epoch {epoch_idx:03d} | Batch {batch_idx:03d} | "
-              f"Gen Loss {generator_loss:.2f} | "
-              f"Dis Loss {discriminator_loss:.2f} | "
-              f"Dis Acc {(100 * discriminator_accuracy):.1f}%")
+              f"Gen Loss {g_loss:.2f} | "
+              f"Dis Loss {d_loss:.2f} | "
+              f"Dis Acc {(100 * d_accuracy):.1f}%")
+
+def evaluate(session, graph, dataset, batch_size):
+    batch = batch_module.next_batch(
+        session, graph, dataset, batch_size
+    )
+
+    g_loss = session.run(
+        graph.generator_loss,
+        feed_dict = {
+            graph.class_label: batch.fake_class_label,
+            graph.z: batch.fake_z,
+        }
+    )
+    d_loss, d_accuracy = session.run([
+        graph.discriminator_loss,
+        graph.discriminator_accuracy,
+    ], feed_dict = {
+        graph.class_label: batch.combined_class_label,
+        graph.discriminator_x: batch.combined_x,
+        graph.authenticity_label: batch.combined_authenticity_label
+    })
+
+    return (g_loss, d_loss, d_accuracy)
 
 def run_epoch(session, graph, epoch_idx, dataset):
     num_batches = dataset.num_examples // config.BATCH_SIZE

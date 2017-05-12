@@ -139,7 +139,14 @@ def discriminator_trainer(
             name = "loss",
         )
 
-        d_train = tf.train.AdamOptimizer().minimize(d_loss)
+        discriminator_vars = [
+            var for var in tf.trainable_variables()
+            if re.match(r"discriminator", var.name)
+        ]
+        d_train = tf.train.AdamOptimizer().minimize(
+            d_loss,
+            var_list = discriminator_vars
+        )
 
     return (d_accuracy, d_loss, d_train)
 
