@@ -1,6 +1,11 @@
 from collections import namedtuple
 import tensorflow as tf
 
+# TODO: Ian recommends Leaky ReLU. He also recommends using a tanh for
+# the generator, but I will ignore that advice for the moment.
+
+# TODO: Label smoothing.
+
 Graph = namedtuple("Graph", [
     "one_hot_class_label",
     # Generator input/output
@@ -9,33 +14,33 @@ Graph = namedtuple("Graph", [
     # Discriminator input/output
     "discriminator_x",
     "authenticity_label",
-    "discriminator_logits",
     "discriminator_percentage",
     # Discriminator training
     "discriminator_loss",
     "train_discriminator_op",
     # Generator training
-    "generator_logits",
+    "generator_loss",
     "train_generator_op",
 ])
 
 def generator(z_dims, num_hidden_units, x_dims, one_hot_class_label):
-    z = tf.placeholder(tf.float32, [None, z_dims])
-    h1 = tf.layers.dense(
-        inputs = tf.concat([one_hot_class_label, z], axis = 1),
-        units = num_hidden_units,
-        activation = tf.nn.relu,
-    )
-    generated_x = tf.layers.dense(
-        inputs = h1,
-        units = x_dims,
-        activation = tf.nn.sigmoid,
-    )
+    with tf.variable_scope("generator"):
+        z = tf.placeholder(tf.float32, [None, z_dims])
+        h1 = tf.layers.dense(
+            inputs = tf.concat([one_hot_class_label, z], axis = 1),
+            units = num_hidden_units,
+            activation = tf.nn.relu,
+        )
+        generated_x = tf.layers.dense(
+            inputs = h1,
+            units = x_dims,
+            activation = tf.nn.sigmoid,
+        )
 
     return (z, generated_x)
 
-def discriminator(num_hidden_units, one_hot_class_label, x):
-    with tf.variable_scope("discriminator"):
+def discriminator(num_hidden_units, one_hot_class_label, x, reuse):
+    with tf.variable_scope("discriminator", reuse = reuse):
         h1 = tf.layers.dense(
             inputs = tf.concat([one_hot_class_label, x], axis = 1),
             units = num_hidden_units,
@@ -77,7 +82,8 @@ def build(
     discriminator_logits, discriminator_percentage = discriminator(
         num_hidden_units = num_discriminator_hidden_units,
         one_hot_class_label = one_hot_class_label,
-        x = discriminator_x
+        x = discriminator_x,
+        reuse = False
     )
 
     # Discriminator training
@@ -92,7 +98,8 @@ def build(
     generator_logits, _ = discriminator(
         num_hidden_units = num_discriminator_hidden_units,
         one_hot_class_label = one_hot_class_label,
-        x = generated_x
+        x = generated_x,
+        reuse = True
     )
     # NB: Rather than explicitly try to make the discriminator
     # maximize, we minimize the "wrong" loss, because the gradients
@@ -101,7 +108,15 @@ def build(
         labels = tf.ones_like(one_hot_class_label, dtype = tf.float32),
         logits = generator_logits
     )
-    train_generator_op = optimizer.minimize(generator_loss)
+    # We only want to update parameters of the generator, even though
+    # the discriminator's estimates are part of the training process.
+    generator_vars = [
+        var for var in tf.traininable_variables()
+        if re.match(r"generator", var.name)
+    ]
+    train_generator_op = optimizer.minimize(
+        generator_loss, var_list = generator_vars
+    )
 
     return Graph(
         one_hot_class_label = one_hot_class_label,
@@ -111,12 +126,11 @@ def build(
         # Discriminator input/output
         discriminator_x = discriminator_x,
         authenticity_label = authenticity_label,
-        discriminator_logits = discriminator_logits,
         discriminator_percentage = discriminate_percentage,
         # Discriminator training
         discriminator_loss = discriminator_loss,
         train_discriminator_op = train_discriminator_op,
         # Generator training
-        generator_logits = generator_logits,
+        generator_loss = generator_loss,
         train_generator_op = train_generator_op
     )
