@@ -1,25 +1,33 @@
 import config
 import graph
 import numpy as np
+import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
-def generate_samples(session, graph, one_hot_class_label, z_dims):
-    num_samples = one_hot_class_label.shape[0]
-    z = np.random.uniform(size = [num_samples, z_dims])
+def generate_samples(session, graph, class_label):
+    num_samples = class_label.shape[0]
+    z = np.random.uniform(size = [num_samples, config.Z_DIMS])
 
     return session.run(graph.generated_x, feed_dict = {
-        graph.one_hot_class_label: one_hot_class_label,
+        graph.class_label: class_label,
         graph.z: z,
     })
 
-def run_discriminator_batch(session, graph, x, one_hot_class_label):
+def run_discriminator_batch(session, graph, x, class_label):
     num_samples = x.shape[0]
 
     # For each true example, generate a fake one.
-    generated_x = generate_samples(session, graph, one_hot_class_label)
+    generated_x = generate_samples(
+        session = session,
+        graph = graph,
+        class_label = class_label
+    )
+
+    # Concatenate everything
     x = np.concatenate([x, generated_x], axis = 0)
+    class_label = np.concatenate([class_label, class_label], axis = 0)
     authenticity_label = np.concatenate(
-        [tf.ones(num_samples), tf.zeros(num_samples)],
+        [np.ones(num_samples), np.zeros(num_samples)],
         axis = 0
     )
 
@@ -28,14 +36,15 @@ def run_discriminator_batch(session, graph, x, one_hot_class_label):
         graph.discriminator_loss,
         graph.discriminator_percentage,
     ], feed_dict = {
-        discriminator_x: x,
-        authenticity_label: authenticity_label
+        graph.class_label: class_label,
+        graph.discriminator_x: x,
+        graph.authenticity_label: authenticity_label
     })
 
     return (loss, percentage)
 
 def run_generator_batch(session, graph, batch_size, num_classes):
-    one_hot_class_label = np.random.choice(
+    class_label = np.random.choice(
         num_classes, size = batch_size, replace = True
     )
     z = np.random.uniform(size = [batch_size, config.Z_DIMS])
@@ -43,7 +52,7 @@ def run_generator_batch(session, graph, batch_size, num_classes):
     _, loss = session.run(
         [graph.train_generator_op, graph.generator_loss],
         feed_dict = {
-            graph.one_hot_class_label: one_hot_class_label,
+            graph.class_label: class_label,
             graph.z: z,
         }
     )
@@ -59,18 +68,15 @@ def run_batch(session, graph, epoch_idx, batch_idx, dataset):
     )
 
     x, class_label = dataset.next_batch(config.BATCH_SIZE)
-    x = x.reshape([-1, IMAGE_DIMENSION])
-    one_hot_label = np.zeros(
-        [config.BATCH_SIZE, config.NUM_CLASSES], dtype = np.float32
-    )
-    one_hot_label[:, class_label] = 1.0
+    x = x.reshape([-1, config.IMAGE_DIMS])
 
     discriminator_loss, discriminator_accuracy = (
         run_discriminator_batch(
             session = session,
             graph = graph,
             x = x,
-            one_hot_class_label = one_hot_class_label)
+            class_label = class_label
+        )
     )
 
     print(f"Epoch {epoch_idx:02d} | Batch {batch_idx:02d} | "
@@ -89,12 +95,24 @@ def run_epoch(session, graph, epoch_idx, dataset):
         )
 
 def run(session):
-    g = graph.graph()
-    dataset = input_data.read_data_sets('mnist_data')
+    g = graph.graph(
+        num_classes = config.NUM_CLASSES,
+        x_dims = config.IMAGE_DIMS,
+        z_dims = config.Z_DIMS,
+        num_generator_hidden_units = config.NUM_GENERATOR_HIDDEN_UNITS,
+        num_discriminator_hidden_units = config.NUM_DISCRIMINATOR_HIDDEN_UNITS,
+    )
+    dataset = input_data.read_data_sets('mnist_data').train
+
+    session.run(tf.global_variables_initializer())
     for epoch_idx in range(1, config.NUM_EPOCHS + 1):
         run_epoch(
             session = session,
-            graph = graph,
+            graph = g,
             epoch_idx = epoch_idx,
             dataset = dataset
         )
+
+if __name__ == "__main__":
+    with tf.Session() as session:
+        run(session)
