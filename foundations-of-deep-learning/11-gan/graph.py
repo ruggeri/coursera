@@ -15,9 +15,10 @@ Graph = namedtuple("Graph", [
     # Discriminator input/output
     "discriminator_x",
     "authenticity_label",
-    "discriminator_percentage",
+    "discriminator_estimate",
     # Discriminator training
     "discriminator_loss",
+    "discriminator_accuracy",
     "train_discriminator_op",
     # Generator training
     "generator_loss",
@@ -53,16 +54,17 @@ def discriminator(num_hidden_units, one_hot_class_label, x, reuse):
             activation = None,
         )
         # Make rank-1 tensor
-        estimated_authenticity_logits = tf.squeeze(
-            estimated_authenticity_logits
+        estimated_authenticity_logits = tf.reshape(
+            estimated_authenticity_logits,
+            (-1,)
         )
-        estimated_authenticity_percentage = tf.nn.sigmoid(
+        authenticity_estimate = tf.nn.sigmoid(
             estimated_authenticity_logits
         )
 
     return (
         estimated_authenticity_logits,
-        estimated_authenticity_percentage
+        authenticity_estimate
     )
 
 def graph(
@@ -71,7 +73,7 @@ def graph(
         z_dims,
         num_generator_hidden_units,
         num_discriminator_hidden_units):
-    class_label = tf.placeholder(tf.int32, [None], name = "class_label")
+    class_label = tf.placeholder(tf.int64, [None], name = "class_label")
     one_hot_class_label = tf.one_hot(class_label, num_classes)
 
     # Generator
@@ -87,21 +89,26 @@ def graph(
         tf.float32, [None, x_dims], name = "discriminator_x"
     )
     authenticity_label = tf.placeholder(
-        tf.float32, [None], name = "authenticity_label"
+        tf.int64, [None], name = "authenticity_label"
     )
-    discriminator_logits, discriminator_percentage = discriminator(
+    discriminator_logits, discriminator_estimate = discriminator(
         num_hidden_units = num_discriminator_hidden_units,
         one_hot_class_label = one_hot_class_label,
         x = discriminator_x,
         reuse = False
     )
-    discriminator_percentage = tf.reduce_mean(discriminator_percentage)
+    discriminator_accuracy = tf.reduce_mean(
+        tf.cast(tf.equal(
+            tf.cast(tf.round(discriminator_estimate), tf.int64),
+            authenticity_label
+        ), tf.float32)
+    )
 
     # Discriminator training
     optimizer = tf.train.AdamOptimizer()
     discriminator_loss = tf.reduce_mean(
         tf.nn.sigmoid_cross_entropy_with_logits(
-            labels = authenticity_label,
+            labels = tf.cast(authenticity_label, tf.float32),
             logits = discriminator_logits
         )
     )
@@ -141,9 +148,10 @@ def graph(
         # Discriminator input/output
         discriminator_x = discriminator_x,
         authenticity_label = authenticity_label,
-        discriminator_percentage = discriminator_percentage,
+        discriminator_estimate = discriminator_estimate,
         # Discriminator training
         discriminator_loss = discriminator_loss,
+        discriminator_accuracy = discriminator_accuracy,
         train_discriminator_op = train_discriminator_op,
         # Generator training
         generator_loss = generator_loss,

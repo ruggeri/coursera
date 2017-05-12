@@ -31,17 +31,17 @@ def run_discriminator_batch(session, graph, x, class_label):
         axis = 0
     )
 
-    _, loss, percentage = session.run([
+    _, loss, accuracy = session.run([
         graph.train_discriminator_op,
         graph.discriminator_loss,
-        graph.discriminator_percentage,
+        graph.discriminator_accuracy,
     ], feed_dict = {
         graph.class_label: class_label,
         graph.discriminator_x: x,
         graph.authenticity_label: authenticity_label
     })
 
-    return (loss, percentage)
+    return (loss, accuracy)
 
 def run_generator_batch(session, graph, batch_size, num_classes):
     class_label = np.random.choice(
