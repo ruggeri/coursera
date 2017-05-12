@@ -1,5 +1,6 @@
 from collections import namedtuple
 import config
+import numpy as np
 import re
 import tensorflow as tf
 
@@ -46,6 +47,9 @@ def generator(z_dims, num_hidden_units, x_dims, one_hot_class_label):
 
     return (z, generator_x)
 
+def glorot_bound(fan_in, fan_out):
+    return np.sqrt(6.0/(fan_in + fan_out))
+
 def discriminator(
         num_classes,
         x_dims,
@@ -54,18 +58,31 @@ def discriminator(
         generator_x,
         discriminator_x):
     with tf.name_scope("discriminator_common"):
-        # TODO: initialize better
+        bound1 = glorot_bound(num_classes + x_dims, num_hidden_units)
         hidden_weights1 = tf.Variable(
-            tf.random_uniform([num_classes + x_dims, num_hidden_units]),
+            tf.random_uniform(
+                [num_classes + x_dims, num_hidden_units],
+                minval = -bound1,
+                maxval = +bound1
+            ),
             name = "hidden_weights1"
         )
         hidden_biases1 = tf.Variable(
-            tf.ones(num_hidden_units),
+            0.1 * tf.ones(num_hidden_units),
             name = "hidden_biases1"
         )
+        output_bound = glorot_bound(num_hidden_units, 1)
         output_weights = tf.Variable(
-            tf.random_uniform([num_hidden_units, 1]),
+            tf.random_uniform(
+                [num_hidden_units, 1],
+                minval = -output_bound,
+                maxval = +output_bound,
+            ),
             name = "output_weights"
+        )
+        output_biases = tf.Variable(
+            0.1,
+            name = "output_biases"
         )
 
     def helper(x):
@@ -78,7 +95,7 @@ def discriminator(
             h1 = leaky_relu(h1, name = "output")
         with tf.name_scope("output"):
             output_logits = tf.reshape(
-                tf.matmul(h1, output_weights),
+                tf.matmul(h1, output_weights) + output_biases,
                 (-1,),
                 name = "logits"
             )

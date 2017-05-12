@@ -1,8 +1,7 @@
 import config
-import graph
+import graph as graph_module
 import numpy as np
 import tensorflow as tf
-from tensorflow.examples.tutorials.mnist import input_data
 
 def generate_z(num_samples):
     return np.random.uniform(-1, 1, size = [num_samples, config.Z_DIMS])
@@ -106,31 +105,33 @@ def run_epoch(session, graph, epoch_idx, dataset):
             dataset = dataset
         )
 
-def run(session, num_epochs = config.NUM_EPOCHS, epoch_callback = None):
-    g = graph.graph(
-        num_classes = config.NUM_CLASSES,
-        x_dims = config.IMAGE_DIMS,
-        z_dims = config.Z_DIMS,
-        num_generator_hidden_units = config.NUM_GENERATOR_HIDDEN_UNITS,
-        num_discriminator_hidden_units = config.NUM_DISCRIMINATOR_HIDDEN_UNITS,
-    )
+def run(session, graph, num_epochs = config.NUM_EPOCHS, epoch_callback = None):
+    from tensorflow.examples.tutorials.mnist import input_data
     dataset = input_data.read_data_sets('mnist_data').train
-
     writer = tf.summary.FileWriter("logs/", graph = session.graph)
 
     session.run(tf.global_variables_initializer())
     for epoch_idx in range(1, num_epochs + 1):
         run_epoch(
             session = session,
-            graph = g,
+            graph = graph,
             epoch_idx = epoch_idx,
             dataset = dataset,
         )
         if epoch_callback:
-            epoch_callback(session, g)
+            epoch_callback(session, graph)
+
+def graph():
+    g = graph_module.graph(
+        num_classes = config.NUM_CLASSES,
+        x_dims = config.IMAGE_DIMS,
+        z_dims = config.Z_DIMS,
+        num_generator_hidden_units = config.NUM_GENERATOR_HIDDEN_UNITS,
+        num_discriminator_hidden_units = config.NUM_DISCRIMINATOR_HIDDEN_UNITS,
+    )
 
     return g
 
 if __name__ == "__main__":
     with tf.Session() as session:
-        run(session)
+        run(session, graph())
