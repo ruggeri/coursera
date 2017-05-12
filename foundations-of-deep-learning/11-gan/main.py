@@ -106,7 +106,7 @@ def run_epoch(session, graph, epoch_idx, dataset):
             dataset = dataset
         )
 
-def run(session):
+def run(session, num_epochs = config.NUM_EPOCHS, epoch_callback = None):
     g = graph.graph(
         num_classes = config.NUM_CLASSES,
         x_dims = config.IMAGE_DIMS,
@@ -119,13 +119,17 @@ def run(session):
     writer = tf.summary.FileWriter("logs/", graph = session.graph)
 
     session.run(tf.global_variables_initializer())
-    for epoch_idx in range(1, config.NUM_EPOCHS + 1):
+    for epoch_idx in range(1, num_epochs + 1):
         run_epoch(
             session = session,
             graph = g,
             epoch_idx = epoch_idx,
-            dataset = dataset
+            dataset = dataset,
         )
+        if epoch_callback:
+            epoch_callback(session, g)
+
+    return g
 
 if __name__ == "__main__":
     with tf.Session() as session:
