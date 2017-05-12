@@ -4,30 +4,39 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
+def generate_z(num_samples):
+    return np.random.uniform(-1, 1, size = [num_samples, config.Z_DIMS])
+
 def generate_samples(session, graph, class_label):
     num_samples = class_label.shape[0]
-    z = np.random.uniform(size = [num_samples, config.Z_DIMS])
+    z = generate_z(num_samples)
 
-    return session.run(graph.generated_x, feed_dict = {
+    return session.run(graph.generator_x, feed_dict = {
         graph.class_label: class_label,
         graph.z: z,
     })
 
-def run_discriminator_batch(session, graph, x, class_label):
-    num_samples = x.shape[0]
+def run_discriminator_batch(session, graph, dataset, batch_size):
+    x, class_label = dataset.next_batch(batch_size)
+    # TODO: Trying unconditional to get that working first...
+    class_label = np.ones_like(class_label)
+    x = x.reshape([-1, config.IMAGE_DIMS])
+    # Renormalize x to (-1, +1)
+    x = (2 * x) - 1
 
     # For each true example, generate a fake one.
-    generated_x = generate_samples(
+    generator_x = generate_samples(
         session = session,
         graph = graph,
         class_label = class_label
     )
 
-    # Concatenate everything
-    x = np.concatenate([x, generated_x], axis = 0)
+    # Concatenate real and fake results
+    x = np.concatenate([x, generator_x], axis = 0)
     class_label = np.concatenate([class_label, class_label], axis = 0)
     authenticity_label = np.concatenate(
-        [np.ones(num_samples), np.zeros(num_samples)],
+        [np.ones(batch_size) * (1 - config.LABEL_SMOOTHING),
+         np.zeros(batch_size)],
         axis = 0
     )
 
@@ -47,7 +56,7 @@ def run_generator_batch(session, graph, batch_size, num_classes):
     class_label = np.random.choice(
         num_classes, size = batch_size, replace = True
     )
-    z = np.random.uniform(size = [batch_size, config.Z_DIMS])
+    z = generate_z(batch_size)
 
     _, loss = session.run(
         [graph.train_generator_op, graph.generator_loss],
@@ -67,15 +76,12 @@ def run_batch(session, graph, epoch_idx, batch_idx, dataset):
         num_classes = config.NUM_CLASSES,
     )
 
-    x, class_label = dataset.next_batch(config.BATCH_SIZE)
-    x = x.reshape([-1, config.IMAGE_DIMS])
-
     discriminator_loss, discriminator_accuracy = (
         run_discriminator_batch(
             session = session,
             graph = graph,
-            x = x,
-            class_label = class_label
+            dataset = dataset,
+            batch_size = config.BATCH_SIZE
         )
     )
 
@@ -109,6 +115,8 @@ def run(session):
         num_discriminator_hidden_units = config.NUM_DISCRIMINATOR_HIDDEN_UNITS,
     )
     dataset = input_data.read_data_sets('mnist_data').train
+
+    writer = tf.summary.FileWriter("logs/", graph = session.graph)
 
     session.run(tf.global_variables_initializer())
     for epoch_idx in range(1, config.NUM_EPOCHS + 1):
