@@ -79,13 +79,19 @@ def run_batch(session, graph, epoch_idx, batch_idx, dataset):
         )
     )
 
-    print(f"Epoch {epoch_idx:02d} | Batch {batch_idx:02d} | "
-          f"Gen Loss {generator_loss:.2f} | "
-          f"Dis Loss {discriminator_loss:.2f} | "
-          f"Dis Acc {(100 * discriminator_accuracy):.1f}%")
+    num_batches = dataset.num_examples // config.BATCH_SIZE
+    should_log = ((
+        batch_idx % int(config.LOG_FREQUENCY * num_batches)) == 0
+    )
+    if should_log:
+        print(f"Epoch {epoch_idx:03d} | Batch {batch_idx:03d} | "
+              f"Gen Loss {generator_loss:.2f} | "
+              f"Dis Loss {discriminator_loss:.2f} | "
+              f"Dis Acc {(100 * discriminator_accuracy):.1f}%")
 
 def run_epoch(session, graph, epoch_idx, dataset):
-    for batch_idx in range(1, config.NUM_BATCHES + 1):
+    num_batches = dataset.num_examples // config.BATCH_SIZE
+    for batch_idx in range(1, num_batches + 1):
         run_batch(
             session = session,
             graph = graph,
