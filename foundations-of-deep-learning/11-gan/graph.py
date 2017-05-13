@@ -31,7 +31,7 @@ def leaky_relu(input, name):
 
 def generator(z_dims, num_hidden_units, x_dims, one_hot_class_label):
     z = tf.placeholder(tf.float32, [None, z_dims], name = "z")
-    with tf.variable_scope("generator"):
+    with tf.variable_scope("generator_vars"):
         h1 = tf.layers.dense(
             inputs = tf.concat([one_hot_class_label, z], axis = 1),
             units = num_hidden_units,
@@ -57,7 +57,7 @@ def discriminator(
         one_hot_class_label,
         generator_x,
         discriminator_x):
-    with tf.name_scope("discriminator_common"):
+    with tf.variable_scope("discriminator_vars"):
         bound1 = glorot_bound(num_classes + x_dims, num_hidden_units)
         hidden_weights1 = tf.Variable(
             tf.random_uniform(
@@ -68,7 +68,7 @@ def discriminator(
             name = "hidden_weights1"
         )
         hidden_biases1 = tf.Variable(
-            0.1 * tf.ones(num_hidden_units),
+            0.1 * np.ones(num_hidden_units, dtype = np.float32),
             name = "hidden_biases1"
         )
         output_bound = glorot_bound(num_hidden_units, 1)
@@ -141,7 +141,7 @@ def discriminator_trainer(
 
         discriminator_vars = [
             var for var in tf.trainable_variables()
-            if re.match(r"discriminator", var.name)
+            if re.match(r"discriminator_vars", var.name)
         ]
         d_train = tf.train.AdamOptimizer().minimize(
             d_loss,
@@ -167,7 +167,7 @@ def generator_trainer(generator_logits):
         # training process.
         generator_vars = [
             var for var in tf.trainable_variables()
-            if re.match(r"generator", var.name)
+            if re.match(r"generator_vars", var.name)
         ]
         train_generator_op = tf.train.AdamOptimizer().minimize(
             generator_loss, var_list = generator_vars

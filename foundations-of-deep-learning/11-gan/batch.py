@@ -20,13 +20,17 @@ Batch = namedtuple("Batch", [
 def generate_z(num_samples):
     return np.random.uniform(-1, 1, size = [num_samples, config.Z_DIMS])
 
-def generate_samples(session, graph, class_label, z = None):
-    num_samples = class_label.shape[0]
+def generate_samples(
+        session,
+        graph,
+        num_samples,
+        fake_class_label,
+        z):
     if z is None:
         z = generate_z(num_samples)
 
     return session.run(graph.generator_x, feed_dict = {
-        graph.class_label: class_label,
+        graph.class_label: fake_class_label,
         graph.z: z,
     })
 
@@ -37,7 +41,13 @@ def generate_fake_data(session, graph, num_classes, num_samples):
     # TODO: Trying unconditional to get that working first...
     fake_class_label = np.ones_like(fake_class_label)
     z = generate_z(num_samples)
-    x = generate_samples(session, graph, fake_class_label, z)
+    x = generate_samples(
+        session,
+        graph,
+        num_samples = num_samples,
+        fake_class_label = fake_class_label,
+        z = z
+    )
 
     return (fake_class_label, z, x)
 
