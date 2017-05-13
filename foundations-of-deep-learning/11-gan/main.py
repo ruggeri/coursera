@@ -127,7 +127,7 @@ def run(session,
             epoch_idx = epoch_idx,
         )
         if epoch_callback:
-            epoch_callback(session, graph)
+            epoch_callback(run_info)
 
 def graph():
     g = graph_module.graph(graph_module.NetworkConfiguration(
