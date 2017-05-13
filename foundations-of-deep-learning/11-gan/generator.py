@@ -1,4 +1,5 @@
 from collections import namedtuple
+import config
 import discriminator
 import helper
 import numpy as np
@@ -29,16 +30,10 @@ def parameters(network_configuration):
 
     with tf.variable_scope("generator_vars") as variable_scope:
         # Hidden layer
-        num_inputs = nc.num_classes + nc.num_z_dims
-        num_hidden_units = nc.num_generator_hidden_units
-        hidden_stddev1 = helper.xavier_stddev(
-            num_inputs,
-            num_hidden_units,
-        )
         hidden_weights1 = tf.Variable(
-            tf.truncated_normal(
-                [num_inputs, num_hidden_units],
-                stddev = hidden_stddev1,
+            helper.glorot_uniform_initializer(
+                nc.num_classes + nc.num_z_dims,
+                nc.num_generator_hidden_units,
             ),
             name = "hidden_weights1"
         )
@@ -48,7 +43,9 @@ def parameters(network_configuration):
             collections = [SUMMARY_KEY]
         )
         hidden_biases1 = tf.Variable(
-            0.1 * np.ones(num_hidden_units, dtype = np.float32),
+            config.DEFAULT_BIAS * np.ones(
+                nc.num_generator_hidden_units, dtype = np.float32
+            ),
             name = "hidden_biases1"
         )
         tf.summary.histogram(
@@ -58,11 +55,10 @@ def parameters(network_configuration):
         )
 
         # Output layer
-        output_stddev = helper.xavier_stddev(num_hidden_units, 1)
         output_weights = tf.Variable(
-            tf.truncated_normal(
-                [num_hidden_units, nc.num_x_dims],
-                stddev = output_stddev,
+            helper.glorot_uniform_initializer(
+                nc.num_generator_hidden_units,
+                nc.num_x_dims
             ),
             name = "output_weights"
         )
@@ -72,8 +68,9 @@ def parameters(network_configuration):
             collections = [SUMMARY_KEY]
         )
         output_biases = tf.Variable(
-            0.1,
-            name = "output_biases"
+            config.DEFAULT_BIAS * np.ones(nc.num_x_dims),
+            name = "output_biases",
+            dtype = tf.float32
         )
         tf.summary.histogram(
             "output_biases",

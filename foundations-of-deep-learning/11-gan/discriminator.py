@@ -1,4 +1,5 @@
 from collections import namedtuple
+import config
 import helper
 import numpy as np
 import tensorflow as tf
@@ -26,34 +27,28 @@ def parameters(network_configuration):
     nc = network_configuration
 
     with tf.variable_scope("discriminator_vars") as variable_scope:
-        num_inputs = nc.num_classes + nc.num_x_dims
-        num_hidden_units = nc.num_discriminator_hidden_units
-        hidden_stddev1 = helper.xavier_stddev(
-            num_inputs,
-            num_hidden_units,
-        )
         hidden_weights1 = tf.Variable(
-            tf.truncated_normal(
-                [num_inputs, num_hidden_units],
-                stddev = hidden_stddev1,
+            helper.glorot_uniform_initializer(
+                nc.num_classes + nc.num_x_dims,
+                nc.num_discriminator_hidden_units
             ),
             name = "hidden_weights1"
         )
         hidden_biases1 = tf.Variable(
-            0.1 * np.ones(num_hidden_units, dtype = np.float32),
+            config.DEFAULT_BIAS * np.ones(
+                nc.num_discriminator_hidden_units, dtype = np.float32
+            ),
             name = "hidden_biases1"
         )
 
-        output_stddev = helper.xavier_stddev(num_hidden_units, 1)
         output_weights = tf.Variable(
-            tf.truncated_normal(
-                [num_hidden_units, 1],
-                stddev = output_stddev
+            helper.glorot_uniform_initializer(
+                nc.num_discriminator_hidden_units, 1
             ),
             name = "output_weights"
         )
         output_biases = tf.Variable(
-            0.1,
+            config.DEFAULT_BIAS,
             name = "output_biases"
         )
 

@@ -18,7 +18,10 @@ Batch = namedtuple("Batch", [
 ])
 
 def generate_z(num_samples):
-    return np.random.normal(
+    # TODO: Appears to be very important that this is uniform!!
+    return np.random.uniform(
+        -1,
+        +1,
         size = [num_samples, config.Z_DIMS]
     )
 
