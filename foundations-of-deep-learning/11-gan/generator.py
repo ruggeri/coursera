@@ -135,16 +135,18 @@ def generator(
                 tf.int64, [None], name = "class_label"
             )
             tf.summary.histogram(
-                "class_label",
-                class_label,
-                collections = [SUMMARY_KEY]
+                "class_label", class_label, collections = [SUMMARY_KEY]
             )
 
             one_hot_class_label = tf.one_hot(
                 class_label, nc.num_classes
             )
+
             z = tf.placeholder(
                 tf.float32, [None, nc.num_z_dims], name = "z"
+            )
+            tf.summary.histogram(
+                "z", z, collections = [SUMMARY_KEY]
             )
 
         generated_x = apply_parameters(

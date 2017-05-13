@@ -26,7 +26,7 @@ def build(
 
         train_op = tf.train.AdamOptimizer().minimize(
             loss,
-            var_list = variable_scope.global_variables()
+            var_list = variable_scope.trainable_variables()
         )
 
     return (accuracy, loss, train_op)
