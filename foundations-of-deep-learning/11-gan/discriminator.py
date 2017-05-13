@@ -14,6 +14,7 @@ Parameters = namedtuple("Parameters", [
 ])
 
 Discriminator = namedtuple("Discriminator", [
+    "parameters",
     "class_label",
     "x",
     "authenticity_label",
@@ -129,6 +130,7 @@ def discriminator(
         )
 
     return Discriminator(
+        parameters = discriminator_parameters,
         class_label = class_label,
         x = x,
         authenticity_label = authenticity_label,

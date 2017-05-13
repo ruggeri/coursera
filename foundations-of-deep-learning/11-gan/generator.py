@@ -15,6 +15,7 @@ Parameters = namedtuple("Parameters", [
 ])
 
 Generator = namedtuple("Generator", [
+    "parameters",
     "class_label",
     "z",
     "generated_x",
@@ -180,6 +181,7 @@ def generator(
         )
 
     return Generator(
+        parameters = generator_parameters,
         class_label = class_label,
         z = z,
         generated_x = generated_x,
