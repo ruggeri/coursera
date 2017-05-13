@@ -9,5 +9,5 @@ def leaky_relu(input, name = None):
         name = name
     )
 
-def glorot_bound(fan_in, fan_out):
-    return np.sqrt(6.0/(fan_in + fan_out))
+def xavier_stddev(fan_in, fan_out):
+    return np.sqrt(2.0 / (fan_in + fan_out))

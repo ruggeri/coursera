@@ -18,7 +18,9 @@ Batch = namedtuple("Batch", [
 ])
 
 def generate_z(num_samples):
-    return np.random.uniform(-1, 1, size = [num_samples, config.Z_DIMS])
+    return np.random.normal(
+        size = [num_samples, config.Z_DIMS]
+    )
 
 def generate_x(run_info, num_samples, fake_class_label, z):
     session, graph = run_info.session, run_info.graph

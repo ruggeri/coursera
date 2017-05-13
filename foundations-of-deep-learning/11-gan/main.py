@@ -76,13 +76,14 @@ def evaluate(run_info, batch_size):
         run_info, batch_size
     )
 
-    g_loss = session.run(
-        graph.generator.loss,
+    g_loss, g_summary = session.run(
+        [graph.generator.loss, graph.generator.summary],
         feed_dict = {
             graph.generator.class_label: batch.fake_class_label,
             graph.generator.z: batch.fake_z,
         }
     )
+    run_info.writer.add_summary(g_summary)
 
     d_loss, d_accuracy = session.run([
         graph.discriminator.loss,

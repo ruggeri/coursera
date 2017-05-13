@@ -31,15 +31,14 @@ def parameters(network_configuration):
         # Hidden layer
         num_inputs = nc.num_classes + nc.num_z_dims
         num_hidden_units = nc.num_generator_hidden_units
-        hidden_bound1 = helper.glorot_bound(
+        hidden_stddev1 = helper.xavier_stddev(
             num_inputs,
             num_hidden_units,
         )
         hidden_weights1 = tf.Variable(
-            tf.random_uniform(
+            tf.truncated_normal(
                 [num_inputs, num_hidden_units],
-                minval = -hidden_bound1,
-                maxval = +hidden_bound1,
+                stddev = hidden_stddev1,
             ),
             name = "hidden_weights1"
         )
@@ -59,12 +58,11 @@ def parameters(network_configuration):
         )
 
         # Output layer
-        output_bound = helper.glorot_bound(num_hidden_units, 1)
+        output_stddev = helper.xavier_stddev(num_hidden_units, 1)
         output_weights = tf.Variable(
-            tf.random_uniform(
+            tf.truncated_normal(
                 [num_hidden_units, nc.num_x_dims],
-                minval = -output_bound,
-                maxval = +output_bound,
+                stddev = output_stddev,
             ),
             name = "output_weights"
         )
