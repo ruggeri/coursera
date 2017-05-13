@@ -5,24 +5,25 @@ import numpy as np
 import tensorflow as tf
 
 def run_discriminator_batch(session, graph, batch):
+    d = graph.discriminator
     _, loss, accuracy = session.run([
-        graph.train_discriminator_op,
-        graph.discriminator_loss,
-        graph.discriminator_accuracy,
+        d.train_op,
+        d.loss,
+        d.accuracy,
     ], feed_dict = {
-        graph.class_label: batch.combined_class_label,
-        graph.discriminator_x: batch.combined_x,
-        graph.authenticity_label: batch.combined_authenticity_label
+        d.class_label: batch.combined_class_label,
+        d.x: batch.combined_x,
+        d.authenticity_label: batch.combined_authenticity_label
     })
 
     return (loss, accuracy)
 
 def run_generator_batch(session, graph, batch):
     _, loss = session.run(
-        [graph.train_generator_op, graph.generator_loss],
+        [graph.generator.train_op, graph.generator.loss],
         feed_dict = {
-            graph.class_label: batch.fake_class_label,
-            graph.z: batch.fake_z,
+            graph.generator.class_label: batch.fake_class_label,
+            graph.generator.z: batch.fake_z,
         }
     )
 
@@ -30,7 +31,10 @@ def run_generator_batch(session, graph, batch):
 
 def run_batch(session, graph, epoch_idx, batch_idx, dataset):
     batch = batch_module.next_batch(
-        session, graph, dataset, config.BATCH_SIZE
+        session = session,
+        graph = graph,
+        dataset = dataset,
+        batch_size = config.BATCH_SIZE
     )
 
     run_discriminator_batch(
@@ -63,19 +67,19 @@ def evaluate(session, graph, dataset, batch_size):
     )
 
     g_loss = session.run(
-        graph.generator_loss,
+        graph.generator.loss,
         feed_dict = {
-            graph.class_label: batch.fake_class_label,
-            graph.z: batch.fake_z,
+            graph.generator.class_label: batch.fake_class_label,
+            graph.generator.z: batch.fake_z,
         }
     )
     d_loss, d_accuracy = session.run([
-        graph.discriminator_loss,
-        graph.discriminator_accuracy,
+        graph.discriminator.loss,
+        graph.discriminator.accuracy,
     ], feed_dict = {
-        graph.class_label: batch.combined_class_label,
-        graph.discriminator_x: batch.combined_x,
-        graph.authenticity_label: batch.combined_authenticity_label
+        graph.discriminator.class_label: batch.combined_class_label,
+        graph.discriminator.x: batch.combined_x,
+        graph.discriminator.authenticity_label: batch.combined_authenticity_label,
     })
 
     return (g_loss, d_loss, d_accuracy)
@@ -91,7 +95,10 @@ def run_epoch(session, graph, epoch_idx, dataset):
             dataset = dataset
         )
 
-def run(session, graph, num_epochs = config.NUM_EPOCHS, epoch_callback = None):
+def run(session,
+        graph,
+        num_epochs = config.NUM_EPOCHS,
+        epoch_callback = None):
     from tensorflow.examples.tutorials.mnist import input_data
     dataset = input_data.read_data_sets('mnist_data').train
     writer = tf.summary.FileWriter("logs/", graph = session.graph)
@@ -108,13 +115,13 @@ def run(session, graph, num_epochs = config.NUM_EPOCHS, epoch_callback = None):
             epoch_callback(session, graph)
 
 def graph():
-    g = graph_module.graph(
+    g = graph_module.graph(graph_module.NetworkConfiguration(
         num_classes = config.NUM_CLASSES,
-        x_dims = config.IMAGE_DIMS,
-        z_dims = config.Z_DIMS,
-        num_generator_hidden_units = config.NUM_GENERATOR_HIDDEN_UNITS,
         num_discriminator_hidden_units = config.NUM_DISCRIMINATOR_HIDDEN_UNITS,
-    )
+        num_generator_hidden_units = config.NUM_GENERATOR_HIDDEN_UNITS,
+        num_x_dims = config.IMAGE_DIMS,
+        num_z_dims = config.Z_DIMS,
+    ))
 
     return g
 
