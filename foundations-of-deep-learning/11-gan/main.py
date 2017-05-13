@@ -109,25 +109,28 @@ def run(session,
         graph,
         num_epochs = config.NUM_EPOCHS,
         epoch_callback = None):
+    ri = run_info(session, graph)
+    session.run(tf.global_variables_initializer())
+    for epoch_idx in range(1, num_epochs + 1):
+        run_epoch(
+            run_info = ri,
+            epoch_idx = epoch_idx,
+        )
+        if epoch_callback:
+            epoch_callback(ri)
+
+def run_info(session, graph):
     from tensorflow.examples.tutorials.mnist import input_data
     dataset = input_data.read_data_sets('mnist_data').train
     writer = tf.summary.FileWriter("logs/", graph = session.graph)
 
-    run_info = RunInfo(
+    return RunInfo(
         session = session,
         graph = graph,
         dataset = dataset,
         writer = writer
     )
 
-    session.run(tf.global_variables_initializer())
-    for epoch_idx in range(1, num_epochs + 1):
-        run_epoch(
-            run_info = run_info,
-            epoch_idx = epoch_idx,
-        )
-        if epoch_callback:
-            epoch_callback(run_info)
 
 def graph():
     g = graph_module.graph(graph_module.NetworkConfiguration(
