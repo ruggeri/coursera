@@ -19,7 +19,10 @@ Generator = namedtuple("Generator", [
     "generated_x",
     "loss",
     "train_op",
+    "summary",
 ])
+
+SUMMARY_KEY = "GENERATOR_SUMMARIES"
 
 def parameters(network_configuration):
     nc = network_configuration
@@ -40,9 +43,19 @@ def parameters(network_configuration):
             ),
             name = "hidden_weights1"
         )
+        tf.summary.histogram(
+            "hidden_weights1",
+            hidden_weights1,
+            collections = [SUMMARY_KEY]
+        )
         hidden_biases1 = tf.Variable(
             0.1 * np.ones(num_hidden_units, dtype = np.float32),
             name = "hidden_biases1"
+        )
+        tf.summary.histogram(
+            "hidden_biases1",
+            hidden_biases1,
+            collections = [SUMMARY_KEY]
         )
 
         # Output layer
@@ -55,9 +68,19 @@ def parameters(network_configuration):
             ),
             name = "output_weights"
         )
+        tf.summary.histogram(
+            "output_weights",
+            output_weights,
+            collections = [SUMMARY_KEY]
+        )
         output_biases = tf.Variable(
             0.1,
             name = "output_biases"
+        )
+        tf.summary.histogram(
+            "output_biases",
+            output_biases,
+            collections = [SUMMARY_KEY]
         )
 
     return Parameters(
@@ -81,6 +104,11 @@ def apply_parameters(one_hot_class_label, z, generator_parameters):
             h1_input, gp.hidden_weights1
         ) + gp.hidden_biases1
         h1_output = helper.leaky_relu(h1)
+        tf.summary.histogram(
+            "h1_output",
+            h1_output,
+            collections = [SUMMARY_KEY]
+        )
 
     # Perform fc output layer
     with tf.name_scope("generated_x"):
@@ -88,6 +116,11 @@ def apply_parameters(one_hot_class_label, z, generator_parameters):
             h1_output, gp.output_weights
         ) + gp.output_biases
         generated_x = tf.nn.tanh(generated_x)
+        tf.summary.histogram(
+            "generated_x",
+            generated_x,
+            collections = [SUMMARY_KEY]
+        )
 
     return generated_x
 
@@ -103,6 +136,12 @@ def generator(
             class_label = tf.placeholder(
                 tf.int64, [None], name = "class_label"
             )
+            tf.summary.histogram(
+                "class_label",
+                class_label,
+                collections = [SUMMARY_KEY]
+            )
+
             one_hot_class_label = tf.one_hot(
                 class_label, nc.num_classes
             )
@@ -122,6 +161,11 @@ def generator(
                 x = generated_x,
                 discriminator_parameters = discriminator_parameters,
             )
+            tf.summary.histogram(
+                "prediction_logits",
+                prediction_logits,
+                collections = [SUMMARY_KEY]
+            )
 
         # NB: Rather than explicitly try to make the discriminator
         # maximize, we minimize the "wrong" loss, because the
@@ -132,11 +176,17 @@ def generator(
             authenticity_label = tf.ones_like(prediction_logits),
             variable_scope = gp.variable_scope
         )
+        tf.summary.scalar(
+            "loss",
+            loss,
+            collections = [SUMMARY_KEY]
+        )
 
     return Generator(
         class_label = class_label,
         z = z,
         generated_x = generated_x,
         loss = loss,
-        train_op = train_op
+        train_op = train_op,
+        summary = tf.summary.merge_all(SUMMARY_KEY)
     )

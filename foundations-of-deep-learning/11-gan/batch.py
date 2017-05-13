@@ -20,12 +20,8 @@ Batch = namedtuple("Batch", [
 def generate_z(num_samples):
     return np.random.uniform(-1, 1, size = [num_samples, config.Z_DIMS])
 
-def generate_x(
-        session,
-        graph,
-        num_samples,
-        fake_class_label,
-        z):
+def generate_x(run_info, num_samples, fake_class_label, z):
+    session, graph = run_info.session, run_info.graph
     if z is None:
         z = generate_z(num_samples)
 
@@ -34,7 +30,7 @@ def generate_x(
         graph.generator.z: z,
     })
 
-def generate_fake_data(session, graph, num_classes, num_samples):
+def generate_fake_data(run_info, num_classes, num_samples):
     fake_class_label = np.random.choice(
         num_classes + 1, size = num_samples, replace = True
     )
@@ -42,8 +38,7 @@ def generate_fake_data(session, graph, num_classes, num_samples):
     fake_class_label = np.ones_like(fake_class_label)
     fake_z = generate_z(num_samples)
     fake_x = generate_x(
-        session,
-        graph,
+        run_info = run_info,
         num_samples = num_samples,
         fake_class_label = fake_class_label,
         z = fake_z
@@ -62,15 +57,14 @@ def generate_real_data(dataset, num_samples):
 
     return (real_class_label, real_x)
 
-def next_batch(session, graph, dataset, batch_size):
+def next_batch(run_info, batch_size):
     fake_class_label, fake_z, fake_x = generate_fake_data(
-        session,
-        graph,
+        run_info,
         num_classes = config.NUM_CLASSES,
         num_samples = batch_size,
     )
     real_class_label, real_x = generate_real_data(
-        dataset = dataset ,
+        dataset = run_info.dataset,
         num_samples = batch_size,
     )
 

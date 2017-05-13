@@ -1,11 +1,21 @@
 import batch as batch_module
+from collections import namedtuple
 import config
 import graph as graph_module
 import numpy as np
 import tensorflow as tf
 
-def run_discriminator_batch(session, graph, batch):
+RunInfo = namedtuple("RunInfo", [
+    "session",
+    "graph",
+    "dataset",
+    "writer",
+])
+
+def run_discriminator_batch(run_info, batch):
+    session, graph = run_info.session, run_info.graph
     d = graph.discriminator
+
     _, loss, accuracy = session.run([
         d.train_op,
         d.loss,
@@ -18,7 +28,9 @@ def run_discriminator_batch(session, graph, batch):
 
     return (loss, accuracy)
 
-def run_generator_batch(session, graph, batch):
+def run_generator_batch(run_info, batch):
+    session, graph = run_info.session, run_info.graph
+
     _, loss = session.run(
         [graph.generator.train_op, graph.generator.loss],
         feed_dict = {
@@ -29,41 +41,39 @@ def run_generator_batch(session, graph, batch):
 
     return loss
 
-def run_batch(session, graph, epoch_idx, batch_idx, dataset):
+def run_batch(run_info, epoch_idx, batch_idx):
     batch = batch_module.next_batch(
-        session = session,
-        graph = graph,
-        dataset = dataset,
+        run_info,
         batch_size = config.BATCH_SIZE
     )
 
     run_discriminator_batch(
-        session = session,
-        graph = graph,
+        run_info = run_info,
         batch = batch,
     )
     run_generator_batch(
-        session = session,
-        graph = graph,
+        run_info,
         batch = batch,
     )
 
-    num_batches = dataset.num_examples // config.BATCH_SIZE
+    num_batches = run_info.dataset.num_examples // config.BATCH_SIZE
     should_log = ((
         batch_idx % int(config.LOG_FREQUENCY * num_batches)) == 0
     )
     if should_log:
         g_loss, d_loss, d_accuracy = evaluate(
-            session, graph, dataset, config.BATCH_SIZE
+            run_info, config.BATCH_SIZE
         )
         print(f"Epoch {epoch_idx:03d} | Batch {batch_idx:03d} | "
               f"Gen Loss {g_loss:.2f} | "
               f"Dis Loss {d_loss:.2f} | "
               f"Dis Acc {(100 * d_accuracy):.1f}%")
 
-def evaluate(session, graph, dataset, batch_size):
+def evaluate(run_info, batch_size):
+    session, graph = run_info.session, run_info.graph
+
     batch = batch_module.next_batch(
-        session, graph, dataset, batch_size
+        run_info, batch_size
     )
 
     g_loss = session.run(
@@ -73,6 +83,7 @@ def evaluate(session, graph, dataset, batch_size):
             graph.generator.z: batch.fake_z,
         }
     )
+
     d_loss, d_accuracy = session.run([
         graph.discriminator.loss,
         graph.discriminator.accuracy,
@@ -84,15 +95,13 @@ def evaluate(session, graph, dataset, batch_size):
 
     return (g_loss, d_loss, d_accuracy)
 
-def run_epoch(session, graph, epoch_idx, dataset):
-    num_batches = dataset.num_examples // config.BATCH_SIZE
+def run_epoch(run_info, epoch_idx):
+    num_batches = run_info.dataset.num_examples // config.BATCH_SIZE
     for batch_idx in range(1, num_batches + 1):
         run_batch(
-            session = session,
-            graph = graph,
+            run_info,
             epoch_idx = epoch_idx,
             batch_idx = batch_idx,
-            dataset = dataset
         )
 
 def run(session,
@@ -103,13 +112,18 @@ def run(session,
     dataset = input_data.read_data_sets('mnist_data').train
     writer = tf.summary.FileWriter("logs/", graph = session.graph)
 
+    run_info = RunInfo(
+        session = session,
+        graph = graph,
+        dataset = dataset,
+        writer = writer
+    )
+
     session.run(tf.global_variables_initializer())
     for epoch_idx in range(1, num_epochs + 1):
         run_epoch(
-            session = session,
-            graph = graph,
+            run_info = run_info,
             epoch_idx = epoch_idx,
-            dataset = dataset,
         )
         if epoch_callback:
             epoch_callback(session, graph)
