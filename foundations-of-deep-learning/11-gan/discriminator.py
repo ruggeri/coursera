@@ -104,16 +104,19 @@ def discriminator(
 
     with tf.name_scope("discriminator"):
         # Placeholders
-        class_label = tf.placeholder(
-            tf.int64, [None], name = "class_label"
-        )
-        one_hot_class_label = tf.one_hot(class_label, nc.num_classes)
-        x = tf.placeholder(
-            tf.float32, [None, nc.num_x_dims], name = "x"
-        )
-        authenticity_label = tf.placeholder(
-            tf.int64, [None], name = "authenticity_label"
-        )
+        with tf.name_scope("placeholders"):
+            class_label = tf.placeholder(
+                tf.int64, [None], name = "class_label"
+            )
+            one_hot_class_label = tf.one_hot(
+                class_label, nc.num_classes
+            )
+            x = tf.placeholder(
+                tf.float32, [None, nc.num_x_dims], name = "x"
+            )
+            authenticity_label = tf.placeholder(
+                tf.int64, [None], name = "authenticity_label"
+            )
 
         # Predictions
         prediction_logits, prediction = apply_parameters(

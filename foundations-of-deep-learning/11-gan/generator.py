@@ -99,13 +99,16 @@ def generator(
 
     with tf.name_scope("generator"):
         # Placeholders
-        class_label = tf.placeholder(
-            tf.int64, [None], name = "class_label"
-        )
-        one_hot_class_label = tf.one_hot(class_label, nc.num_classes)
-        z = tf.placeholder(
-            tf.float32, [None, nc.num_z_dims], name = "z"
-        )
+        with tf.name_scope("placeholders"):
+            class_label = tf.placeholder(
+                tf.int64, [None], name = "class_label"
+            )
+            one_hot_class_label = tf.one_hot(
+                class_label, nc.num_classes
+            )
+            z = tf.placeholder(
+                tf.float32, [None, nc.num_z_dims], name = "z"
+            )
 
         generated_x = apply_parameters(
             one_hot_class_label = one_hot_class_label,
@@ -113,11 +116,12 @@ def generator(
             generator_parameters = generator_parameters,
         )
 
-        prediction_logits, prediction = discriminator.apply_parameters(
-            one_hot_class_label = one_hot_class_label,
-            x = generated_x,
-            discriminator_parameters = discriminator_parameters,
-        )
+        with tf.name_scope("discriminator"):
+            prediction_logits, prediction = discriminator.apply_parameters(
+                one_hot_class_label = one_hot_class_label,
+                x = generated_x,
+                discriminator_parameters = discriminator_parameters,
+            )
 
         # NB: Rather than explicitly try to make the discriminator
         # maximize, we minimize the "wrong" loss, because the
