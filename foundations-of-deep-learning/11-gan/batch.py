@@ -32,7 +32,7 @@ def generate_x(run_info, num_samples, fake_class_label, z):
 
 def generate_fake_data(run_info, num_classes, num_samples):
     fake_class_label = np.random.choice(
-        num_classes + 1, size = num_samples, replace = True
+        num_classes, size = num_samples, replace = True
     )
     fake_z = generate_z(num_samples)
     fake_x = generate_x(
