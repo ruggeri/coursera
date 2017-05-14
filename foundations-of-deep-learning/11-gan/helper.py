@@ -10,9 +10,6 @@ def leaky_relu(input, name = None):
             name = name
         )
 
-def xavier_stddev(fan_in, fan_out):
-    return np.sqrt(2.0 / (fan_in + fan_out))
-
 def glorot_uniform_initializer(fan_in, fan_out):
     scale = 1 / max(1.0, (fan_in + fan_out) / 2.0)
     limit = np.sqrt(3.0 * scale)
