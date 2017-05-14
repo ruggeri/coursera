@@ -33,15 +33,24 @@ def run_discriminator_batch(run_info, batch):
 def run_generator_batch(run_info, batch):
     session, graph = run_info.session, run_info.graph
 
-    _, loss = session.run(
-        [graph.generator.train_op, graph.generator.loss],
-        feed_dict = {
-            graph.generator.class_label: batch.fake_class_label,
-            graph.generator.z: batch.fake_z,
-        }
-    )
+    _, loss, summary = session.run([
+        graph.generator.train_op,
+        graph.generator.loss,
+        graph.generator.summary
+    ], feed_dict = {
+        graph.generator.class_label: batch.fake_class_label,
+        graph.generator.z: batch.fake_z,
+    })
+    run_info.writer.add_summary(summary)
+
 
     return loss
+
+def should_log(run_info, batch_idx):
+    num_batches = run_info.dataset.num_examples // config.BATCH_SIZE
+    return (
+        (batch_idx % int(config.LOG_FREQUENCY * num_batches)) == 0
+    )
 
 def run_batch(run_info, epoch_idx, batch_idx):
     batch = batch_module.next_batch(
@@ -49,56 +58,14 @@ def run_batch(run_info, epoch_idx, batch_idx):
         batch_size = config.BATCH_SIZE
     )
 
-    run_discriminator_batch(
-        run_info = run_info,
-        batch = batch,
-    )
-    run_generator_batch(
-        run_info,
-        batch = batch,
-    )
+    d_loss, d_accuracy = run_discriminator_batch(run_info, batch)
+    g_loss = run_generator_batch(run_info, batch)
 
-    num_batches = run_info.dataset.num_examples // config.BATCH_SIZE
-    should_log = ((
-        batch_idx % int(config.LOG_FREQUENCY * num_batches)) == 0
-    )
-    if should_log:
-        g_loss, d_loss, d_accuracy = evaluate(
-            run_info, config.BATCH_SIZE
-        )
+    if should_log(run_info, batch_idx):
         print(f"Epoch {epoch_idx:03d} | Batch {batch_idx:03d} | "
               f"Gen Loss {g_loss:.2f} | "
               f"Dis Loss {d_loss:.2f} | "
               f"Dis Acc {(100 * d_accuracy):.1f}%")
-
-def evaluate(run_info, batch_size):
-    session, graph = run_info.session, run_info.graph
-    generator, discriminator = graph.generator, graph.discriminator
-
-    batch = batch_module.next_batch(
-        run_info, batch_size
-    )
-
-    g_loss, g_summary = session.run(
-        [generator.loss, generator.summary],
-        feed_dict = {
-            generator.class_label: batch.fake_class_label,
-            generator.z: batch.fake_z,
-        }
-    )
-    run_info.writer.add_summary(g_summary)
-
-    d_loss, d_accuracy = session.run([
-        discriminator.loss,
-        discriminator.accuracy,
-    ], feed_dict = {
-        discriminator.fake_class_label: batch.fake_class_label,
-        discriminator.fake_x: batch.fake_x,
-        discriminator.real_class_label: batch.real_class_label,
-        discriminator.real_x: batch.real_x,
-    })
-
-    return (g_loss, d_loss, d_accuracy)
 
 def run_epoch(run_info, epoch_idx):
     num_batches = run_info.dataset.num_examples // config.BATCH_SIZE
@@ -144,7 +111,6 @@ def run_info(session, graph):
         dataset = dataset,
         writer = writer
     )
-
 
 def graph():
     g = graph_module.graph(graph_module.NetworkConfiguration(
