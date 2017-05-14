@@ -25,6 +25,20 @@ Generator = namedtuple("Generator", [
 
 SUMMARY_KEY = "GENERATOR_SUMMARIES"
 
+def summary_histogram(tensor, name = None):
+    tf.summary.histogram(
+        name or tensor.name,
+        tensor,
+        collections = [SUMMARY_KEY]
+    )
+
+def summary_scalar(tensor, name = None):
+    tf.summary.scalar(
+        name or tensor.name,
+        tensor,
+        collections = [SUMMARY_KEY]
+    )
+
 def parameters(network_configuration):
     nc = network_configuration
 
@@ -37,22 +51,15 @@ def parameters(network_configuration):
             ),
             name = "hidden_weights1"
         )
-        tf.summary.histogram(
-            "hidden_weights1",
-            hidden_weights1,
-            collections = [SUMMARY_KEY]
-        )
+        summary_histogram(hidden_weights1)
+
         hidden_biases1 = tf.Variable(
             config.DEFAULT_BIAS * np.ones(
                 nc.num_generator_hidden_units, dtype = np.float32
             ),
             name = "hidden_biases1"
         )
-        tf.summary.histogram(
-            "hidden_biases1",
-            hidden_biases1,
-            collections = [SUMMARY_KEY]
-        )
+        summary_histogram(hidden_biases1)
 
         # Output layer
         output_weights = tf.Variable(
@@ -62,21 +69,14 @@ def parameters(network_configuration):
             ),
             name = "output_weights"
         )
-        tf.summary.histogram(
-            "output_weights",
-            output_weights,
-            collections = [SUMMARY_KEY]
-        )
+        summary_histogram(output_weights)
+
         output_biases = tf.Variable(
             config.DEFAULT_BIAS * np.ones(nc.num_x_dims),
             name = "output_biases",
             dtype = tf.float32
         )
-        tf.summary.histogram(
-            "output_biases",
-            output_biases,
-            collections = [SUMMARY_KEY]
-        )
+        summary_histogram(output_biases)
 
     return Parameters(
         hidden_weights1 = hidden_weights1,
@@ -99,11 +99,7 @@ def apply_parameters(one_hot_class_label, z, generator_parameters):
             h1_input, gp.hidden_weights1
         ) + gp.hidden_biases1
         h1_output = helper.leaky_relu(h1)
-        tf.summary.histogram(
-            "h1_output",
-            h1_output,
-            collections = [SUMMARY_KEY]
-        )
+        summary_histogram(h1_output, name = "h1_output")
 
     # Perform fc output layer
     with tf.name_scope("generated_x"):
@@ -111,11 +107,7 @@ def apply_parameters(one_hot_class_label, z, generator_parameters):
             h1_output, gp.output_weights
         ) + gp.output_biases
         generated_x = tf.nn.tanh(generated_x)
-        tf.summary.histogram(
-            "generated_x",
-            generated_x,
-            collections = [SUMMARY_KEY]
-        )
+        summary_histogram(generated_x, name = "generated_x")
 
     return generated_x
 
@@ -131,9 +123,7 @@ def generator(
             class_label = tf.placeholder(
                 tf.int64, [None], name = "class_label"
             )
-            tf.summary.histogram(
-                "class_label", class_label, collections = [SUMMARY_KEY]
-            )
+            summary_histogram(class_label)
 
             one_hot_class_label = tf.one_hot(
                 class_label, nc.num_classes
@@ -142,9 +132,7 @@ def generator(
             z = tf.placeholder(
                 tf.float32, [None, nc.num_z_dims], name = "z"
             )
-            tf.summary.histogram(
-                "z", z, collections = [SUMMARY_KEY]
-            )
+            summary_histogram(z)
 
         generated_x = apply_parameters(
             one_hot_class_label = one_hot_class_label,
@@ -158,11 +146,7 @@ def generator(
             discriminator_parameters = discriminator_parameters,
             variable_scope = gp.variable_scope
         )
-        tf.summary.scalar(
-            "loss",
-            loss,
-            collections = [SUMMARY_KEY]
-        )
+        summary_scalar(loss)
 
     return Generator(
         parameters = generator_parameters,
