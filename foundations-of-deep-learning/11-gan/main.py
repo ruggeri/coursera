@@ -2,6 +2,7 @@ import batch as batch_module
 from collections import namedtuple
 import config
 import graph as graph_module
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
@@ -108,6 +109,16 @@ def run_epoch(run_info, epoch_idx):
             batch_idx = batch_idx,
         )
 
+def show_samples(run_info, epoch_idx):
+    if not (epoch_idx % config.EPOCHS_PER_SAMPLING == 0):
+        return
+
+    batch = batch_module.next_batch(run_info, 8)
+    for fake_x in batch.fake_x:
+        plt.figure()
+        plt.imshow(fake_x.reshape((28, 28)), cmap = "Greys_r")
+    plt.show()
+
 def run(session,
         graph,
         num_epochs = config.NUM_EPOCHS,
@@ -120,7 +131,7 @@ def run(session,
             epoch_idx = epoch_idx,
         )
         if epoch_callback:
-            epoch_callback(ri)
+            epoch_callback(ri, epoch_idx)
 
 def run_info(session, graph):
     from tensorflow.examples.tutorials.mnist import input_data
@@ -148,4 +159,4 @@ def graph():
 
 if __name__ == "__main__":
     with tf.Session() as session:
-        run(session, graph())
+        run(session, graph(), epoch_callback = show_samples)
