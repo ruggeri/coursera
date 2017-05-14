@@ -1,6 +1,5 @@
 from collections import namedtuple
 import config
-import discriminator
 import helper
 import numpy as np
 import tensorflow as tf
@@ -153,25 +152,10 @@ def generator(
             generator_parameters = generator_parameters,
         )
 
-        with tf.name_scope("discriminator"):
-            prediction_logits, prediction = discriminator.apply_parameters(
-                one_hot_class_label = one_hot_class_label,
-                x = generated_x,
-                discriminator_parameters = discriminator_parameters,
-            )
-            tf.summary.histogram(
-                "prediction_logits",
-                prediction_logits,
-                collections = [SUMMARY_KEY]
-            )
-
-        # NB: Rather than explicitly try to make the discriminator
-        # maximize, we minimize the "wrong" loss, because the
-        # gradients are stronger to learn from.
-        _, loss, train_op = trainer.build(
-            prediction_logits = prediction_logits,
-            prediction = prediction,
-            authenticity_label = tf.ones_like(prediction_logits),
+        loss, train_op = trainer.build_for_generator(
+            one_hot_class_label = one_hot_class_label,
+            generated_x = generated_x,
+            discriminator_parameters = discriminator_parameters,
             variable_scope = gp.variable_scope
         )
         tf.summary.scalar(

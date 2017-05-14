@@ -14,16 +14,17 @@ RunInfo = namedtuple("RunInfo", [
 
 def run_discriminator_batch(run_info, batch):
     session, graph = run_info.session, run_info.graph
-    d = graph.discriminator
+    discriminator = graph.discriminator
 
     _, loss, accuracy = session.run([
-        d.train_op,
-        d.loss,
-        d.accuracy,
+        discriminator.train_op,
+        discriminator.loss,
+        discriminator.accuracy,
     ], feed_dict = {
-        d.class_label: batch.combined_class_label,
-        d.x: batch.combined_x,
-        d.authenticity_label: batch.combined_authenticity_label
+        discriminator.fake_class_label: batch.fake_class_label,
+        discriminator.fake_x: batch.fake_x,
+        discriminator.real_class_label: batch.real_class_label,
+        discriminator.real_x: batch.real_x,
     })
 
     return (loss, accuracy)
@@ -71,27 +72,29 @@ def run_batch(run_info, epoch_idx, batch_idx):
 
 def evaluate(run_info, batch_size):
     session, graph = run_info.session, run_info.graph
+    generator, discriminator = graph.generator, graph.discriminator
 
     batch = batch_module.next_batch(
         run_info, batch_size
     )
 
     g_loss, g_summary = session.run(
-        [graph.generator.loss, graph.generator.summary],
+        [generator.loss, generator.summary],
         feed_dict = {
-            graph.generator.class_label: batch.fake_class_label,
-            graph.generator.z: batch.fake_z,
+            generator.class_label: batch.fake_class_label,
+            generator.z: batch.fake_z,
         }
     )
     run_info.writer.add_summary(g_summary)
 
     d_loss, d_accuracy = session.run([
-        graph.discriminator.loss,
-        graph.discriminator.accuracy,
+        discriminator.loss,
+        discriminator.accuracy,
     ], feed_dict = {
-        graph.discriminator.class_label: batch.combined_class_label,
-        graph.discriminator.x: batch.combined_x,
-        graph.discriminator.authenticity_label: batch.combined_authenticity_label,
+        discriminator.fake_class_label: batch.fake_class_label,
+        discriminator.fake_x: batch.fake_x,
+        discriminator.real_class_label: batch.real_class_label,
+        discriminator.real_x: batch.real_x,
     })
 
     return (g_loss, d_loss, d_accuracy)
