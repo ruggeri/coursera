@@ -80,11 +80,12 @@ def show_samples(run_info, epoch_idx):
     if not (epoch_idx % config.EPOCHS_PER_SAMPLING == 0):
         return
 
-    batch = batch_module.next_batch(run_info, 8)
-    for fake_x in batch.fake_x:
-        plt.figure()
+    batch = batch_module.next_batch(run_info, config.NUM_SAMPLES_TO_SAVE)
+    for idx, fake_x in enumerate(batch.fake_x):
         plt.imshow(fake_x.reshape((28, 28)), cmap = "Greys_r")
-    plt.show()
+        plt.title(f"class_label: {batch.fake_class_label[idx]}")
+        plt.savefig(f"samples/sample_e{epoch_idx:03d}_{idx:03d}.png")
+        plt.close()
 
 def run(session,
         graph,
