@@ -22,10 +22,18 @@ def run_discriminator_batch(run_info, batch):
         discriminator.loss,
         discriminator.accuracy,
     ], feed_dict = {
-        discriminator.fake_class_label: batch.fake_class_label,
-        discriminator.fake_x: batch.fake_x,
-        discriminator.real_class_label: batch.real_class_label,
-        discriminator.real_x: batch.real_x,
+        discriminator.all_class_label: np.concatenate([
+            batch.fake_class_label,
+            batch.real_class_label
+        ], axis = 0),
+        discriminator.all_x: np.concatenate([
+            batch.fake_x,
+            batch.real_x,
+        ], axis = 0),
+        discriminator.all_authenticity_label: np.concatenate([
+            np.zeros(config.BATCH_SIZE, dtype = np.int64),
+            np.ones(config.BATCH_SIZE, dtype = np.int64)
+        ], axis = 0),
     })
 
     return (loss, accuracy)
@@ -42,7 +50,6 @@ def run_generator_batch(run_info, batch):
         graph.generator.z: batch.fake_z,
     })
     run_info.writer.add_summary(summary)
-
 
     return loss
 

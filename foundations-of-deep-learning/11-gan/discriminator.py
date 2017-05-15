@@ -15,10 +15,9 @@ Parameters = namedtuple("Parameters", [
 
 Discriminator = namedtuple("Discriminator", [
     "parameters",
-    "real_class_label",
-    "real_x",
-    "fake_class_label",
-    "fake_x",
+    "all_x",
+    "all_class_label",
+    "all_authenticity_label",
     "loss",
     "accuracy",
     "train_op",
@@ -99,57 +98,42 @@ def discriminator(
     with tf.name_scope("discriminator"):
         # Placeholders
         with tf.name_scope("placeholders"):
-            real_class_label = tf.placeholder(
-                tf.int64, [None], name = "real_class_label"
+            all_class_label = tf.placeholder(
+                tf.int64, [None], name = "all_class_label"
             )
-            one_hot_real_class_label = tf.one_hot(
-                real_class_label, nc.num_classes
-            )
-
-            real_x = tf.placeholder(
-                tf.float32, [None, nc.num_x_dims], name = "real_x"
+            one_hot_all_class_label = tf.one_hot(
+                all_class_label, nc.num_classes
             )
 
-            fake_class_label = tf.placeholder(
-                tf.int64, [None], name = "fake_class_label"
-            )
-            one_hot_fake_class_label = tf.one_hot(
-                fake_class_label, nc.num_classes
+            all_x = tf.placeholder(
+                tf.float32, [None, nc.num_x_dims], name = "all_x"
             )
 
-            fake_x = tf.placeholder(
-                tf.float32, [None, nc.num_x_dims], name = "fake_x"
+            all_authenticity_label = tf.placeholder(
+                tf.int64, [None], name = "all_authenticity_label"
             )
 
         # Predictions
-        with tf.name_scope("real"):
-            real_prediction_logits, real_prediction = apply_parameters(
-                one_hot_class_label = one_hot_real_class_label,
-                x = real_x,
-                discriminator_parameters = discriminator_parameters,
-            )
-        with tf.name_scope("fake"):
-            fake_prediction_logits, fake_prediction = apply_parameters(
-                one_hot_class_label = one_hot_fake_class_label,
-                x = fake_x,
+        with tf.name_scope("predictions"):
+            all_prediction_logits, all_prediction = apply_parameters(
+                one_hot_class_label = one_hot_all_class_label,
+                x = all_x,
                 discriminator_parameters = discriminator_parameters,
             )
 
         # Evaluation and training operations
         accuracy, loss, train_op = trainer.build_for_discriminator(
-            fake_prediction_logits = fake_prediction_logits,
-            fake_prediction = fake_prediction,
-            real_prediction_logits = real_prediction_logits,
-            real_prediction = real_prediction,
+            all_prediction_logits = all_prediction_logits,
+            all_prediction = all_prediction,
+            all_authenticity_label = all_authenticity_label,
             variable_scope = dp.variable_scope,
         )
 
     return Discriminator(
         parameters = discriminator_parameters,
-        real_class_label = real_class_label,
-        real_x = real_x,
-        fake_class_label = fake_class_label,
-        fake_x = fake_x,
+        all_x = all_x,
+        all_class_label = all_class_label,
+        all_authenticity_label = all_authenticity_label,
         loss = loss,
         accuracy = accuracy,
         train_op = train_op,

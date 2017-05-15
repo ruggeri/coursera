@@ -82,46 +82,40 @@ def build_for_generator(
     return (loss_, train_op)
 
 def build_for_discriminator(
-        fake_prediction_logits,
-        fake_prediction,
-        real_prediction_logits,
-        real_prediction,
+        all_prediction_logits,
+        all_prediction,
+        all_authenticity_label,
         variable_scope):
     with tf.name_scope("trainer"):
-        with tf.name_scope("fake"):
-            fake_loss = loss(
-                fake_prediction_logits,
-                DISCRIMINATOR_FAKE_MODE,
-            )
-            fake_accuracy = accuracy(
-                fake_prediction,
-                DISCRIMINATOR_FAKE_MODE
-            )
-        with tf.name_scope("real"):
-            real_loss = loss(
-                real_prediction_logits,
-                DISCRIMINATOR_REAL_MODE,
-            )
-            real_accuracy = accuracy(
-                real_prediction,
-                DISCRIMINATOR_REAL_MODE
+        all_labels = all_authenticity_label
+        with tf.name_scope("smoothed_labels"):
+            all_smoothed_labels = tf.identity(
+                (1 - config.LABEL_SMOOTHING)
+                * (tf.cast(all_labels, dtype = tf.float32)),
+                name = "smoothed_labels"
             )
 
-        with tf.name_scope("combined"):
-            loss_ = tf.truediv(
-                (fake_loss + real_loss),
-                2.0,
-                name = "loss"
+        with tf.name_scope("loss"):
+            loss = tf.reduce_mean(
+                tf.nn.sigmoid_cross_entropy_with_logits(
+                    labels = all_smoothed_labels,
+                    logits = all_prediction_logits
+                ),
+                name = "loss",
             )
-            accuracy_ = tf.truediv(
-                (fake_accuracy + real_accuracy),
-                2.0,
-                name = "accuracy"
+
+        with tf.name_scope("accuracy"):
+            accuracy = tf.reduce_mean(
+                tf.cast(tf.equal(
+                    tf.cast(tf.round(all_prediction), tf.int64),
+                    all_labels
+                ), tf.float32),
+                name = "accuracy",
             )
 
         train_op = tf.train.AdamOptimizer().minimize(
-            loss_,
+            loss,
             var_list = variable_scope.trainable_variables()
         )
 
-    return (accuracy_, loss_, train_op)
+    return (accuracy, loss, train_op)
