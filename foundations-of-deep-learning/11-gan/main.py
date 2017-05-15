@@ -22,18 +22,9 @@ def run_discriminator_batch(run_info, batch):
         discriminator.loss,
         discriminator.accuracy,
     ], feed_dict = {
-        discriminator.all_class_label: np.concatenate([
-            batch.fake_class_label,
-            batch.real_class_label
-        ], axis = 0),
-        discriminator.all_x: np.concatenate([
-            batch.fake_x,
-            batch.real_x,
-        ], axis = 0),
-        discriminator.all_authenticity_label: np.concatenate([
-            np.zeros(config.BATCH_SIZE, dtype = np.int64),
-            np.ones(config.BATCH_SIZE, dtype = np.int64)
-        ], axis = 0),
+        discriminator.all_class_label: batch.combined_class_label,
+        discriminator.all_x: batch.combined_x,
+        discriminator.all_authenticity_label: batch.combined_authenticity_label,
     })
 
     return (loss, accuracy)

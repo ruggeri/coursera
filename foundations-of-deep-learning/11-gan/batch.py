@@ -11,12 +11,14 @@ Batch = namedtuple("Batch", [
     # Real
     "real_class_label",
     "real_x",
+    # Combined
+    "combined_x",
+    "combined_class_label",
+    "combined_authenticity_label",
 ])
 
 def generate_z(num_samples):
-    # TODO: When I used a normal distribution to generate the z values
-    # the losses were much higher. I wonder if I tried again to change
-    # it back whether that would still be the case.
+    # TODO: Appears to be very important that this is uniform!!
     return np.random.uniform(
         low = -1,
         high = +1,
@@ -64,6 +66,16 @@ def next_batch(run_info, batch_size):
         num_samples = batch_size,
     )
 
+    # Concatenate real and fake results
+    combined_x = np.concatenate([real_x, fake_x], axis = 0)
+    combined_class_label = np.concatenate(
+        [real_class_label, fake_class_label], axis = 0
+    )
+    combined_authenticity_label = np.concatenate(
+        [np.ones(batch_size), np.zeros(batch_size)],
+        axis = 0
+    )
+
     return Batch(
         fake_class_label = fake_class_label,
         fake_z = fake_z,
@@ -71,4 +83,8 @@ def next_batch(run_info, batch_size):
 
         real_class_label = real_class_label,
         real_x = real_x,
+
+        combined_x = combined_x,
+        combined_class_label = combined_class_label,
+        combined_authenticity_label = combined_authenticity_label
     )
