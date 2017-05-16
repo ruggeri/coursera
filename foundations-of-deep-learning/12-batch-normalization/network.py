@@ -16,12 +16,18 @@ def fc_layer(prev_layer, num_units, is_training):
 
         return tf.nn.relu(z)
 
-def conv_layer(prev_layer, num_filters, is_training):
+def conv_layer(prev_layer, num_filters, perform_striding, is_training):
+    if perform_striding:
+        strides = (2, 2)
+    else:
+        strides = (1, 1)
+
     with tf.name_scope("convolution"):
         z = tf.layers.conv2d(
             inputs = prev_layer,
             filters = num_filters,
             kernel_size = config.KERNEL_SIZE,
+            strides = strides,
             padding = "SAME",
         )
 
@@ -54,13 +60,14 @@ def network():
     is_training = tf.placeholder(tf.bool, name = "is_training")
 
     prev_layer = input_image
-    for layer_idx in range(config.NUM_CONVOLUTION_LAYERS):
+    for layer_idx in range(1, config.NUM_CONVOLUTION_LAYERS + 1):
         # This is silly, but the point is just to make a really deep
         # convolutional network.
         num_filters = 4 * (layer_idx + 1)
         prev_layer = conv_layer(
             prev_layer,
             num_filters = num_filters,
+            perform_striding = layer_idx % 2 == 0,
             is_training = is_training
         )
 
