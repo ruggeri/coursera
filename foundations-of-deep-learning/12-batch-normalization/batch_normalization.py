@@ -66,16 +66,16 @@ def batch_normalize(z, is_training):
         mean, variance = tf.cond(
             is_training,
             lambda: training_mean_and_variance(
-                z, population_mean, population_scope
+                z, population_mean, population_variance
             ),
             lambda: inference_mean_and_variance(
-                z, population_mean, population_scope
+                z, population_mean, population_variance
             )
         )
 
         with tf.name_scope("output"):
             normalized_z = tf.identity(
-                (z - mean) / tf.sqrt(variance + EPSILON),
+                (z - mean) / tf.sqrt(variance + config.EPSILON),
                 name = "normalized_z"
             )
             output = tf.identity(

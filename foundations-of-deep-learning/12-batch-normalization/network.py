@@ -1,4 +1,6 @@
+import batch_normalization as bn
 from collections import namedtuple
+import config
 import tensorflow as tf
 
 def fc_layer(prev_layer, num_units, is_training):
@@ -38,16 +40,16 @@ Network = namedtuple("Network", [
 ])
 
 NUM_CLASSES = 10
-def build():
+def network():
     input_image = tf.placeholder(
         tf.float32,
         [None, 28, 28, 1],
         name = "input_image"
     )
-    digit_label = tf.placeholder(
+    one_hot_digit_label = tf.placeholder(
         tf.float32,
         [None, NUM_CLASSES],
-        name = "digit_label"
+        name = "one_hot_digit_label"
     )
     is_training = tf.placeholder(tf.bool, name = "is_training")
 
@@ -62,8 +64,12 @@ def build():
             is_training = is_training
         )
 
+    flattened_layer = tf.contrib.layers.flatten(
+        inputs = prev_layer,
+    )
+
     prev_layer = fc_layer(
-        prev_layer,
+        flattened_layer,
         config.NUM_HIDDEN_UNITS,
         is_training
     )
@@ -77,18 +83,18 @@ def build():
 
     loss = tf.reduce_mean(
         tf.nn.softmax_cross_entropy_with_logits(
-            labels = digit_label,
-            logits = logits,
+            labels = one_hot_digit_label,
+            logits = prediction_logits,
         ),
         name = "loss",
     )
 
-    train_op = tf.AdamOptimizer().minimize(loss)
+    train_op = tf.train.AdamOptimizer().minimize(loss)
 
     with tf.name_scope("accuracy"):
         is_prediction_correct = tf.equal(
             tf.argmax(prediction_logits, axis = 1),
-            tf.argmax(digit_label, axis = 1),
+            tf.argmax(one_hot_digit_label, axis = 1),
             name = "is_prediction_correct"
         )
         accuracy = tf.reduce_mean(
