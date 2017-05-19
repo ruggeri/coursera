@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# On Ubuntu there is some problem with QT, even if you turn
+# interactive mode off.
+QT_QPA_PLATFORM=offscreen python main.py
