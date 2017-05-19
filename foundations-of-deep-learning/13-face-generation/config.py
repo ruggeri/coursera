@@ -2,6 +2,10 @@
 DATASET_NAME = "MNIST"
 if DATASET_NAME == "MNIST":
     COLOR_DEPTH = 1
+    CMAP = "gray"
+elif DATASET_NAME == "CELEBA":
+    COLOR_DEPTH = 3
+    CMAP = None
 else:
     raise Exception(f"Unknown dataset name: {DATASET_NAME}")
 

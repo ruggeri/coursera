@@ -1,5 +1,6 @@
 import config
 import dataset
+import matplotlib.pyplot as plt
 import network as network_mod
 import numpy as np
 import tensorflow as tf
@@ -77,16 +78,13 @@ def log_batch_result(epoch_idx, batch_idx, result, prev_time):
     print(f"Ex/sec: {examples_per_sec:3.1f}")
 
 def sample_generator_output(epoch_idx, batch_idx, session, network):
-    cmap = None if image_mode == 'RGB' else 'gray'
-    z_dim = input_z.get_shape()[3].value
-
     fake_z = np.random.uniform(
         low = -1.0,
         high = +1.0,
         size = (config.NUM_SAMPLES_PER_SAMPLING, config.Z_DIMS)
     )
 
-    samples = sess.run(
+    samples = session.run(
         network.fake_x,
         feed_dict = {
             network.fake_z: fake_z
@@ -98,7 +96,17 @@ def sample_generator_output(epoch_idx, batch_idx, session, network):
             f"sample_e{epoch_idx:02d}_b{batch_idx:04d}_{sample_idx:02d}"
         )
 
-        plt.imshow(sample.reshape((28, 28)), cmap = config.COLOR_FORMAT)
+        # Convert to 8bit format.
+        sample = ((sample + 1) / 2) * 255
+        sample = sample.astype(np.uint8)
+
+        if config.COLOR_DEPTH == 1:
+            # imshow only likes to show 3d images if the third
+            # dimension is 3 or 4. If it's 1, it just wants a 2d
+            # image.
+            sample = sample.reshape(config.IMAGE_DIMS[0:2])
+
+        plt.imshow(sample, cmap = config.CMAP)
         plt.title(fname)
         plt.savefig(f"samples/{fname}.png")
         plt.close()
@@ -124,6 +132,7 @@ def train_epoch(session, network, epoch_idx, get_batches):
             sample_generator_output(
                 epoch_idx,
                 batch_idx,
+                session,
                 network
             )
 
@@ -138,4 +147,7 @@ def train(session):
 
 if __name__ == "__main__":
     with tf.Session() as session:
+        # Turn interactive mode off because later we will be saving
+        # images to the FS but don't want them to be shown using QT.
+        plt.ioff()
         train(session)
