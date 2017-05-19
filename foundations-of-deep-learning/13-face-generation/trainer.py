@@ -1,5 +1,14 @@
+from collections import namedtuple
 import config
 import tensorflow as tf
+
+Trainer = namedtuple("Trainer", [
+    "d_train_op",
+    "g_train_op",
+    "d_loss",
+    "g_loss",
+    "accuracy",
+])
 
 def losses(real_logits, fake_logits):
     d_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
@@ -27,20 +36,21 @@ def losses(real_logits, fake_logits):
     return d_loss, g_loss
 
 def accuracy(real_logits, fake_logits):
-    accuracy = tf.reduce_mean(tf.concat([
-        tf.cast(tf.equal(
-            tf.round(tf.sigmoid(real_logits)),
-            tf.ones_like(real_logits)), tf.float32
-        ),
-        tf.cast(tf.equal(
-            tf.round(tf.sigmoid(fake_logits)),
-            tf.zeros_like(fake_logits)), tf.float32
-        )
-    ], axis = 0))
+    with tf.name_scope("accuracy"):
+        accuracy = tf.reduce_mean(tf.concat([
+            tf.cast(tf.equal(
+                tf.round(tf.sigmoid(real_logits)),
+                tf.ones_like(real_logits)), tf.float32
+            ),
+            tf.cast(tf.equal(
+                tf.round(tf.sigmoid(fake_logits)),
+                tf.zeros_like(fake_logits)), tf.float32
+            )
+        ], axis = 0))
 
     return accuracy
 
-def train_ops(real_logits, fake_logits):
+def build(real_logits, fake_logits):
     d_loss, g_loss = losses(
         real_logits = real_logits,
         fake_logits = fake_logits
@@ -73,4 +83,13 @@ def train_ops(real_logits, fake_logits):
             var_list = generator_vars
         )
 
-    return d_train_op, g_train_op
+    return Trainer(
+        d_train_op = d_train_op,
+        g_train_op = g_train_op,
+        d_loss = d_loss,
+        g_loss = g_loss,
+        accuracy = accuracy(
+            real_logits = real_logits,
+            fake_logits = fake_logits,
+        ),
+    )

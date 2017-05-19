@@ -2,15 +2,13 @@ from collections import namedtuple
 import config
 import layers
 import tensorflow as tf
-import trainer
+import trainer as trainer_mod
 
 Network = namedtuple("Network", [
     "fake_z",
     "fake_x",
     "real_x",
-    "d_train_op",
-    "g_train_op",
-    "accuracy",
+    "trainer",
 ])
 
 def discriminator(images, reuse):
@@ -59,12 +57,7 @@ def network():
         reuse = True,
     )
 
-    d_train_op, g_train_op = trainer.train_ops(
-        real_logits = discriminator_real_logits,
-        fake_logits = discriminator_fake_logits
-    )
-
-    accuracy = trainer.accuracy(
+    trainer = trainer_mod.build(
         real_logits = discriminator_real_logits,
         fake_logits = discriminator_fake_logits
     )
@@ -73,7 +66,5 @@ def network():
         fake_z = fake_z,
         fake_x = fake_x,
         real_x = real_x,
-        d_train_op = d_train_op,
-        g_train_op = g_train_op,
-        accuracy = accuracy,
+        trainer = trainer
     )
