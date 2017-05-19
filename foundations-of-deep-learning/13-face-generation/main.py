@@ -71,9 +71,9 @@ def log_batch_result(epoch_idx, batch_idx, result, prev_time):
 
     print(f"E {epoch_idx} | B {batch_idx} | "
           f"D Loss {result['d_loss']:0.3f} | "
-          f"D Accuracy {100 * result['d_accuracy']:03.1f} | "
-          f"G Loss {result['g_loss']:0.3f}"
-          f"G Accuracy {100 * result['g_accuracy']:03.1f}")
+          f"D Accuracy {100 * result['d_accuracy']:03.1f}% | "
+          f"G Loss {result['g_loss']:0.3f} | "
+          f"G Accuracy {100 * result['g_accuracy']:03.1f}%")
     print(f"Ex/sec: {examples_per_sec:3.1f}")
 
 def sample_generator_output(epoch_idx, batch_idx, session, network):
