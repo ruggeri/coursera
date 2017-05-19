@@ -13,6 +13,19 @@ Network = namedtuple("Network", [
     "g_train_op",
 ])
 
+def discriminator(images, reuse):
+    with tf.variable_scope("discriminator", reuse = reuse):
+        # The discriminator is *only* used in training mode.
+        return build_layers(images, config.DISCRIMINATOR_LAYERS, True)
+
+def generator(fake_z, is_training, reuse):
+    with tf.variable_scope("generator", reuse = reuse):
+        return build_layers(
+            fake_z,
+            config.GENERATOR_LAYERS,
+            is_training
+        )
+
 def network():
     with tf.name_scope("placeholders"):
         real_x = tf.placeholder(
