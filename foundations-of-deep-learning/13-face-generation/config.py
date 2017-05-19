@@ -1,12 +1,8 @@
-BATCH_SIZE = 32
-BETA1 = 0.5
-CONV_KSIZE = 7
 IMAGE_DIMS = (28, 28, 1)
-LABEL_SMOOTHING = 0.10
-LEAKAGE = 0.20
-LEARNING_RATE = 0.0002
+
+# Common
+CONV_KSIZE = 7
 NUM_CONV_FILTERS = 128
-Z_DIMS = 100
 
 # Discriminator Configuration
 DISCRIMINATOR_LAYERS = [
@@ -44,3 +40,13 @@ GENERATOR_LAYERS = [
       "activation": "tanh",
       "num_filters": IMAGE_DIMS[2] }
 ]
+Z_DIMS = 100
+
+# Training
+BATCH_SIZE = 32
+BETA1 = 0.5
+LABEL_SMOOTHING = 0.10
+LEARNING_RATE = 0.0002
+
+# Other
+LEAKAGE = 0.20

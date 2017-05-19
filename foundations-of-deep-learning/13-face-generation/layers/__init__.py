@@ -1,4 +1,3 @@
-import config
 import layers.conv2d
 import layers.dense
 import layers.flatten
@@ -7,21 +6,19 @@ import layers.reshape
 import layers.resize
 import tensorflow as tf
 
+LAYER_BUILD_FNS = {
+    "conv2d": layers.conv2d.build,
+    "dense": layers.dense.build,
+    "flatten": layers.flatten.build,
+    "maxpool": layers.maxpool.build,
+    "reshape": layers.reshape.build,
+    "resize": layers.resize.build
+}
+
 def build_layer(prev_layer, layer_info, is_training):
     layer_type = layer_info["type"]
-    build_fn = None
-    if layer_type == "conv2d":
-        build_fn = layers.conv2d.build
-    elif layer_type == "dense":
-        build_fn = layers.dense.build
-    elif layer_type == "flatten":
-        build_fn = layers.flatten.build
-    elif layer_type == "maxpool":
-        build_fn = layers.maxpool.build
-    elif layer_type == "reshape":
-        build_fn = layers.reshape.build
-    elif layer_type == "resize":
-        build_fn = layers.resize.build
+    if layer_type in LAYER_BUILD_FNS:
+        build_fn = LAYER_BUILD_FNS[layer_type]
     else:
         raise Exception(f"unknown layer type: {layer_type}")
 

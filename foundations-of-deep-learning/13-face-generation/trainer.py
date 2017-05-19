@@ -40,7 +40,7 @@ def accuracy(real_logits, fake_logits):
 
     return accuracy
 
-def trainer(real_logits, fake_logits):
+def train_ops(real_logits, fake_logits):
     d_loss, g_loss = losses(
         real_logits = real_logits,
         fake_logits = fake_logits
@@ -59,6 +59,7 @@ def trainer(real_logits, fake_logits):
         learning_rate = config.LEARNING_RATE,
         beta1 = config.BETA1
     )
+
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     with tf.control_dependencies(update_ops):
         d_train_op = optimizer.minimize(

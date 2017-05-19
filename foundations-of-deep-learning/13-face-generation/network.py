@@ -10,15 +10,16 @@ Network = namedtuple("Network", [
     "real_x",
     "d_train_op",
     "g_train_op",
+    "accuracy",
 ])
 
 def discriminator(images, reuse):
     with tf.variable_scope("discriminator", reuse = reuse):
-        # The discriminator is *only* used in training mode.
         return layers.build_layers(
             images,
             config.DISCRIMINATOR_LAYERS,
-            True
+            # The discriminator is *only* used in training mode.
+            is_training = True
         )
 
 def generator(fake_z, is_training, reuse):
@@ -26,7 +27,7 @@ def generator(fake_z, is_training, reuse):
         return layers.build_layers(
             fake_z,
             config.GENERATOR_LAYERS,
-            is_training
+            is_training = is_training
         )
 
 def network():
@@ -48,6 +49,7 @@ def network():
         is_training = True,
         reuse = False
     )
+
     discriminator_fake_logits = discriminator(
         images = fake_x,
         reuse = False,
@@ -57,7 +59,12 @@ def network():
         reuse = True,
     )
 
-    d_train_op, g_train_op = trainer.trainer(
+    d_train_op, g_train_op = trainer.train_ops(
+        real_logits = discriminator_real_logits,
+        fake_logits = discriminator_fake_logits
+    )
+
+    accuracy = trainer.accuracy(
         real_logits = discriminator_real_logits,
         fake_logits = discriminator_fake_logits
     )
@@ -67,5 +74,6 @@ def network():
         fake_x = fake_x,
         real_x = real_x,
         d_train_op = d_train_op,
-        g_train_op = g_train_op
+        g_train_op = g_train_op,
+        accuracy = accuracy,
     )
