@@ -241,6 +241,25 @@ class DLProgress(tqdm):
         self.update((block_num - self.last_block) * block_size)
         self.last_block = block_num
 
+# NR added code that follows below.
+def get_get_batches():
+    import config
+    import os
+    from glob import glob
+
+    if config.DATASET_NAME == "MNIST":
+        get_batches = Dataset(
+            'mnist', glob(os.path.join(DATA_DIR, 'mnist/*.jpg'))
+        ).get_batches
+    elif config.DATASET_NAME == "CELEBA":
+        get_batches = Dataset(
+            'celeba', glob(os.path.join(DATA_DIR, 'img_align_celeba/*.jpg'))
+        ).get_batches
+    else:
+        raise Exception(f"Unknown dataset name: {config.DATASET_NAME}")
+
+    return get_batches
+
 if __name__ == "__main__":
     download_extract('mnist', DATA_DIR)
     download_extract('celeba', DATA_DIR)

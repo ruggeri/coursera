@@ -1,7 +1,13 @@
-IMAGE_DIMS = (28, 28, 1)
+# Dataset
+DATASET_NAME = "MNIST"
+if DATASET_NAME == "MNIST":
+    COLOR_DEPTH = 1
+else:
+    raise Exception(f"Unknown dataset name: {DATASET_NAME}")
 
 # Common
 CONV_KSIZE = 7
+IMAGE_DIMS = (28, 28, COLOR_DEPTH)
 NUM_CONV_FILTERS = 128
 
 # Discriminator Configuration
@@ -40,13 +46,20 @@ GENERATOR_LAYERS = [
       "activation": "tanh",
       "num_filters": IMAGE_DIMS[2] }
 ]
+# Performance is much better if the generator can train multiple
+# rounds per discriminator training.
+GENERATOR_ROUND_MULTIPLIER = 5
 Z_DIMS = 100
 
 # Training
 BATCH_SIZE = 32
+BATCHES_PER_LOG = 10
+BATCHES_PER_SAMPLING = 100
 BETA1 = 0.5
 LABEL_SMOOTHING = 0.10
 LEARNING_RATE = 0.0002
+NUM_EPOCHS = 50
+NUM_SAMPLES_PER_SAMPLING = 20
 
 # Other
 LEAKAGE = 0.20
