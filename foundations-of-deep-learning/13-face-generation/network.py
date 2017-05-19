@@ -1,4 +1,5 @@
 from collections import namedtuple
+import config
 import discriminator as d_mod
 import generator as g_mod
 import tensorflow as tf
@@ -8,10 +9,12 @@ Network = namedtuple("Network", [
     "fake_z",
     "fake_x",
     "real_x",
+    "d_train_op",
+    "g_train_op",
 ])
 
-def network(image_height, image_):
-    with tf.name_space("placeholders"):
+def network():
+    with tf.name_scope("placeholders"):
         real_x = tf.placeholder(
             tf.float32,
             (None, *config.IMAGE_DIMS),
@@ -20,13 +23,13 @@ def network(image_height, image_):
 
         fake_z = tf.placeholder(
             tf.float32,
-            (None, nc.z_dim),
+            (None, config.Z_DIMS),
             name = "fake_z"
         )
 
     fake_x = g_mod.generator(
         fake_z = fake_z,
-        num_out_channels = config.IMAGE_DIMS[3],
+        num_out_channels = config.IMAGE_DIMS[2],
         is_training = True,
         reuse = False
     )
@@ -45,9 +48,9 @@ def network(image_height, image_):
     )
 
     return Network(
-        "fake_z": fake_z,
-        "fake_x": fake_x,
-        "real_x": real_x,
-        "d_train_op": d_train_op,
-        "g_train_op": g_train_op
+        fake_z = fake_z,
+        fake_x = fake_x,
+        real_x = real_x,
+        d_train_op = d_train_op,
+        g_train_op = g_train_op
     )

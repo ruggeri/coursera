@@ -22,9 +22,9 @@ def get_activation_fn_by_name(activation_fn_name, is_training):
         return leaky_relu
     elif activation_fn_name == "bn_leaky_relu":
         return lambda ipt: batch_normalized_leaky_relu(ipt, is_training)
-    elif layer_info["activation"] == "bn_relu":
+    elif activation_fn_name == "bn_relu":
         return lambda ipt: batch_normalized_relu(ipt, is_training)
-    elif layer_info["activation"] == "tanh":
+    elif activation_fn_name == "tanh":
         return tf.tanh
     else:
         raise Exception(
@@ -34,7 +34,7 @@ def get_activation_fn_by_name(activation_fn_name, is_training):
 def build_layer(prev_layer, layer_info, is_training):
     if layer_info["type"] == "conv2d":
         activation_fn = get_activation_fn_by_name(
-            activation_fn_name = activation_fn,
+            activation_fn_name = layer_info["activation"],
             is_training = is_training,
         )
 

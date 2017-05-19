@@ -13,11 +13,12 @@ def generator(fake_z, num_out_channels, is_training, reuse):
             * num_out_channels
         )
         prev_layer = tf.layers.dense(
-            z,
+            prev_layer,
             num_pixels,
             activation = tf.tanh,
             name = "initial_layer"
         )
+        prev_layer = tf.reshape(prev_layer, (-1, *config.INITIAL_SIZE))
 
         for layer_info in config.GENERATOR_LAYERS:
             prev_layer = helper.build_layer(

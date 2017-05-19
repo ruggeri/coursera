@@ -1,12 +1,12 @@
 BATCH_SIZE = 32
 BETA1 = 0.5
 CONV_KSIZE = 7
+IMAGE_DIMS = (28, 28, 1)
 LABEL_SMOOTHING = 0.10
 LEAKAGE = 0.20
 LEARNING_RATE = 0.0002
 NUM_CONV_FILTERS = 128
-NUM_OUTPUT_FILTERS = 1
-Z_DIM = 100
+Z_DIMS = 100
 
 # Discriminator Configuration
 DISCRIMINATOR_LAYERS = [
@@ -21,7 +21,7 @@ DISCRIMINATOR_LAYERS = [
 ]
 
 # Generator Configuration
-INITIAL_SIZE = (3, 3)
+INITIAL_SIZE = (3, 3, IMAGE_DIMS[2])
 GENERATOR_LAYERS = [
     { "type": "resize", "size": (7, 7), },
     { "type": "conv2d", "activation": "bn_relu" },
@@ -32,5 +32,5 @@ GENERATOR_LAYERS = [
     # I added a final extra tanh convolution.
     { "type": "conv2d",
       "activation": "tanh",
-      "num_filters": NUM_OUTPUT_FILTERS }
+      "num_filters": IMAGE_DIMS[2] }
 ]
