@@ -129,6 +129,7 @@ def train_epoch(session, network, epoch_idx, get_batches):
             # Note: this will cause examples/sec to dip whenever we
             # sample because we'll spend extra time on that. I could
             # fix this, but meh.
+            print("Sampling generator output")
             sample_generator_output(
                 epoch_idx,
                 batch_idx,
