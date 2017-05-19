@@ -1,3 +1,4 @@
+import config
 import tensorflow as tf
 
 def leaky_relu(input_t):
@@ -23,6 +24,8 @@ def build(activation_fn_name, is_training):
         return lambda ipt: batch_normalized_leaky_relu(ipt, is_training)
     elif activation_fn_name == "bn_relu":
         return lambda ipt: batch_normalized_relu(ipt, is_training)
+    elif activation_fn_name == None:
+        return lambda ipt: ipt
     elif activation_fn_name == "tanh":
         return tf.tanh
     else:

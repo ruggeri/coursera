@@ -1,7 +1,8 @@
+import activations
 import tensorflow as tf
 
-def build_dense(prev_layer, layer_info, is_training):
-    activation_fn = get_activation_fn_by_name(
+def build(prev_layer, layer_info, is_training):
+    activation_fn = activations.build(
         activation_fn_name = layer_info["activation"],
         is_training = is_training,
     )

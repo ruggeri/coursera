@@ -1,7 +1,6 @@
 from collections import namedtuple
 import config
-import discriminator as d_mod
-import generator as g_mod
+import layers
 import tensorflow as tf
 import trainer
 
@@ -16,11 +15,15 @@ Network = namedtuple("Network", [
 def discriminator(images, reuse):
     with tf.variable_scope("discriminator", reuse = reuse):
         # The discriminator is *only* used in training mode.
-        return build_layers(images, config.DISCRIMINATOR_LAYERS, True)
+        return layers.build_layers(
+            images,
+            config.DISCRIMINATOR_LAYERS,
+            True
+        )
 
 def generator(fake_z, is_training, reuse):
     with tf.variable_scope("generator", reuse = reuse):
-        return build_layers(
+        return layers.build_layers(
             fake_z,
             config.GENERATOR_LAYERS,
             is_training
@@ -40,17 +43,16 @@ def network():
             name = "fake_z"
         )
 
-    fake_x = g_mod.generator(
+    fake_x = generator(
         fake_z = fake_z,
-        num_out_channels = config.IMAGE_DIMS[2],
         is_training = True,
         reuse = False
     )
-    discriminator_fake_logits = d_mod.discriminator(
+    discriminator_fake_logits = discriminator(
         images = fake_x,
         reuse = False,
     )
-    discriminator_real_logits = d_mod.discriminator(
+    discriminator_real_logits = discriminator(
         images = real_x,
         reuse = True,
     )

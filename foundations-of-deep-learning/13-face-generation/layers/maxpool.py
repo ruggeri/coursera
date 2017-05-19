@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def maxpool(prev_layer, layer_info, is_training):
+def build(prev_layer, layer_info, is_training):
     return tf.layers.max_pooling2d(
         prev_layer,
         pool_size = 2,
