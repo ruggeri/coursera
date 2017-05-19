@@ -46,7 +46,7 @@ def train_generator(session, network, real_x):
 def train_batch(session, network, real_x):
     d_loss, d_accuracy = train_discriminator(session, network, real_x)
 
-    total_g_loss, total_g_accuracy = [], []
+    total_g_loss, total_g_accuracy = 0, 0
     for _ in range(config.GENERATOR_ROUND_MULTIPLIER):
         result = train_generator(session, network, real_x)
         total_g_loss += result[0]
