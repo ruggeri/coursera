@@ -130,6 +130,7 @@ def train_epoch(session, network, epoch_idx, get_batches):
 def train(session):
     network = network_mod.network()
     session.run(tf.global_variables_initializer())
+    fw = tf.summary.FileWriter("logs/", graph = session.graph)
 
     get_batches = dataset.get_get_batches()
     for epoch_idx in range(1, config.NUM_EPOCHS + 1):

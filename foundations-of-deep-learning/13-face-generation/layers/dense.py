@@ -7,9 +7,9 @@ def build(prev_layer, layer_info, is_training):
         is_training = is_training,
     )
 
-    return tf.layers.dense(
-        prev_layer,
-        layer_info["num_units"],
-        activation = activation_fn,
-        name = "initial_layer"
-    )
+    with tf.name_scope("dense"):
+        return tf.layers.dense(
+            prev_layer,
+            layer_info["num_units"],
+            activation = activation_fn
+        )

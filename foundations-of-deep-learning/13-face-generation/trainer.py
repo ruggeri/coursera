@@ -11,27 +11,31 @@ Trainer = namedtuple("Trainer", [
 ])
 
 def losses(real_logits, fake_logits):
-    d_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-        labels = (
-            (1 - config.LABEL_SMOOTHING) * tf.ones_like(real_logits)
-        ),
-        logits = real_logits
-    )
-    d_fake_loss = tf.nn.sigmoid_cross_entropy_with_logits(
-        labels = tf.zeros_like(fake_logits),
-        logits = fake_logits
-    )
-    d_loss = tf.reduce_mean(
-        tf.concat(
-            [d_real_loss, d_fake_loss],
-            axis = 0
+    with tf.name_scope("d_loss"):
+        with tf.name_scope("d_real_loss"):
+            d_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                labels = (
+                    (1 - config.LABEL_SMOOTHING) * tf.ones_like(real_logits)
+                ),
+                logits = real_logits
+            )
+        with tf.name_scope("d_fake_loss"):
+            d_fake_loss = tf.nn.sigmoid_cross_entropy_with_logits(
+                labels = tf.zeros_like(fake_logits),
+                logits = fake_logits
+            )
+        d_loss = tf.reduce_mean(
+            tf.concat(
+                [d_real_loss, d_fake_loss],
+                axis = 0
+            )
         )
-    )
 
-    g_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-        labels = tf.ones_like(fake_logits),
-        logits = fake_logits
-    ))
+    with tf.name_scope("g_loss"):
+        g_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+            labels = tf.ones_like(fake_logits),
+            logits = fake_logits
+        ))
 
     return d_loss, g_loss
 

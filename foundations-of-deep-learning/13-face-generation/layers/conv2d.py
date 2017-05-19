@@ -13,11 +13,12 @@ def build(prev_layer, layer_info, is_training):
         config.NUM_CONV_FILTERS
     )
 
-    return tf.layers.conv2d(
-        prev_layer,
-        filters = num_filters,
-        kernel_size = config.CONV_KSIZE,
-        strides = 1,
-        padding = "SAME",
-        activation = activation_fn
-    )
+    with tf.name_scope("conv2d"):
+        return tf.layers.conv2d(
+            prev_layer,
+            filters = num_filters,
+            kernel_size = config.CONV_KSIZE,
+            strides = 1,
+            padding = "SAME",
+            activation = activation_fn
+        )
