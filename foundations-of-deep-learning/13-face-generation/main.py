@@ -1,4 +1,4 @@
-import config
+import config.training
 import dataset
 import network as network_mod
 import numpy as np
@@ -6,12 +6,20 @@ import sampling
 import tensorflow as tf
 import time
 
-def train_discriminator(session, network, real_x):
-    fake_z = np.random.uniform(
+def generate_fake_z(network, num_samples):
+    num_z_dimensions = network.fake_z.get_shape()[1]
+
+    return np.random.uniform(
         low = -1.0,
         high = +1.0,
-        size = (config.BATCH_SIZE, config.Z_DIMS),
+        size = (
+            num_samples,
+            num_z_dimensions
+        ),
     )
+
+def train_discriminator(session, network, real_x):
+    fake_z = generate_fake_z(network, config.training.BATCH_SIZE)
 
     _, d_loss, d_accuracy = session.run([
         network.trainer.d_train_op,
@@ -25,11 +33,7 @@ def train_discriminator(session, network, real_x):
     return d_loss, d_accuracy
 
 def train_generator(session, network, real_x):
-    fake_z = np.random.uniform(
-        low = -1.0,
-        high = +1.0,
-        size = (config.BATCH_SIZE, config.Z_DIMS),
-    )
+    fake_z = generate_fake_z(network, config.training.BATCH_SIZE)
 
     _, g_loss, g_accuracy = session.run([
         network.trainer.g_train_op,
@@ -50,12 +54,14 @@ def train_batch(session, network, real_x):
     d_loss, d_accuracy = train_discriminator(session, network, real_x)
 
     total_g_loss, total_g_accuracy = 0, 0
-    for _ in range(config.GENERATOR_ROUND_MULTIPLIER):
+    for _ in range(config.training.GENERATOR_ROUND_MULTIPLIER):
         result = train_generator(session, network, real_x)
         total_g_loss += result[0]
         total_g_accuracy += result[1]
-    g_loss = total_g_loss / config.GENERATOR_ROUND_MULTIPLIER
-    g_accuracy = total_g_accuracy / config.GENERATOR_ROUND_MULTIPLIER
+    g_loss = total_g_loss / config.training.GENERATOR_ROUND_MULTIPLIER
+    g_accuracy = (
+        total_g_accuracy / config.training.GENERATOR_ROUND_MULTIPLIER
+    )
 
     return {
         "d_loss": d_loss,
@@ -68,7 +74,7 @@ def train_batch(session, network, real_x):
 def log_batch_result(epoch_idx, batch_idx, result, prev_time):
     current_time = time.time()
     examples_per_sec = (
-        (config.BATCHES_PER_LOG * config.BATCH_SIZE)
+        (config.training.BATCHES_PER_LOG * config.training.BATCH_SIZE)
         / (current_time - prev_time)
     )
 
@@ -81,11 +87,11 @@ def log_batch_result(epoch_idx, batch_idx, result, prev_time):
 
 def train_epoch(session, network, epoch_idx, get_batches):
     prev_time = time.time()
-    batches = get_batches(config.BATCH_SIZE)
+    batches = get_batches(config.training.BATCH_SIZE)
     for batch_idx, real_x in enumerate(batches, 1):
         result = train_batch(session, network, real_x)
 
-        if batch_idx % config.BATCHES_PER_LOG == 0:
+        if batch_idx % config.training.BATCHES_PER_LOG == 0:
             log_batch_result(
                 epoch_idx,
                 batch_idx,
@@ -93,7 +99,7 @@ def train_epoch(session, network, epoch_idx, get_batches):
                 prev_time
             )
             prev_time = time.time()
-        if batch_idx % config.BATCHES_PER_SAMPLING == 0:
+        if batch_idx % config.training.BATCHES_PER_SAMPLING == 0:
             # Note: this will cause examples/sec to dip whenever we
             # sample because we'll spend extra time on that. I could
             # fix this, but meh.
@@ -106,17 +112,18 @@ def train_epoch(session, network, epoch_idx, get_batches):
             )
 
 def train(session):
-    network = network_mod.network()
+    network = network_mod.network(config.IMAGE_DIMS)
     session.run(tf.global_variables_initializer())
     fw = tf.summary.FileWriter("logs/", graph = session.graph)
 
     get_batches = dataset.get_get_batches()
-    for epoch_idx in range(1, config.NUM_EPOCHS + 1):
+    for epoch_idx in range(1, config.training.NUM_EPOCHS + 1):
         train_epoch(session, network, epoch_idx, get_batches)
 
 if __name__ == "__main__":
     with tf.Session() as session:
         # Turn interactive mode off because later we will be saving
         # images to the FS but don't want them to be shown using QT.
+        import matplotlib.pyplot as plt
         plt.ioff()
         train(session)

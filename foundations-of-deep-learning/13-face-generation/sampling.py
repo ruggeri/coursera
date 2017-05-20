@@ -1,13 +1,17 @@
-import config
+import config.sampling
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
 def sample_generator_output(session, network):
+    num_z_dimensions = network.fake_z.get_shape()[1]
     fake_z = np.random.uniform(
         low = -1.0,
         high = +1.0,
-        size = (config.NUM_SAMPLES_PER_SAMPLING, config.Z_DIMS)
+        size = (
+            config.sampling.NUM_SAMPLES_PER_SAMPLING,
+            num_z_dimensions
+        )
     )
 
     samples = session.run(
@@ -27,7 +31,7 @@ def sample_generator_output(session, network):
         transformed_sample = transformed_sample.astype(np.uint8)
         transformed_samples[idx] = transformed_sample
 
-    if config.COLOR_DEPTH == 1:
+    if config.sampling.IMAGE_DIMS[2] == 1:
         # imshow only likes to show 3d images if the third
         # dimension is 3 or 4. If it's 1, it just wants a 2d
         # image.
@@ -40,9 +44,9 @@ def save_image(title, image):
         plt.figure()
     # This is just to handle black/white images. cmap means
     # contrast map I think.
-    if config.COLOR_MODE == "RGB":
+    if config.sampling.COLOR_MODE == "RGB":
         cmap = None
-    elif config.COLOR_MODE == "L":
+    elif config.sampling.COLOR_MODE == "L":
         cmap = "gray"
     plt.imshow(image, cmap = cmap)
     plt.title(title)
@@ -76,7 +80,7 @@ def build_samples_grid(samples):
 
     # Combine samples to grid image
     samples_grid = Image.new(
-        config.COLOR_MODE,
+        config.sampling.COLOR_MODE,
         (samples.shape[1] * image_grid_dimension,
          samples.shape[2] * image_grid_dimension)
     )
@@ -84,7 +88,7 @@ def build_samples_grid(samples):
         for row_idx in range(image_grid_dimension):
             image = Image.fromarray(
                 samples_in_square[row_idx, col_idx],
-                config.COLOR_MODE
+                config.sampling.COLOR_MODE
             )
             # Weird. It looks like PIL uses x,y coordinates. Worst
             # case scenario is that this prints the samples into a

@@ -1,5 +1,5 @@
 from collections import namedtuple
-import config
+import config.training
 import tensorflow as tf
 
 Trainer = namedtuple("Trainer", [
@@ -15,7 +15,8 @@ def losses(real_logits, fake_logits):
         with tf.name_scope("d_real_loss"):
             d_real_loss = tf.nn.sigmoid_cross_entropy_with_logits(
                 labels = (
-                    (1 - config.LABEL_SMOOTHING) * tf.ones_like(real_logits)
+                    (1 - config.training.LABEL_SMOOTHING)
+                    * tf.ones_like(real_logits)
                 ),
                 logits = real_logits
             )
@@ -70,8 +71,8 @@ def build(real_logits, fake_logits):
     )
 
     optimizer = tf.train.AdamOptimizer(
-        learning_rate = config.LEARNING_RATE,
-        beta1 = config.BETA1
+        learning_rate = config.training.LEARNING_RATE,
+        beta1 = config.training.BETA1
     )
 
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

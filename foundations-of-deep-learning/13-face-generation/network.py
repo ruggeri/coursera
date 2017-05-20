@@ -1,5 +1,5 @@
 from collections import namedtuple
-import config
+import config.network
 import layers
 import tensorflow as tf
 import trainer as trainer_mod
@@ -15,7 +15,7 @@ def discriminator(images, reuse):
     with tf.variable_scope("discriminator", reuse = reuse):
         return layers.build_layers(
             images,
-            config.DISCRIMINATOR_LAYERS,
+            config.network.DISCRIMINATOR_LAYERS,
             # The discriminator is *only* used in training mode.
             is_training = True
         )
@@ -24,21 +24,21 @@ def generator(fake_z, is_training, reuse):
     with tf.variable_scope("generator", reuse = reuse):
         return layers.build_layers(
             fake_z,
-            config.GENERATOR_LAYERS,
+            config.network.GENERATOR_LAYERS,
             is_training = is_training
         )
 
-def network():
+def network(image_dims):
     with tf.name_scope("placeholders"):
         real_x = tf.placeholder(
             tf.float32,
-            (None, *config.IMAGE_DIMS),
+            (None, *image_dims),
             name = "real_x"
         )
 
         fake_z = tf.placeholder(
             tf.float32,
-            (None, config.Z_DIMS),
+            (None, config.network.Z_DIMS),
             name = "fake_z"
         )
 

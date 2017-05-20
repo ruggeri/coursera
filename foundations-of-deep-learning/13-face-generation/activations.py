@@ -1,9 +1,9 @@
-import config
+import config.network
 import tensorflow as tf
 
 def leaky_relu(input_t):
     with tf.name_scope("leaky_relu"):
-        return tf.maximum(input_t, config.LEAKAGE * input_t)
+        return tf.maximum(input_t, config.network.LEAKAGE * input_t)
 
 def batch_normalized_leaky_relu(ipt, is_training):
     with tf.name_scope("bn_leaky_relu"):

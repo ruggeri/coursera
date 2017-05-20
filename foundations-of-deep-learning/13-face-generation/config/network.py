@@ -1,18 +1,9 @@
-# Dataset
-DATASET_NAME = "CELEBA"
-if DATASET_NAME == "MNIST":
-    COLOR_DEPTH = 1
-    COLOR_MODE = "L"
-elif DATASET_NAME == "CELEBA":
-    COLOR_DEPTH = 3
-    COLOR_MODE = "RGB"
-else:
-    raise Exception(f"Unknown dataset name: {DATASET_NAME}")
+import config
 
-# Common
 CONV_KSIZE = 7
-IMAGE_DIMS = (28, 28, COLOR_DEPTH)
+LEAKAGE = 0.20
 NUM_CONV_FILTERS = 128
+Z_DIMS = 100
 
 # Discriminator Configuration
 DISCRIMINATOR_LAYERS = [
@@ -31,7 +22,7 @@ DISCRIMINATOR_LAYERS = [
 ]
 
 # Generator Configuration
-INITIAL_SIZE = (3, 3, IMAGE_DIMS[2])
+INITIAL_SIZE = (3, 3, config.IMAGE_DIMS[2])
 INITIAL_PIXELS = INITIAL_SIZE[0] * INITIAL_SIZE[1] * INITIAL_SIZE[2]
 GENERATOR_LAYERS = [
     { "type": "dense",
@@ -43,27 +34,11 @@ GENERATOR_LAYERS = [
     { "type": "conv2d", "activation": "bn_relu" },
     { "type": "resize", "size": (14, 14), },
     { "type": "conv2d", "activation": "bn_relu" },
-    { "type": "resize", "size": (28, 28), },
+    { "type": "resize",
+      "size": (config.IMAGE_DIMS[0], config.IMAGE_DIMS[1]), },
     { "type": "conv2d", "activation": "bn_relu" },
     # I added a final extra tanh convolution.
     { "type": "conv2d",
       "activation": "tanh",
-      "num_filters": IMAGE_DIMS[2] }
+      "num_filters": config.IMAGE_DIMS[2] }
 ]
-# Performance is much better if the generator can train multiple
-# rounds per discriminator training.
-GENERATOR_ROUND_MULTIPLIER = 5
-Z_DIMS = 100
-
-# Training
-BATCH_SIZE = 32
-BATCHES_PER_LOG = 10
-BATCHES_PER_SAMPLING = 100
-BETA1 = 0.5
-LABEL_SMOOTHING = 0.10
-LEARNING_RATE = 0.0002
-NUM_EPOCHS = 50
-NUM_SAMPLES_PER_SAMPLING = 9
-
-# Other
-LEAKAGE = 0.20
