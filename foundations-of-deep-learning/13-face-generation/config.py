@@ -1,11 +1,11 @@
 # Dataset
-DATASET_NAME = "MNIST"
+DATASET_NAME = "CELEBA"
 if DATASET_NAME == "MNIST":
     COLOR_DEPTH = 1
-    CMAP = "gray"
+    COLOR_MODE = "L"
 elif DATASET_NAME == "CELEBA":
     COLOR_DEPTH = 3
-    CMAP = None
+    COLOR_MODE = "RGB"
 else:
     raise Exception(f"Unknown dataset name: {DATASET_NAME}")
 
@@ -63,7 +63,7 @@ BETA1 = 0.5
 LABEL_SMOOTHING = 0.10
 LEARNING_RATE = 0.0002
 NUM_EPOCHS = 50
-NUM_SAMPLES_PER_SAMPLING = 20
+NUM_SAMPLES_PER_SAMPLING = 9
 
 # Other
 LEAKAGE = 0.20
