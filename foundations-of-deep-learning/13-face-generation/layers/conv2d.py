@@ -3,7 +3,7 @@ import config
 import tensorflow as tf
 
 def build(prev_layer, layer_info, is_training):
-    activation_fn = activations.build(
+    activation_fn, is_batch_normalized = activations.build(
         activation_fn_name = layer_info["activation"],
         is_training = is_training,
     )
@@ -20,5 +20,6 @@ def build(prev_layer, layer_info, is_training):
             kernel_size = config.CONV_KSIZE,
             strides = 1,
             padding = "SAME",
-            activation = activation_fn
+            activation = activation_fn,
+            use_bias = not is_batch_normalized
         )
