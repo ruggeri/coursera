@@ -106,10 +106,15 @@ def sample_generator_output(epoch_idx, batch_idx, session, network):
             # image.
             sample = sample.reshape(config.IMAGE_DIMS[0:2])
 
+        if plt.isinteractive():
+            plt.figure()
         plt.imshow(sample, cmap = config.CMAP)
         plt.title(fname)
         plt.savefig(f"samples/{fname}.png")
-        plt.close()
+        if plt.isinteractive():
+            plt.show()
+        else:
+            plt.close()
 
 def train_epoch(session, network, epoch_idx, get_batches):
     prev_time = time.time()
