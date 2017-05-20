@@ -6,7 +6,7 @@ import trainer as trainer_mod
 
 Network = namedtuple("Network", [
     "fake_z",
-    "fake_x",
+    "inference_fake_x",
     "real_x",
     "trainer",
 ])
@@ -42,14 +42,19 @@ def network():
             name = "fake_z"
         )
 
-    fake_x = generator(
+    training_fake_x = generator(
         fake_z = fake_z,
         is_training = True,
         reuse = False
     )
+    inference_fake_x = generator(
+        fake_z = fake_z,
+        is_training = False,
+        reuse = True,
+    )
 
     discriminator_fake_logits = discriminator(
-        images = fake_x,
+        images = training_fake_x,
         reuse = False,
     )
     discriminator_real_logits = discriminator(
@@ -64,7 +69,7 @@ def network():
 
     return Network(
         fake_z = fake_z,
-        fake_x = fake_x,
+        inference_fake_x = inference_fake_x,
         real_x = real_x,
         trainer = trainer
     )

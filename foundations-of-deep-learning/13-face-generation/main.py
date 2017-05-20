@@ -6,8 +6,6 @@ import numpy as np
 import tensorflow as tf
 import time
 
-# TODO: will have to scale real images to -1, +1.
-
 def train_discriminator(session, network, real_x):
     fake_z = np.random.uniform(
         low = -1.0,
@@ -45,6 +43,10 @@ def train_generator(session, network, real_x):
     return g_loss, g_accuracy
 
 def train_batch(session, network, real_x):
+    # The dataset code gives us real_x in the range -0.5 to +0.5. To
+    # make this match the tanh range, we multiply by two.
+    real_x = real_x * 2
+
     d_loss, d_accuracy = train_discriminator(session, network, real_x)
 
     total_g_loss, total_g_accuracy = 0, 0
@@ -85,7 +87,7 @@ def sample_generator_output(epoch_idx, batch_idx, session, network):
     )
 
     samples = session.run(
-        network.fake_x,
+        network.inference_fake_x,
         feed_dict = {
             network.fake_z: fake_z
         }
