@@ -1,6 +1,10 @@
-1. Add kernel_initializer with stddev of 0.02.
-2. Could try to bring back conv2d_transpose?
-3. Could try to use larger initial image dimension in generator.
-4. Try reviewer's suggested sequence of number of filters.
-5. Eliminate conv2d's direct dependence on config for NUM_CONV_FILTERS
-   and CONV_KSIZE?
+Suggested configuration:
+
+```
+Bring back conv2d_transpose? Use strides of 2 and replace maxpooling.
+NUM_DISCRIMINATOR_FILTERS = [64, 256, 512]
+GENERATOR_INITIAL_SHAPE = (7, 7, 512)
+Use bn_relu instead of tanh for initial image.
+NUM_GENERATOR_FILTERS = [256, 128, 64, out_channel_dim]
+NUM_GENERATOR_STRIDES = [  2,   2,  1, 1]
+```
