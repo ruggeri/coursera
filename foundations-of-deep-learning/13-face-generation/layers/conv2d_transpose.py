@@ -12,8 +12,8 @@ def build(prev_layer, layer_info, is_training):
     num_filters = layer_info["num_filters"]
     strides = layer_info["strides"]
 
-    with tf.name_scope("conv2d"):
-        return tf.layers.conv2d(
+    with tf.name_scope("conv2d_transpose"):
+        return tf.layers.conv2d_transpose(
             prev_layer,
             filters = num_filters,
             kernel_size = ksize,

@@ -14,6 +14,7 @@ Z_DIMS = 100
 if MODE == "A":
     DEFAULT_CONV_KSIZE = 7
     DEFAULT_NUM_CONV_FILTERS = 128
+    DEFAULT_CONV_STRIDE = 1
 
     # Discriminator Configuration
     DISCRIMINATOR_LAYERS = [
@@ -22,16 +23,19 @@ if MODE == "A":
         { "type": "conv2d",
           "activation": "leaky_relu",
           "ksize": DEFAULT_CONV_KSIZE,
+          "stride": DEFAULT_CONV_STRIDE,
           "num_filters": DEFAULT_NUM_CONV_FILTERS, },
         { "type": "maxpool" },
         { "type": "conv2d",
           "activation": "bn_leaky_relu",
           "ksize": DEFAULT_CONV_KSIZE,
+          "stride": DEFAULT_CONV_STRIDE,
           "num_filters": DEFAULT_NUM_CONV_FILTERS, },
         { "type": "maxpool" },
         { "type": "conv2d",
           "activation": "bn_leaky_relu",
           "ksize": DEFAULT_CONV_KSIZE,
+          "stride": DEFAULT_CONV_STRIDE,
           "num_filters": DEFAULT_NUM_CONV_FILTERS, },
         { "type": "maxpool" },
         { "type": "flatten" },
@@ -53,22 +57,26 @@ if MODE == "A":
         { "type": "conv2d",
           "activation": "bn_relu",
           "ksize": DEFAULT_CONV_KSIZE,
+          "stride": DEFAULT_CONV_STRIDE,
           "num_filters": DEFAULT_NUM_CONV_FILTERS, },
         { "type": "resize", "size": (14, 14), },
         { "type": "conv2d",
           "activation": "bn_relu",
           "ksize": DEFAULT_CONV_KSIZE,
+          "stride": DEFAULT_CONV_STRIDE,
           "num_filters": DEFAULT_NUM_CONV_FILTERS, },
         { "type": "resize",
           "size": (config.IMAGE_DIMS[0], config.IMAGE_DIMS[1]), },
         { "type": "conv2d",
           "activation": "bn_relu",
           "ksize": DEFAULT_CONV_KSIZE,
+          "stride": DEFAULT_CONV_STRIDE,
           "num_filters": DEFAULT_NUM_CONV_FILTERS, },
         # I added a final extra tanh convolution.
         { "type": "conv2d",
           "activation": "tanh",
           "ksize": DEFAULT_CONV_KSIZE,
+          "stride": DEFAULT_CONV_STRIDE,
           "num_filters": config.IMAGE_DIMS[2] }
     ]
 elif MODE == "B":
