@@ -31,7 +31,7 @@ def sample_generator_output(session, network):
         transformed_sample = transformed_sample.astype(np.uint8)
         transformed_samples[idx] = transformed_sample
 
-    if config.sampling.IMAGE_DIMS[2] == 1:
+    if config.IMAGE_DIMS[2] == 1:
         # imshow only likes to show 3d images if the third
         # dimension is 3 or 4. If it's 1, it just wants a 2d
         # image.
