@@ -1,6 +1,13 @@
 import config
+import tensorflow as tf
 
 MODE = "A"
+
+# The DCGAN people recommend this initialization.
+KERNEL_INITIALIZER = tf.truncated_normal_initializer(
+    mean = 0.0,
+    stddev = 0.02
+)
 LEAKAGE = 0.20
 Z_DIMS = 100
 

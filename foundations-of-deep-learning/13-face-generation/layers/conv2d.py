@@ -1,4 +1,5 @@
 import activations
+import config.network
 import tensorflow as tf
 
 def build(prev_layer, layer_info, is_training):
@@ -18,5 +19,6 @@ def build(prev_layer, layer_info, is_training):
             strides = 1,
             padding = "SAME",
             activation = activation_fn,
+            kernel_initializer = config.network.KERNEL_INITIALIZER,
             use_bias = not is_batch_normalized
         )
