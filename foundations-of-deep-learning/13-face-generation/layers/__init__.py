@@ -1,4 +1,5 @@
 import layers.conv2d
+import layers.conv2d_transpose
 import layers.dense
 import layers.flatten
 import layers.maxpool
@@ -8,6 +9,7 @@ import tensorflow as tf
 
 LAYER_BUILD_FNS = {
     "conv2d": layers.conv2d.build,
+    "conv2d_transpose": layers.conv2d_transpose.build,
     "dense": layers.dense.build,
     "flatten": layers.flatten.build,
     "maxpool": layers.maxpool.build,
