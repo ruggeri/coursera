@@ -1,6 +1,5 @@
+import config
 import tensorflow as tf
-
-MODE = "A"
 
 # The DCGAN people recommend this initialization.
 KERNEL_INITIALIZER = tf.truncated_normal_initializer(
@@ -10,9 +9,9 @@ KERNEL_INITIALIZER = tf.truncated_normal_initializer(
 LEAKAGE = 0.20
 Z_DIMS = 100
 
-if MODE == "A":
+if config.NETWORK_NAME == "A":
     import config.networkA
     DISCRIMINATOR_LAYERS = config.networkA.DISCRIMINATOR_LAYERS
     GENERATOR_LAYERS = config.networkA.GENERATOR_LAYERS
-elif MODE == "B":
+elif config.NETWORK_NAME == "B":
     raise Exception("Not yet implemented!")

@@ -59,7 +59,8 @@ def save_image(title, image):
 def save_samples(epoch_idx, batch_idx, samples):
     for sample_idx, sample in enumerate(samples):
         fname = (
-            f"sample_e{epoch_idx:02d}_b{batch_idx:04d}_{sample_idx:02d}"
+            f"network{config.NETWORK_NAME}_sample_e{epoch_idx:02d}_"
+            f"b{batch_idx:04d}_{sample_idx:02d}"
         )
         save_image(fname, sample)
 
@@ -103,7 +104,8 @@ def build_samples_grid(samples):
 
 def save_samples_grid(epoch_idx, batch_idx, samples_grid):
     fname = (
-        f"sample_e{epoch_idx:02d}_b{batch_idx:04d}_grid"
+        f"network{config.NETWORK_NAME}_sample_e{epoch_idx:02d}_"
+        f"b{batch_idx:04d}_grid"
     )
     save_image(fname, samples_grid)
 
