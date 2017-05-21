@@ -48,26 +48,20 @@ GENERATOR_LAYERS = [
       "activation": "bn_relu",
       "ksize": DEFAULT_CONV_KSIZE,
       "strides": 2,
-      "num_filters": 512 },
+      "num_filters": 256 },
     # == CONV #2 ==
     { "type": "conv2d_transpose",
       "activation": "bn_relu",
       "ksize": DEFAULT_CONV_KSIZE,
       "strides": 2,
-      "num_filters": 256, },
+      "num_filters": 128, },
     # == CONV #3 ==
     { "type": "conv2d_transpose",
       "activation": "bn_relu",
       "ksize": DEFAULT_CONV_KSIZE,
       "strides": 1,
-      "num_filters": 128, },
-    # == CONV #4 ==
-    { "type": "conv2d_transpose",
-      "activation": "bn_relu",
-      "ksize": DEFAULT_CONV_KSIZE,
-      "strides": 1,
       "num_filters": 64, },
-    # == CONV #5 ==
+    # == CONV #4 ==
     # I added a final extra tanh convolution.
     { "type": "conv2d",
       "activation": "tanh",
