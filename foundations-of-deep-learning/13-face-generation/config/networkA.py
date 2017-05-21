@@ -12,7 +12,7 @@ DISCRIMINATOR_LAYERS = [
     { "type": "conv2d",
       "activation": "leaky_relu",
       "ksize": DEFAULT_CONV_KSIZE,
-      "stride": DEFAULT_CONV_STRIDE,
+      "strides": DEFAULT_CONV_STRIDE,
       "num_filters": DEFAULT_NUM_CONV_FILTERS, },
     # == MAXPOOL #1 ==
     { "type": "maxpool" },
@@ -20,7 +20,7 @@ DISCRIMINATOR_LAYERS = [
     { "type": "conv2d",
       "activation": "bn_leaky_relu",
       "ksize": DEFAULT_CONV_KSIZE,
-      "stride": DEFAULT_CONV_STRIDE,
+      "strides": DEFAULT_CONV_STRIDE,
       "num_filters": DEFAULT_NUM_CONV_FILTERS, },
     # == MAXPOOL #2 ==
     { "type": "maxpool" },
@@ -28,7 +28,7 @@ DISCRIMINATOR_LAYERS = [
     { "type": "conv2d",
       "activation": "bn_leaky_relu",
       "ksize": DEFAULT_CONV_KSIZE,
-      "stride": DEFAULT_CONV_STRIDE,
+      "strides": DEFAULT_CONV_STRIDE,
       "num_filters": DEFAULT_NUM_CONV_FILTERS, },
     # == MAXPOOL #3 ==
     { "type": "maxpool" },
@@ -57,7 +57,7 @@ GENERATOR_LAYERS = [
     { "type": "conv2d",
       "activation": "bn_relu",
       "ksize": DEFAULT_CONV_KSIZE,
-      "stride": DEFAULT_CONV_STRIDE,
+      "strides": DEFAULT_CONV_STRIDE,
       "num_filters": DEFAULT_NUM_CONV_FILTERS, },
     # == RESIZE 14x14 ==
     { "type": "resize", "size": (14, 14), },
@@ -65,7 +65,7 @@ GENERATOR_LAYERS = [
     { "type": "conv2d",
       "activation": "bn_relu",
       "ksize": DEFAULT_CONV_KSIZE,
-      "stride": DEFAULT_CONV_STRIDE,
+      "strides": DEFAULT_CONV_STRIDE,
       "num_filters": DEFAULT_NUM_CONV_FILTERS, },
     # == RESIZE 28x28 ==
     { "type": "resize",
@@ -74,13 +74,13 @@ GENERATOR_LAYERS = [
     { "type": "conv2d",
       "activation": "bn_relu",
       "ksize": DEFAULT_CONV_KSIZE,
-      "stride": DEFAULT_CONV_STRIDE,
+      "strides": DEFAULT_CONV_STRIDE,
       "num_filters": DEFAULT_NUM_CONV_FILTERS, },
     # == CONV #4 ==
     # I added a final extra tanh convolution.
     { "type": "conv2d",
       "activation": "tanh",
       "ksize": DEFAULT_CONV_KSIZE,
-      "stride": DEFAULT_CONV_STRIDE,
+      "strides": DEFAULT_CONV_STRIDE,
       "num_filters": config.IMAGE_DIMS[2] }
 ]
