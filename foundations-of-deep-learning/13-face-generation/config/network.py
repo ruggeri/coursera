@@ -14,4 +14,8 @@ if config.NETWORK_NAME == "A":
     DISCRIMINATOR_LAYERS = config.networkA.DISCRIMINATOR_LAYERS
     GENERATOR_LAYERS = config.networkA.GENERATOR_LAYERS
 elif config.NETWORK_NAME == "B":
+    import config.networkB
+    DISCRIMINATOR_LAYERS = config.networkB.DISCRIMINATOR_LAYERS
+    GENERATOR_LAYERS = config.networkB.GENERATOR_LAYERS
+else:
     raise Exception("Not yet implemented!")
