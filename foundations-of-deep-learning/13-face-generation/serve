@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# On AWS it's hard to download the generated samples, so serve them
+# over HTTP.
+cd samples && python -m http.server 6006
