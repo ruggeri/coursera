@@ -1,8 +1,12 @@
+import config
 import csv
 import dataset as dataset_mod
+import glob
 import matplotlib.pyplot as plt
 import network as network_mod
 import numpy as np
+import os.path
+import scipy.ndimage
 import tensorflow as tf
 import train
 
@@ -22,7 +26,7 @@ def predict(session, network, examples):
 
 def load_sign_names():
     sign_names_map = {}
-    with open("data/signnames.csv", "r") as f:
+    with open(f"{config.DATA_DIR}/signnames.csv", "r") as f:
         for row in csv.DictReader(f, delimiter = ","):
             sign_names_map[int(row["ClassId"])] = row["SignName"]
     return sign_names_map
@@ -37,6 +41,22 @@ def select_examples(dataset):
     examples_y = dataset.y_test[example_idxs]
 
     return examples_x, examples_y
+
+def load_internet_examples():
+    examples_x = []
+    examples_y = []
+    glob_pattern = f"{config.DATA_DIR}/internet-traffic-signs/*.jpg"
+    for fname in glob.glob(glob_pattern):
+        examples_x.append(scipy.ndimage.imread(fname))
+        examples_y.append(
+            int(os.path.splitext(os.path.basename(fname))[0])
+        )
+
+    examples_x = np.stack(examples_x)
+    examples_x = dataset_mod.normalize_x(examples_x)
+    examples_y = np.array(examples_y)
+
+    return (examples_x, examples_y)
 
 def display_results(examples_x, examples_y, predictions):
     sign_names_map = load_sign_names()
@@ -66,23 +86,15 @@ def display_results(examples_x, examples_y, predictions):
         if y == topK_classes[0]:
             num_correct_predictions += 1
 
-    accuracy = num_correct_predictions / NUM_EXAMPLES
-    topK_accuracy = num_topK_correct_predictions / NUM_EXAMPLES
+    accuracy = num_correct_predictions / examples_x.shape[0]
+    topK_accuracy = num_topK_correct_predictions / examples_x.shape[0]
     print(f"Test accuracy: {100*accuracy:3.1f}")
     print(f"Top {TOP_K} accuracy: {100*topK_accuracy:3.1f}")
 
 def main():
     with tf.Session() as session:
-        dataset = dataset_mod.load()
-        network = network_mod.build_network(
-            dataset.image_shape,
-            dataset.num_classes
-        )
-
-        saver = tf.train.Saver()
-        saver.restore(session, "models/model.ckpt")
-
-        examples_x, examples_y = select_examples(dataset)
+        network = network_mod.restore(session)
+        examples_x, examples_y = load_internet_examples()
         predictions = predict(session, network, examples_x)
         display_results(examples_x, examples_y, predictions)
 

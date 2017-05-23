@@ -178,3 +178,14 @@ def build_network(image_shape, num_classes):
         train_op = train_op,
         summary = tf.summary.merge_all()
     )
+
+def restore(session):
+    network = build_network(
+        config.PROCESSED_IMAGE_SHAPE,
+        config.NUM_CLASSES
+    )
+
+    saver = tf.train.Saver()
+    saver.restore(session, "models/model.ckpt")
+
+    return network

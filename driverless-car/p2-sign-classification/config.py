@@ -9,7 +9,9 @@ LEARNING_RATE_DECAY = 0.80
 MAX_ROTATION = 15 * ((2 * np.pi) / 360)
 MAX_SHIFT = 2
 MAX_ZOOM = 0.10
+NUM_CLASSES = 43
 NUM_EPOCHS = len(BATCH_SIZES)
+PROCESSED_IMAGE_SHAPE = (32, 32, 1)
 PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 DATA_DIR = f"{PROJECT_DIR}/data"
