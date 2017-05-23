@@ -1,7 +1,6 @@
 from collections import namedtuple
 import config
 import numpy as np
-import scipy.ndimage.interpolation
 
 def normalize_x(x):
     x = ((x / 255.0) - 0.5) * 2

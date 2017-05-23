@@ -192,4 +192,3 @@ def build_network(image_shape, num_classes):
         train_op = train_op,
         summary = tf.summary.merge_all()
     )
-
