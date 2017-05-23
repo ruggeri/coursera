@@ -3,12 +3,15 @@ import config
 import numpy as np
 
 def normalize_x(x):
-    x = ((x / 255.0) - 0.5) * 2
-
     # LeCun says he did better with just grayscale!
     x = np.sum(x, axis = 3) / 3
     # I want to keep x a 4d tensor, even if only one image map.
     x = x.reshape((*x.shape, 1))
+
+    # The idea here is to normalize each image so that it has mean
+    # zero and unit variance.
+    x = x - np.mean(x, axis = (1, 2), keepdims = True)
+    x = x / np.std(x, axis = (1, 2), keepdims = True)
 
     return x
 
