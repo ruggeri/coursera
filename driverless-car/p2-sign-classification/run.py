@@ -29,6 +29,7 @@ def load_dataset():
         y_test
     )
 
-with tf.Session() as session:
-    dataset = load_dataset()
-    train_mod.train(session, dataset)
+if __name__ == "__main__":
+    with tf.Session() as session:
+        dataset = load_dataset()
+        train_mod.train(session, dataset)
