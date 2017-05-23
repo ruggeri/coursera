@@ -34,10 +34,12 @@ def train_batch(ts, x, y):
     return (cost, accuracy)
 
 def run_validation(ts):
+    # I use as large a batch size as possible to make the most of the
+    # hardware and evaluate quickly.
     num_batches, batches = dataset_mod.build_batches(
         ts.dataset.X_valid,
         ts.dataset.y_valid,
-        batch_size = 1024 # just want to evaluate quickly
+        batch_size = 1024
     )
 
     cost, accuracy = 0.0, 0.0
