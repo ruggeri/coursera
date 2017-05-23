@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 BATCH_SIZES = [64, 128, 256, 512, 1024]
 BATCHES_PER_LOGGING = [100, 50, 25, 10, 5]
@@ -10,4 +11,6 @@ MAX_ROTATION = 15 * ((2 * np.pi) / 360)
 MAX_SHIFT = 2
 MAX_ZOOM = 0.10
 NUM_EPOCHS = 5
-PROJECT_DIR = "/home/ubuntu/CarND-Traffic-Sign-Classifier-Project"
+PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
+
+DATA_DIR = f"{PROJECT_DIR}/data"

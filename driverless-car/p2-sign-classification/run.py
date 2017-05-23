@@ -5,9 +5,9 @@ import tensorflow as tf
 import train as train_mod
 
 def load_dataset():
-    training_file = f"{config.PROJECT_DIR}/train_augmented.p"
-    validation_file= f"{config.PROJECT_DIR}/valid.p"
-    testing_file = f"{config.PROJECT_DIR}/test.p"
+    training_file = f"{config.DATA_DIR}/train_augmented.p"
+    validation_file= f"{config.DATA_DIR}/valid.p"
+    testing_file = f"{config.DATA_DIR}/test.p"
 
     with open(training_file, mode='rb') as f:
         train = pickle.load(f)

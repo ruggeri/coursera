@@ -68,7 +68,7 @@ def perturb_x(session, x, y):
     )
 
 with tf.Session() as session:
-    training_file = f"{config.PROJECT_DIR}/train.p"
+    training_file = f"{config.DATA_DIR}/train.p"
     with open(training_file, mode='rb') as f:
         train = pickle.load(f)
     X_train, y_train = train["features"], train["labels"]
@@ -89,7 +89,7 @@ with tf.Session() as session:
         axis = 0
     )
 
-    augmented_training_file = f"/{config.PROJECT_DIR}/train_augmented.p"
+    augmented_training_file = f"/{config.DATA_DIR}/train_augmented.p"
     with open(augmented_training_file, "wb") as f:
         pickle.dump({
             "features": X_train_augmented,
