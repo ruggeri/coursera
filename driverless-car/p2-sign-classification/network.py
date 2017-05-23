@@ -2,12 +2,14 @@ import config
 import tensorflow as tf
 
 KSIZE = 5
+INITIAL_NUM_FILTERS = 64
+FILTERS_MULTIPLIER = 2
 
 def build_logits(x, keep_prob, num_classes, training):
     with tf.name_scope("layer1"):
         layer1 = tf.layers.conv2d(
             x,
-            filters = 64,
+            filters = INITIAL_NUM_FILTERS,
             kernel_size = (KSIZE, KSIZE),
             strides = (1, 1),
             padding = "SAME",
@@ -29,7 +31,7 @@ def build_logits(x, keep_prob, num_classes, training):
     with tf.name_scope("layer2"):
         layer2 = tf.layers.conv2d(
             layer1,
-            filters = 128,
+            filters = INITIAL_NUM_FILTERS * FILTERS_MULTIPLIER,
             kernel_size = (KSIZE, KSIZE),
             strides = (1, 1),
             padding = "SAME",
@@ -51,7 +53,7 @@ def build_logits(x, keep_prob, num_classes, training):
     with tf.name_scope("layer3"):
         layer3 = tf.layers.conv2d(
             layer2,
-            filters = 256,
+            filters = INITIAL_NUM_FILTERS * (FILTERS_MULTIPLIER ** 2),
             kernel_size = (5, 5),
             strides = (1, 1),
             padding = "SAME",
