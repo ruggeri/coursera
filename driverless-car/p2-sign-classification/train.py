@@ -76,9 +76,11 @@ def train_epoch(ts, epoch_idx):
         train_cost += train_batch_cost
         train_accuracy += train_batch_accuracy
 
-        if batch_idx % config.BATCHES_PER_LOGGING == 0:
-            train_cost /= config.BATCHES_PER_LOGGING
-            train_accuracy /= config.BATCHES_PER_LOGGING
+        # -1 because epoch_idx is one indexed
+        batches_per_logging = config.BATCHES_PER_LOGGING[epoch_idx - 1]
+        if batch_idx % batches_per_logging  == 0:
+            train_cost /= batches_per_logging
+            train_accuracy /= batches_per_logging
             valid_cost, valid_accuracy = run_validation(ts)
 
             print(f"E {epoch_idx} | B {batch_idx}/{num_batches} | "
