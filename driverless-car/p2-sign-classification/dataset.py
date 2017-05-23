@@ -1,6 +1,7 @@
 from collections import namedtuple
 import config
 import numpy as np
+import pickle
 
 def normalize_x(x):
     # LeCun says he did better with just grayscale!
@@ -48,7 +49,7 @@ Dataset = namedtuple("Dataset", [
     "image_shape",
 ])
 
-def build_dataset(X_train, y_train, X_valid, y_valid, X_test, y_test):
+def build(X_train, y_train, X_valid, y_valid, X_test, y_test):
     X_train = normalize_x(X_train)
     X_valid = normalize_x(X_valid)
     X_test = normalize_x(X_test)
@@ -67,4 +68,29 @@ def build_dataset(X_train, y_train, X_valid, y_valid, X_test, y_test):
 
         num_classes = num_classes,
         image_shape = X_train.shape[1:],
+    )
+
+def load():
+    training_file = f"{config.DATA_DIR}/train_augmented.p"
+    validation_file= f"{config.DATA_DIR}/valid.p"
+    testing_file = f"{config.DATA_DIR}/test.p"
+
+    with open(training_file, mode='rb') as f:
+        train = pickle.load(f)
+    with open(validation_file, mode='rb') as f:
+        valid = pickle.load(f)
+    with open(testing_file, mode='rb') as f:
+        test = pickle.load(f)
+
+    X_train, y_train = train['features'], train['labels']
+    X_valid, y_valid = valid['features'], valid['labels']
+    X_test, y_test = test['features'], test['labels']
+
+    return build(
+        X_train,
+        y_train,
+        X_valid,
+        y_valid,
+        X_test,
+        y_test
     )
