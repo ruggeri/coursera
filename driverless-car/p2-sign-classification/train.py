@@ -67,7 +67,7 @@ def train_epoch(ts, epoch_idx):
         batch_size = batch_size
     )
 
-    prev_valid_cost = np.inf
+    prev_train_cost = np.inf
     train_cost, train_accuracy = 0.0, 0.0
     prev_time = time.time()
     for batch_idx, (batch_x, batch_y) in enumerate(batches, 1):
@@ -100,10 +100,10 @@ def train_epoch(ts, epoch_idx):
             print(f"Ex/sec: {examples_per_second:0.1f}")
             prev_time = current_time
 
-            train_cost, train_accuracy = 0.0, 0.0
-            if valid_cost > prev_valid_cost:
+            if train_cost > prev_train_cost:
                 ts = decay_learning_rate(ts)
-            prev_valid_cost = valid_cost
+            prev_train_cost = train_cost
+            train_cost, train_accuracy = 0.0, 0.0
 
     return ts
 
