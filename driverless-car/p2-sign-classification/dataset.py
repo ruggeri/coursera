@@ -3,6 +3,10 @@ import config
 import numpy as np
 import pickle
 
+
+# Datafiles to download live here:
+# https://d17h27t6h515a5.cloudfront.net/topher/2017/February/5898cd6f_traffic-signs-data/traffic-signs-data.zip
+
 def normalize_x(x):
     # LeCun says he did better with just grayscale!
     x = np.sum(x, axis = 3) / 3
