@@ -17,9 +17,12 @@ was important to adjust the learning rate down as the epochs
 continued, as well as increase the batch size, too. These helped me
 advance from 5% to 3% misclassification.
 
-I didn't see a benefit from 1x1 convolutions, but that was before I
-started using batch normalization. I would also like to try the
-inception-style architecture that LeCun used in his paper.
+I didn't see a benefit from 1x1 convolutions, even after I started
+using batch normalization. I didn't see a real benefit from
+concatenating the outputs of the second and third convolution layers
+like they did in the LeCun paper. I didn't see any benefit from
+replacing my 5x5 convolutions with a greater number of 3x3
+convolutions either.
 
 Datafiles live here:
 
