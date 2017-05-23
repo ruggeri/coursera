@@ -20,3 +20,7 @@ advance from 5% to 3% misclassification.
 I didn't see a benefit from 1x1 convolutions, but that was before I
 started using batch normalization. I would also like to try the
 inception-style architecture that LeCun used in his paper.
+
+Datafiles live here:
+
+https://d17h27t6h515a5.cloudfront.net/topher/2017/February/5898cd6f_traffic-signs-data/traffic-signs-data.zip
