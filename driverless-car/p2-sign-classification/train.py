@@ -11,6 +11,7 @@ TrainingSession = namedtuple("TrainingSession", [
     "network",
     "dataset",
     "file_writer",
+    "saver",
     "learning_rate",
 ])
 
@@ -105,6 +106,10 @@ def train_epoch(ts, epoch_idx):
             prev_train_cost = train_cost
             train_cost, train_accuracy = 0.0, 0.0
 
+    print("Saving model!")
+    ts.saver.save(ts.session, "models/model.ckpt")
+    print("Model saved!")
+
     return ts
 
 def decay_learning_rate(ts):
@@ -113,6 +118,7 @@ def decay_learning_rate(ts):
         network = ts.network,
         dataset = ts.dataset,
         file_writer = ts.file_writer,
+        saver = ts.saver,
         learning_rate = ts.learning_rate * config.LEARNING_RATE_DECAY
     )
 
@@ -124,12 +130,14 @@ def train(session, dataset):
 
     session.run(tf.global_variables_initializer())
     file_writer = tf.summary.FileWriter("logs/", graph = session.graph)
+    saver = tf.train.Saver()
 
     ts = TrainingSession(
         session = session,
         network = network,
         dataset = dataset,
         file_writer = file_writer,
+        saver = saver,
         learning_rate = config.INITIAL_LEARNING_RATE,
     )
 
