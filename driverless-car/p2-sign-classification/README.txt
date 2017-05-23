@@ -24,6 +24,16 @@ like they did in the LeCun paper. I didn't see any benefit from
 replacing my 5x5 convolutions with a greater number of 3x3
 convolutions either.
 
-Datafiles live here:
+Datafiles to download live here:
 
 https://d17h27t6h515a5.cloudfront.net/topher/2017/February/5898cd6f_traffic-signs-data/traffic-signs-data.zip
+
+# TODO
+
+Need to writeup the report.
+https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/writeup_template.md
+
+https://review.udacity.com/#!/rubrics/481/view
+
+As I do the final writeup, I can review whether there are any other
+learnings to add to this README.txt. I don't think so.
