@@ -31,7 +31,7 @@ def load_sign_names():
 # learner.
 def select_examples(dataset):
     example_idxs = np.random.choice(
-        len(dataset.X_test), size = NUM_EXAMPLES, replace = False
+        dataset.X_test.shape[0], size = NUM_EXAMPLES, replace = False
     )
     examples_x = dataset.X_test[example_idxs, :, :, :]
     examples_y = dataset.y_test[example_idxs]
@@ -44,7 +44,8 @@ def display_results(examples_x, examples_y, predictions):
     num_correct_predictions = 0
     num_topK_correct_predictions = 0
     for example_idx, (x, y) in enumerate(zip(examples_x, examples_y)):
-        plt.imshow(x.reshape((32, 32)), cmap = "gray")
+        # imshow doesn't want a 3d image if grayscale.
+        plt.imshow(x.squeeze(2), cmap = "gray")
         plt.show()
 
         print(f"True class: {sign_names_map[y]}")
@@ -70,16 +71,20 @@ def display_results(examples_x, examples_y, predictions):
     print(f"Test accuracy: {100*accuracy:3.1f}")
     print(f"Top {TOP_K} accuracy: {100*topK_accuracy:3.1f}")
 
-if __name__ == "__main__":
+def main():
     with tf.Session() as session:
         dataset = dataset_mod.load()
         network = network_mod.build_network(
             dataset.image_shape,
             dataset.num_classes
         )
+
         saver = tf.train.Saver()
         saver.restore(session, "models/model.ckpt")
 
         examples_x, examples_y = select_examples(dataset)
         predictions = predict(session, network, examples_x)
         display_results(examples_x, examples_y, predictions)
+
+if __name__ == "__main__":
+    main()
