@@ -145,3 +145,11 @@ def train(session, dataset):
 
     for epoch_idx in range(1, config.NUM_EPOCHS + 1):
         ts = train_epoch(ts, epoch_idx)
+
+def main():
+    with tf.Session() as session:
+        dataset = dataset_mod.load()
+        train(session, dataset)
+
+if __name__ == "__main__":
+    main()
