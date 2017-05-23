@@ -5,120 +5,102 @@ KSIZE = 5
 INITIAL_NUM_FILTERS = 64
 FILTERS_MULTIPLIER = 2
 
+def conv2d(prev_layer, layer_idx, training, keep_prob):
+    num_filters = (
+        INITIAL_NUM_FILTERS * (FILTERS_MULTIPLIER ** (layer_idx - 1))
+    )
+
+    layer = tf.layers.conv2d(
+        prev_layer,
+        filters = num_filters,
+        kernel_size = (KSIZE, KSIZE),
+        strides = (1, 1),
+        padding = "SAME",
+        activation = None,
+        use_bias = False
+    )
+
+    layer = tf.nn.relu(
+        tf.layers.batch_normalization(
+            layer,
+            training = training
+        ),
+    )
+
+    layer = tf.layers.max_pooling2d(
+        layer, pool_size = (2, 2), strides = (2, 2)
+    )
+
+    layer = tf.nn.dropout(layer, keep_prob = keep_prob)
+
+    return layer
+
+def dense(prev_layer, num_units, training, keep_prob):
+    layer = tf.layers.dense(
+        prev_layer,
+        num_units,
+        activation = None,
+        use_bias = False
+    )
+
+    layer = tf.nn.relu(
+        tf.layers.batch_normalization(
+            layer,
+            training = training
+        ),
+    )
+
+    layer = tf.nn.dropout(layer, keep_prob = keep_prob)
+
+    return layer
+
 def build_logits(x, keep_prob, num_classes, training):
     with tf.name_scope("layer1"):
-        layer1 = tf.layers.conv2d(
-            x,
-            filters = INITIAL_NUM_FILTERS,
-            kernel_size = (KSIZE, KSIZE),
-            strides = (1, 1),
-            padding = "SAME",
-            activation = None,
-            use_bias = False
+        layer1 = conv2d(
+            x, 1, training = training, keep_prob = keep_prob
         )
-        layer1 = tf.nn.relu(
-            tf.layers.batch_normalization(
-                layer1,
-                training = training
-            ),
-        )
-        layer1 = tf.layers.max_pooling2d(
-            layer1, pool_size = (2, 2), strides = (2, 2)
-        )
-        layer1 = tf.nn.dropout(layer1, keep_prob = keep_prob)
     # => 16 16 64
 
     with tf.name_scope("layer2"):
-        layer2 = tf.layers.conv2d(
-            layer1,
-            filters = INITIAL_NUM_FILTERS * FILTERS_MULTIPLIER,
-            kernel_size = (KSIZE, KSIZE),
-            strides = (1, 1),
-            padding = "SAME",
-            activation = None,
-            use_bias = False
+        layer2 = conv2d(
+            layer1, 2, training = training, keep_prob = keep_prob
         )
-        layer2 = tf.nn.relu(
-            tf.layers.batch_normalization(
-                layer2,
-                training = training
-            ),
-        )
-        layer2 = tf.layers.max_pooling2d(
-            layer2, pool_size = (2, 2), strides = (2, 2)
-        )
-        layer2 = tf.nn.dropout(layer2, keep_prob = keep_prob)
     # => 8 8 128
 
     with tf.name_scope("layer3"):
-        layer3 = tf.layers.conv2d(
-            layer2,
-            filters = INITIAL_NUM_FILTERS * (FILTERS_MULTIPLIER ** 2),
-            kernel_size = (5, 5),
-            strides = (1, 1),
-            padding = "SAME",
-            activation = None,
-            use_bias = False
+        layer3 = conv2d(
+            layer2, 3, training = training, keep_prob = keep_prob
         )
-        layer3 = tf.nn.relu(
-            tf.layers.batch_normalization(
-                layer3,
-                training = training
-            ),
-        )
-        layer3 = tf.layers.max_pooling2d(
-            layer3, pool_size = (2, 2), strides = (2, 2)
-        )
-        layer3 = tf.nn.dropout(layer3, keep_prob = keep_prob)
     # => 4 4 256
 
     with tf.name_scope("layer4"):
-        layer1_flattened = tf.contrib.layers.flatten(layer1)
-        layer2_flattened = tf.contrib.layers.flatten(layer2)
+        # I tried concatenating the features extracted in layer 2 as
+        # was done in the LeCun paper, but that didn't seem to help.
         layer3_flattened = tf.contrib.layers.flatten(layer3)
+        # => 4096
 
-        #layer4 = tf.concat(
-        #    [layer1_flattened, layer2_flattened, layer3_flattened],
-        #    axis = 0
-        #)
-        flattened = layer3_flattened
-        # => 16384 + 8192 + 4096 = 28672
-
-        layer4 = tf.layers.dense(
-            flattened,
+        layer4 = dense(
+            layer3_flattened,
             1024,
-            activation = None,
-            use_bias = False
+            training = training,
+            keep_prob = keep_prob
         )
-        layer4 = tf.nn.relu(
-            tf.layers.batch_normalization(
-                layer4,
-                training = training
-            ),
-        )
-        layer4 = tf.nn.dropout(layer4, keep_prob = keep_prob)
     # => 1024
 
     with tf.name_scope("layer5"):
-        layer5 = tf.layers.dense(
+        layer5 = dense(
             layer4,
             256,
-            activation = None,
-            use_bias = False
+            training = training,
+            keep_prob = keep_prob
         )
-        layer5 = tf.nn.relu(
-            tf.layers.batch_normalization(
-                layer5,
-                training = training
-            )
-        )
-        layer5 = tf.nn.dropout(layer5, keep_prob = keep_prob)
     # => 256
 
     with tf.name_scope("layer6"):
         layer6 = tf.layers.dense(
             layer5,
             num_classes,
+            activation = None
         )
 
     return layer6
