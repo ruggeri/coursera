@@ -4,6 +4,7 @@ import dataset as dataset_mod
 import network as network_mod
 import numpy as np
 import tensorflow as tf
+import time
 
 TrainingSession = namedtuple("TrainingSession", [
     "session",
@@ -68,6 +69,7 @@ def train_epoch(ts, epoch_idx):
 
     prev_valid_cost = np.inf
     train_cost, train_accuracy = 0.0, 0.0
+    prev_time = time.time()
     for batch_idx, (batch_x, batch_y) in enumerate(batches, 1):
         train_batch_cost, train_batch_accuracy = train_batch(
             ts, batch_x, batch_y
@@ -89,6 +91,14 @@ def train_epoch(ts, epoch_idx):
                   f"Valid Cost {valid_cost:0.3f} | "
                   f"Valid Acc {100*valid_accuracy:3.1f}% | "
                   f"Learning Rate {ts.learning_rate:1.2E}")
+
+            current_time = time.time()
+            examples_per_second = (
+                (batch_size * batches_per_logging)
+                / (current_time - prev_time)
+            )
+            print(f"Ex/sec: {examples_per_second:0.1f}")
+            prev_time = current_time
 
             train_cost, train_accuracy = 0.0, 0.0
             if valid_cost > prev_valid_cost:
