@@ -17,12 +17,8 @@ Dataset = namedtuple("Dataset", [
     "valid_x",
     "valid_y",
     "num_classes",
+    "name",
 ])
-
-def load_traffic_dataset():
-    with open("../data/train.p", "rb") as f:
-        dataset = pickle.load(f)
-        return dataset["features"], dataset["labels"], 43\
 
 def load_cifar10_dataset():
     from keras.datasets import cifar10
@@ -39,10 +35,13 @@ def load_cifar10_dataset():
         valid_x = valid_x,
         valid_y = valid_y,
         num_classes = 10,
+        name = "cifar10",
     )
 
 def load_dataset():
-    x, y, num_classes = load_traffic_dataset()
+    with open("../data/train.p", "rb") as f:
+        dataset = pickle.load(f)
+        x, y, num_classes = dataset["features"], dataset["labels"], 43
 
     # Note that I believe stratify means to partition 30% for test
     # within each class.
@@ -56,14 +55,17 @@ def load_dataset():
         valid_x = valid_x,
         valid_y = valid_y,
         num_classes = num_classes,
+        name = "traffic_signs",
     )
 
 Network = namedtuple("Network", [
     "x",
     "y",
+    "bottleneck",
     "accuracy",
     "loss",
-    "train_op"
+    "train_op",
+    "name",
 ])
 
 def build_network(num_classes):
@@ -99,8 +101,10 @@ def build_network(num_classes):
         x = x,
         y = y,
         accuracy = accuracy,
+        bottleneck = fc7,
         loss = loss,
-        train_op = train_op
+        train_op = train_op,
+        name = "alexnet",
     )
 
 def run_training_batch(session, network, batch_x, batch_y):
@@ -124,6 +128,38 @@ def run_validation_batch(session, network, batch_x, batch_y):
     )
 
     return loss_val, accuracy_val
+
+def save_bottleneck_features(session, network, dataset):
+    def transform(name, x, y):
+        num_batches, batches = make_batches(x, y)
+
+        transformed_results = []
+        for batch_idx, (batch_x, _) in enumerate(batches):
+            transformed_results.append(
+                session.run(network.bottleneck, feed_dict = {
+                    network.x: batch_x
+                })
+            )
+
+            print(f"{name}: {batch_idx}/{num_batches}")
+
+        return np.concatenate(transformed_results, axis = 0)
+
+    transform_train_x = transform(
+        "train_x", dataset.train_x, dataset.train_y
+    )
+    transform_valid_x = transform(
+        "valid_x", dataset.valid_x, dataset.valid_y
+    )
+
+    fname = f"../data/bottleneck_{network.name}_{dataset.name}.p"
+    with open(fname, "wb") as f:
+        pickle.dump({
+            "train_x": transform_train_x,
+            "train_y": dataset.train_y,
+            "valid_x": transform_valid_x,
+            "valid_x": dataset.valid_y,
+        }, f)
 
 def make_batches(x, y):
     num_batches = x.shape[0] // BATCH_SIZE
@@ -175,11 +211,14 @@ def run_validation(session, network, dataset):
     print(f"Valid loss: {loss_val:.3f} | "
           f"Valid accuracy: {accuracy_val:3f}")
 
+def train_without_bottleneck(session, dataset, network):
+    for epoch_idx in range(5):
+        run_training_epoch(session, network, epoch_idx, dataset)
+        run_validation(session, network, dataset)
+
 with tf.Session() as session:
     dataset = load_cifar10_dataset()
     network = build_network(dataset.num_classes)
 
     session.run(tf.global_variables_initializer())
-    for epoch_idx in range(5):
-        run_training_epoch(session, network, epoch_idx, dataset)
-        run_validation(session, network, dataset)
+    save_bottleneck_features(session, network, dataset)
