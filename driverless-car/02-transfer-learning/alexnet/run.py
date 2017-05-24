@@ -15,13 +15,34 @@ Dataset = namedtuple("Dataset", [
     "train_x",
     "train_y",
     "valid_x",
-    "valid_y"
+    "valid_y",
+    "num_classes",
 ])
 
-def traffic_dataset():
+def load_traffic_dataset():
     with open("../data/train.p", "rb") as f:
         dataset = pickle.load(f)
-        x, y = dataset["features"], dataset["labels"]
+        return dataset["features"], dataset["labels"], 43\
+
+def load_cifar10_dataset():
+    from keras.datasets import cifar10
+    (train_x, train_y), (valid_x, valid_y) = cifar10.load_data()
+
+    # train_y.shape is 2d, (50000, 1). While Keras is smart enough to
+    # handle this it's a good idea to flatten the array.
+    train_y = train_y.reshape(-1)
+    valid_y = valid_y.reshape(-1)
+
+    return Dataset(
+        train_x = train_x,
+        train_y = train_y,
+        valid_x = valid_x,
+        valid_y = valid_y,
+        num_classes = 10,
+    )
+
+def load_dataset():
+    x, y, num_classes = load_traffic_dataset()
 
     # Note that I believe stratify means to partition 30% for test
     # within each class.
@@ -33,7 +54,8 @@ def traffic_dataset():
         train_x = train_x,
         train_y = train_y,
         valid_x = valid_x,
-        valid_y = valid_y
+        valid_y = valid_y,
+        num_classes = num_classes,
     )
 
 Network = namedtuple("Network", [
@@ -44,19 +66,19 @@ Network = namedtuple("Network", [
     "train_op"
 ])
 
-def build_network():
+def build_network(num_classes):
     x = tf.placeholder(tf.float32, (None, 32, 32, 3), name = "x")
     resized_x = tf.image.resize_images(
         x,
         ALEX_NET_IMG_DIM
     )
     y = tf.placeholder(tf.int64, (None), name = "y")
-    one_hot_y = tf.one_hot(y, 43)
+    one_hot_y = tf.one_hot(y, num_classes)
 
     fc7 = alexnet.AlexNet(resized_x, feature_extract=True)
     fc7 = tf.stop_gradient(fc7)
 
-    logits = tf.layers.dense(fc7, 43, activation = None)
+    logits = tf.layers.dense(fc7, num_classes, activation = None)
     probs = tf.nn.softmax(logits)
     accuracy = tf.reduce_mean(tf.cast(
         tf.equal(
@@ -154,8 +176,8 @@ def run_validation(session, network, dataset):
           f"Valid accuracy: {accuracy_val:3f}")
 
 with tf.Session() as session:
-    dataset = traffic_dataset()
-    network = build_network()
+    dataset = load_cifar10_dataset()
+    network = build_network(dataset.num_classes)
 
     session.run(tf.global_variables_initializer())
     for epoch_idx in range(5):
