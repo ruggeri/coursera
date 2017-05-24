@@ -6,8 +6,7 @@ import tensorflow as tf
 # use a group; that emulates what was done in terms of splitting per
 # GPU.
 
-net_data = np.load("bvlc-alexnet.npy", encoding="latin1").item()
-
+net_data = np.load("../data/bvlc-alexnet.npy", encoding="latin1").item()
 
 def conv(input,
          kernel,
