@@ -61,7 +61,8 @@ def load_dataset():
 Network = namedtuple("Network", [
     "x",
     "y",
-    "bottleneck",
+    "bottleneck_in",
+    "bottleneck_out",
     "accuracy",
     "loss",
     "train_op",
@@ -74,13 +75,17 @@ def build_network(num_classes):
         x,
         ALEX_NET_IMG_DIM
     )
+    bottleneck_in = tf.placeholder(
+        tf.float32, (None, 4096), name = "bottleneck_in"
+    )
     y = tf.placeholder(tf.int64, (None), name = "y")
     one_hot_y = tf.one_hot(y, num_classes)
 
-    fc7 = alexnet.AlexNet(resized_x, feature_extract=True)
-    fc7 = tf.stop_gradient(fc7)
+    bottleneck_out = alexnet.AlexNet(resized_x, feature_extract=True)
 
-    logits = tf.layers.dense(fc7, num_classes, activation = None)
+    logits = tf.layers.dense(
+        bottleneck_in, num_classes, activation = None
+    )
     probs = tf.nn.softmax(logits)
     accuracy = tf.reduce_mean(tf.cast(
         tf.equal(
@@ -101,7 +106,8 @@ def build_network(num_classes):
         x = x,
         y = y,
         accuracy = accuracy,
-        bottleneck = fc7,
+        bottleneck_out = bottleneck_out,
+        bottleneck_in = bottleneck_in,
         loss = loss,
         train_op = train_op,
         name = "alexnet",
@@ -111,7 +117,7 @@ def run_training_batch(session, network, batch_x, batch_y):
     _, loss_val, accuracy_val = session.run(
         [network.train_op, network.loss, network.accuracy],
         feed_dict = {
-            network.x: batch_x,
+            network.bottleneck_in: batch_x,
             network.y: batch_y
         }
     )
@@ -122,7 +128,7 @@ def run_validation_batch(session, network, batch_x, batch_y):
     loss_val, accuracy_val = session.run(
         [network.loss, network.accuracy],
         feed_dict = {
-            network.x: batch_x,
+            network.bottleneck_in: batch_x,
             network.y: batch_y
         }
     )
@@ -136,7 +142,7 @@ def save_bottleneck_features(session, network, dataset):
         transformed_results = []
         for batch_idx, (batch_x, _) in enumerate(batches):
             transformed_results.append(
-                session.run(network.bottleneck, feed_dict = {
+                session.run(network.bottleneck_out, feed_dict = {
                     network.x: batch_x
                 })
             )
@@ -154,12 +160,14 @@ def save_bottleneck_features(session, network, dataset):
 
     fname = f"../data/bottleneck_{network.name}_{dataset.name}.p"
     with open(fname, "wb") as f:
-        pickle.dump({
-            "train_x": transform_train_x,
-            "train_y": dataset.train_y,
-            "valid_x": transform_valid_x,
-            "valid_x": dataset.valid_y,
-        }, f)
+        pickle.dump(Dataset(
+            train_x = transform_train_x,
+            train_y = dataset.train_y,
+            valid_x = transform_valid_x,
+            valid_y = dataset.valid_y,
+            num_classes = dataset.num_classes,
+            name = dataset.name
+        ), f)
 
 def make_batches(x, y):
     num_batches = x.shape[0] // BATCH_SIZE
@@ -211,14 +219,24 @@ def run_validation(session, network, dataset):
     print(f"Valid loss: {loss_val:.3f} | "
           f"Valid accuracy: {accuracy_val:3f}")
 
-def train_without_bottleneck(session, dataset, network):
-    for epoch_idx in range(5):
-        run_training_epoch(session, network, epoch_idx, dataset)
-        run_validation(session, network, dataset)
+def train():
+    with open("../data/bottleneck_alexnet_cifar10.p", "rb") as f:
+        dataset = pickle.load(f)
+    network = build_network(dataset.num_classes)
 
-with tf.Session() as session:
+    with tf.Session() as session:
+        session.run(tf.global_variables_initializer())
+        for epoch_idx in range(5):
+            run_training_epoch(session, network, epoch_idx, dataset)
+            run_validation(session, network, dataset)
+
+def transform():
     dataset = load_cifar10_dataset()
     network = build_network(dataset.num_classes)
 
-    session.run(tf.global_variables_initializer())
-    save_bottleneck_features(session, network, dataset)
+    with tf.Session() as session:
+        session.run(tf.global_variables_initializer())
+        save_bottleneck_features(session, network, dataset)
+
+if __name__ == "__main__":
+    train()
