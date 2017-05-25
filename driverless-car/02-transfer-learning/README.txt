@@ -1,3 +1,8 @@
+This turned out to be a pointless project because they just gave us
+the bottleneck features of the other networks and we didn't have to
+build them ourselves. Still, I could return to this and import the
+VGG, ResNet, etc networks for practice, I suppose.
+
 AlexNet weights:
 https://d17h27t6h515a5.cloudfront.net/topher/2016/October/580d880c_bvlc-alexnet/bvlc-alexnet.npy
 
