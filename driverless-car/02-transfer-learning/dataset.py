@@ -30,7 +30,7 @@ def load_cifar10_dataset():
     )
 
 def load_traffic_signs_dataset():
-    with open("../data/train.p", "rb") as f:
+    with open("data/train.p", "rb") as f:
         dataset = pickle.load(f)
         x, y, num_classes = dataset["features"], dataset["labels"], 43
 
