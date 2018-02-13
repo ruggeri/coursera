@@ -13,7 +13,8 @@ def choose_action(session, graph, game_state):
         feed_dict = {
             graph.prev_game_states: (
                 game_state.reshape((1, config.NUM_STATE_DIMENSIONS))
-            )
+            ),
+            graph.is_training: False
         }
     )
 

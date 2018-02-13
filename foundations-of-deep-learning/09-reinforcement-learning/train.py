@@ -66,6 +66,7 @@ def train_batch(run_info, batch_info):
             graph.next_game_states: next_game_states,
             graph.reward_decay: batch_info.reward_decay,
             graph.did_episodes_end: did_episodes_end,
+            graph.is_training: True
         }
     )
 
@@ -90,9 +91,8 @@ def train_epoch(run_info, epoch_idx):
 
 def batch_info(epoch_idx, batch_idx):
     exploration_rate = config.EXPLORATION_START_RATE
-    exploration_rate = exploration_rate ** (
-        1 - config.EXPLORATION_DECAY_RATE
-    )
+    exploration_rate *= 1 - config.EXPLORATION_DECAY_RATE
+
     exploration_rate = max(
         exploration_rate, config.EXPLORATION_RATE_MIN
     )

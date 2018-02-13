@@ -167,9 +167,9 @@ def evolve(state):
 
         # In training mode, we don't even let the ball bounce back to
         # the other player.
-        if state.training_mode:
-            state = PongState(state.training_mode)
-            return (state, events)
+        # if state.training_mode:
+        #     state = PongState(state.training_mode)
+        #     return (state, events)
     if ball_touches_paddle(state, PLAYER2):
         state = state.bounce(DIR_X)
         events.append(pong_events.P2_BOUNCE)
@@ -192,18 +192,20 @@ def initial_conditions(training_mode):
         np.random.uniform(low = -1, high = +1, size = (2,))
     )
 
-    if training_mode:
-        ball_pos = np.random.uniform(
-            low = 0, high = +1, size = (2,)
-        )
-        if (ball_vel[1] > 0):
-            ball_vel[1] *= -1
-
-        # For now, let's try prohibiting bounces in training mode.
-        if config.TRAINING_MODE_NO_BOUNCES:
-            x_time, y_time = x_and_y_times(ball_pos, ball_vel)
-            if y_time < x_time:
-                return initial_conditions(training_mode)
+    # TODO: I think this code existed to try to make the learning
+    # problem simpler.
+    # if training_mode:
+    #     ball_pos = np.random.uniform(
+    #         low = 0, high = +1, size = (2,)
+    #     )
+    #     if (ball_vel[1] > 0):
+    #         ball_vel[1] *= -1
+    #
+    #     # For now, let's try prohibiting bounces in training mode.
+    #     if config.TRAINING_MODE_NO_BOUNCES:
+    #         x_time, y_time = x_and_y_times(ball_pos, ball_vel)
+    #         if y_time < x_time:
+    #             return initial_conditions(training_mode)
 
     return (ball_pos, ball_vel)
 
@@ -212,6 +214,8 @@ def distance_to_ball(state, player_num):
         paddle_pos(state, player_num) - state.ball_pos[0]
     )
 
+# This is the amount of time before the ball hits in the x and y
+# directions.
 def x_and_y_times(ball_pos, ball_vel):
     if ball_vel[1] > 0.0:
         x_time = (1 - ball_pos[1]) / ball_vel[1]

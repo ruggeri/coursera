@@ -30,30 +30,36 @@ def did_reset(prev_stats, next_stats):
             or (prev_stats.p2_points != next_stats.p2_points))
 
 def reward(prev_state, prev_stats, next_state, next_stats):
-    if config.REWARD_TYPE == "BALL_FOLLOW_REWARD":
-        r = ball_follow_reward(
-            prev_state, prev_stats, next_state, next_stats
-        )
-    elif config.REWARD_TYPE == "IDEAL_ANTICIPATION_REWARD":
-        r = ideal_anticipation_reward(
-            prev_state, prev_stats, next_state, next_stats
-        )
-    else:
-        raise Exception("Unknown reward setting")
+    # A bunch of hacks to try to get the paddle to follow the ball.
 
-    if np.random.uniform() >= config.REWARD_PROBABILITY:
-        return 0.0
+    # if config.REWARD_TYPE == "BALL_FOLLOW_REWARD":
+    #     r = ball_follow_reward(
+    #         prev_state, prev_stats, next_state, next_stats
+    #     )
+    # elif config.REWARD_TYPE == "IDEAL_ANTICIPATION_REWARD":
+    #     r = ideal_anticipation_reward(
+    #         prev_state, prev_stats, next_state, next_stats
+    #     )
+    # else:
+    #     raise Exception("Unknown reward setting")
+    #
+    # if np.random.uniform() >= config.REWARD_PROBABILITY:
+    #     return 0.0
+    #
+    # scale_factor = config.REWARD_SCALING_FACTOR
+    # # Idea here is to integrate out to 1.0.
+    # if config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE:
+    #     scale_factor *= 2 * (
+    #         config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
+    #         * (1 - next_state.ball_pos[1])
+    #     ) / config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
+    # r *= scale_factor
+    #
+    # r += REWARD_BOUNCES_FACTOR * reward_bounce(
+    #     prev_state, prev_stats, next_state, next_stats
+    # )
 
-    scale_factor = config.REWARD_SCALING_FACTOR
-    # Idea here is to integrate out to 1.0.
-    if config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE:
-        scale_factor *= 2 * (
-            config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
-            * (1 - next_state.ball_pos[1])
-        ) / config.SCALE_REWARD_BY_DISTANCE_TO_PADDLE
-    r *= scale_factor
-
-    r += REWARD_BOUNCES_FACTOR * reward_bounce(
+    r = reward_bounce(
         prev_state, prev_stats, next_state, next_stats
     )
 
@@ -89,10 +95,14 @@ def ideal_anticipation_reward(
              - (prev_ideal_distance) ** config.DISTANCE_ERROR_POWER)
 
 def reward_bounce(prev_state, prev_stats, next_state, next_stats):
-    return (
+    r = (
         (next_stats.p1_bounces - prev_stats.p1_bounces)
+        + (next_stats.p1_points - next_stats.p1_points)
         + (prev_stats.p2_points - next_stats.p2_points)
     )
+
+    # Seems like on average 100 steps until score?
+    return r * 100
 
 def did_episode_end(prev_state, prev_stats, next_state, next_stats):
     if (next_stats.p2_points - prev_stats.p2_points) == 1:

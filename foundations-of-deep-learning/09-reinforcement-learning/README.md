@@ -36,3 +36,15 @@ good.
 
 I spent a lot of time on this so I would like to reevaluate before I
 return to Q learning...
+
+## TODO
+
+config.py
+example.py
+memory.py
+play.py
+train.py
+
+* I have this notion of an "ideal position".
+* I also had code previously that tried to train just firing toward the AI.
+* The reward code in example.py seems insane...

@@ -4,7 +4,8 @@ import tensorflow as tf
 import train
 
 def maybe_restore(session, saver):
-    saver = tf.train.Saver()
+    # Was there a reason this was ever here??
+    # saver = tf.train.Saver()
     while True:
         ipt = input("restore [y/n]: ")
         if ipt == "y":

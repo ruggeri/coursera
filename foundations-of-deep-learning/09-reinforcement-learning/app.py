@@ -1,5 +1,6 @@
 import aiohttp.web
 import asyncio
+import config
 import json
 import pong
 import pong_stats
@@ -26,13 +27,14 @@ async def index(request):
             text = f.read(), content_type = 'text/html'
         )
 
-PLAY_LEARNED_AI = True
 async def play_learned_ai(callback):
+    print("LOADING LIBRARIES")
     import config
     import graph as g
     import main
     import play
     import tensorflow as tf
+    print("LIBRARIES LOADED")
     with tf.Session() as session:
         graph = g.build_graph()
         saver = tf.train.Saver()
@@ -60,7 +62,7 @@ async def websocket_handler(request):
         ws.send_str(game_state_to_json(game.stats, game.state))
         await asyncio.sleep(pong_constants.POLL_FREQUENCY)
 
-    if PLAY_LEARNED_AI:
+    if config.PLAY_LEARNED_AI:
         await play_learned_ai(callback)
     else:
         await play_hand_ai(callback)
