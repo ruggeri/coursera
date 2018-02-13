@@ -10,6 +10,27 @@ PONG_STATS_FIELDS = [
 
 PongStats = namedtuple("PongStats", PONG_STATS_FIELDS)
 
+def reduce(stats):
+    p1_points = 0
+    p2_points = 0
+    p1_bounces = 0
+    p2_bounces = 0
+
+    num_games = len(stats)
+
+    for stat in stats:
+        p1_points += stat.p1_points
+        p2_points += stat.p2_points
+        p1_bounces += stat.p1_bounces
+        p2_bounces += stat.p2_bounces
+
+    return PongStats(
+        p1_points = round(p1_points / num_games, 2),
+        p2_points = round(p2_points / num_games, 2),
+        p1_bounces = round(p1_bounces / num_games, 2),
+        p2_bounces = round(p2_bounces / num_games, 2),
+    )
+
 def new():
     return PongStats(
         p1_points = 0,

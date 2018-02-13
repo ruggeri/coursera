@@ -5,6 +5,7 @@ import memory as m
 import numpy as np
 import play
 import pong
+import pong_stats
 
 RunInfo = namedtuple("RunInfo", [
     "session",
@@ -19,7 +20,7 @@ BatchInfo = namedtuple("BatchInfo", [
     "reward_decay"
 ])
 
-def log_batch(batch_info, losses, game):
+def log_batch(batch_info, losses, games):
     epoch_idx, batch_idx = batch_info.epoch_idx, batch_info.batch_idx
 
     if len(losses) > 0:
@@ -29,7 +30,8 @@ def log_batch(batch_info, losses, game):
 
     print(f"Epoch {epoch_idx} | Batch {batch_idx} | "
           f"Avg Loss {avg_loss}")
-    print(game.stats)
+
+    print(pong_stats.reduce([game.stats for game in games]))
 
 def train_batch(run_info, batch_info):
     session, graph, memory = (
@@ -73,20 +75,24 @@ def train_batch(run_info, batch_info):
     return avg_loss
 
 def train_epoch(run_info, epoch_idx):
-    game = pong.PongGame(training_mode = config.TRAINING_MODE)
+    games = [
+        pong.PongGame(training_mode = config.TRAINING_MODE)
+        for
+        _ in range(config.GAME_BATCH_SIZE)
+    ]
 
     losses = []
     batch_idxs = range(1, config.NUM_BATCHES_PER_EPOCH + 1)
     for batch_idx in batch_idxs:
         bi = batch_info(epoch_idx, batch_idx)
 
-        example.generate_data(run_info, bi, game)
+        example.generate_data_all(run_info, bi, games)
         batch_loss = train_batch(run_info, bi)
 
         if batch_loss:
             losses.append(batch_loss)
         if batch_idx % config.BATCHES_PER_LOG == 0:
-            log_batch(bi, losses, game)
+            log_batch(bi, losses, games)
             losses = []
 
 def batch_info(epoch_idx, batch_idx):

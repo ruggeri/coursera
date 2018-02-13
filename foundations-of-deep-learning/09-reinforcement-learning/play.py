@@ -12,14 +12,14 @@ def choose_action(session, graph, game_state):
         graph.q_values,
         feed_dict = {
             graph.prev_game_states: (
-                game_state.reshape((1, config.NUM_STATE_DIMENSIONS))
+                game_state.reshape((-1, config.NUM_STATE_DIMENSIONS))
             ),
             graph.is_training: False
         }
     )
 
-    q_values = q_values.reshape((config.NUM_ACTIONS,))
-    best_action = np.argmax(q_values)
+    q_values = q_values.reshape((-1, config.NUM_ACTIONS,))
+    best_action = np.argmax(q_values, axis = 1)
     return best_action
 
 def evaluate_action(game_state, action_idx):

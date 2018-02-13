@@ -111,7 +111,24 @@ def did_episode_end(prev_state, prev_stats, next_state, next_stats):
         return True
     return False
 
-def generate_data(run_info, batch_info, game):
+def generate_data_all(run_info, batch_info, games):
+    session, graph, memory = (
+        run_info.session, run_info.graph, run_info.memory
+    )
+
+    prev_game_states = [game.state for game in games]
+    model_states = np.array([
+        model_state(prev_game_state)
+        for prev_game_state in prev_game_states
+    ])
+    chosen_actions = play.choose_action(
+        session, graph, model_states,
+    )
+
+    for (game, chosen_action) in zip(games, chosen_actions):
+        generate_data(run_info, batch_info, game, chosen_action)
+
+def generate_data(run_info, batch_info, game, chosen_action):
     session, graph, memory = (
         run_info.session, run_info.graph, run_info.memory
     )
@@ -120,10 +137,10 @@ def generate_data(run_info, batch_info, game):
     prev_game_state, prev_stats = game.state, game.stats
     if np.random.random() < exploration_rate:
         chosen_action = np.random.randint(0, config.NUM_ACTIONS)
-    else:
-        chosen_action = play.choose_action(
-            session, graph, model_state(prev_game_state)
-        )
+    # else:
+    #     chosen_action = play.choose_action(
+    #         session, graph, model_state(prev_game_state)
+    #     )
 
     play.play_action_idx(game, chosen_action)
     next_game_state, next_stats = game.state, game.stats
