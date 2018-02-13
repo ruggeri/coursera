@@ -31,7 +31,10 @@ def log_batch(batch_info, losses, games):
     print(f"Epoch {epoch_idx} | Batch {batch_idx} | "
           f"Avg Loss {avg_loss}")
 
-    print(pong_stats.reduce([game.stats for game in games]))
+    reduced_stats = pong_stats.reduce([game.stats for game in games])
+    print(reduced_stats)
+    print(reduced_stats.p2_bounces / (reduced_stats.p1_bounces + 0.01))
+    print(f"exploration rate: {batch_info.exploration_rate:0.2f}")
 
 def train_batch(run_info, batch_info):
     session, graph, memory = (
@@ -86,7 +89,8 @@ def train_epoch(run_info, epoch_idx):
     for batch_idx in batch_idxs:
         bi = batch_info(epoch_idx, batch_idx)
 
-        example.generate_data_all(run_info, bi, games)
+        if (not run_info.memory.is_full()) or (batch_idx % 10 == 0):
+            example.generate_data_all(run_info, bi, games)
         batch_loss = train_batch(run_info, bi)
 
         if batch_loss:

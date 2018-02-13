@@ -18,3 +18,6 @@ class Memory():
 
     def num_points(self):
         return len(self.examples)
+
+    def is_full(self):
+        return self.num_points() == config.MEMORY_LEN

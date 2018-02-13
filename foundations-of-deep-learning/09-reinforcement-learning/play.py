@@ -103,3 +103,4 @@ async def async_evaluate_performance(
         if should_log:
             print(f"eval point #{total_points(game)}")
             print(game.stats)
+            print(game.stats.p2_bounces / (game.stats.p1_bounces + 0.01))
