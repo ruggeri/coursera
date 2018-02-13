@@ -1,4 +1,4 @@
-PLAY_LEARNED_AI = False
+PLAY_LEARNED_AI = True
 
 # Network Parameters
 NUM_HIDDEN_UNITS = 32

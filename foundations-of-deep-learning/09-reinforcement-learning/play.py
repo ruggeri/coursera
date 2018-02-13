@@ -75,6 +75,8 @@ async def async_evaluate_performance(
     def total_points(game):
         return pong_stats.total_points(game.stats)
 
+    moves = np.zeros(2)
+
     while total_points(game) < config.NUM_POINTS_PER_EVALUATION:
         prev_stats = game.stats
         prev_game_state = example.model_state(game.state)
@@ -86,6 +88,7 @@ async def async_evaluate_performance(
             chosen_action_idx = choose_action(
                 session, graph, prev_game_state
             )
+            moves[chosen_action_idx] += 1
         play_action_idx(game, chosen_action_idx)
         next_stats = game.stats
 
@@ -104,3 +107,4 @@ async def async_evaluate_performance(
             print(f"eval point #{total_points(game)}")
             print(game.stats)
             print(game.stats.p2_bounces / (game.stats.p1_bounces + 0.01))
+            print(moves)
