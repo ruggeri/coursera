@@ -101,7 +101,9 @@ def train_epoch(run_info, epoch_idx):
 
 def batch_info(epoch_idx, batch_idx):
     exploration_rate = config.EXPLORATION_START_RATE
-    exploration_rate *= 1 - config.EXPLORATION_DECAY_RATE
+    exploration_rate *= (1 - config.EXPLORATION_DECAY_RATE) ** (
+        (epoch_idx - 1) * config.NUM_BATCHES_PER_EPOCH + batch_idx
+    )
 
     exploration_rate = max(
         exploration_rate, config.EXPLORATION_RATE_MIN
